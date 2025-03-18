@@ -9,8 +9,8 @@ author-image:   author_profile.jpeg
 author-job:     Cloud Engineer
 author-email:   station7755@gsneotek.com # Add your email for contant form.
 author-twitter: # 빈값. 사용 안함
-about-author: >
-  Azure MVP를 꿈꾸는 Cloud Engineer
+about-author: |
+  Azure MVP를 꿈꾸는 Cloud Engineer<br>
   기술 블로그 초보입니다.
 
 # Social settings
