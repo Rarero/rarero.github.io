@@ -42,6 +42,12 @@ plugins:
 paginate: 7 # 한 페이지당 7개의 글 표시
 paginate_path: "/page/:num/"  # '/page/2/', '/page/3/' 형태로 설정
 
+# Category
+collections:
+  posts:
+    output: true
+    permalink: /:categories/:year/:month/:day/:title/
+
 # 추가 포함 및 SASS 설정
 include:
   - _pages  # _pages 폴더를 포함하여 빌드
