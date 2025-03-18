@@ -9,7 +9,7 @@ author-image:   author_profile.jpeg
 author-job:     Cloud Engineer
 author-email:   station7755@gsneotek.com # Add your email for contant form.
 author-twitter: # 빈값. 사용 안함
-about-author: |
+about-author: 
   Azure MVP를 꿈꾸는 Cloud Engineer
   기술 블로그 초보입니다.
 
@@ -41,12 +41,6 @@ plugins:
 # Pagination 설정
 paginate: 7 # 한 페이지당 7개의 글 표시
 paginate_path: "/page/:num/"  # '/page/2/', '/page/3/' 형태로 설정
-
-# Category
-collections:
-  posts:
-    output: true
-    permalink: /:categories/:year/:month/:day/:title/
 
 # 추가 포함 및 SASS 설정
 include:
