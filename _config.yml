@@ -1,25 +1,27 @@
-title: Welcome to Flexton
-description: Flexton is a responsive and ultra-minimal theme for Jekyll.
-baseurl: "" # the subpath of your site, e.g. /blog
+title: rarero's Tech Blend # 사이트의 제목
+description: 여러 기술을 정리해놓은 개인 블로그입니다. # 사이트 설명
+baseurl: "" # 루트 경로 설정(""이므로 루트에서 실행). the subpath of your site, e.g. /blog
 url: "flexton.netlify.com" # the base hostname & protocol for your site, e.g. http://example.com
 
-# Author
-author-name:    Clayton Hanson
-author-image:   1.jpg
-author-job:     Web Developer
-author-email:   your-email@domain.com # Add your email for contant form.
-author-twitter: artemsheludko_ # Add your twitter account
-about-author:   I am a web developer focusing on front-end development. Always hungry to keep learning.
+# Author (저자 정보)
+author-name:    황상원
+author-image:   author_profile.jpeg
+author-job:     Cloud Engineer
+author-email:   station7755@gsneotek.com # Add your email for contant form.
+author-twitter: # 빈값. 사용 안함
+about-author: |
+  Azure MVP를 꿈꾸는 Cloud Engineer<br>
+  기술 블로그 초보입니다.
 
 # Social settings
-social-twitter:   artemsheludko_
-social-facebook:
-social-github:    artemsheludko
-social-pinterest: artemsheludko
-social-instagram: artemsheludko_
-social-youtube:
-social-vk:   
-social-linkedin:
+social-twitter:   # 빈값. 사용 안함
+social-facebook:  # 빈값. 사용 안함
+social-github:    # 빈값. 사용 안함
+social-pinterest: # 빈값. 사용 안함
+social-instagram: # 빈값. 사용 안함
+social-youtube:   # 빈값. 사용 안함
+social-vk:        # 빈값. 사용 안함
+social-linkedin:  # 빈값. 사용 안함
 
 # Newsletter
 mailchimp: # Add your MailChimp form identifier. For example - blogenjoyfreedom.us16.list-manage.com/subscribe/post?u=cd56155d76ddeeb4c0bc4d080&amp;id=7a526cd13e
@@ -30,19 +32,21 @@ google-analytics: # Add your identifier. For example UA-99631805-1
 # Comment Section (Disqus)
 disqus-identifier: mr-brown # Add your shortname for Disqus Comment. For example mr-brown
 
-# Build settings
-markdown: kramdown
-permalink: /:year/:month/:day/:title/
+# 빌드 및 배포 설정
+markdown: kramdown  # Markdown엔진으로 kramdown 사용
+permalink: /:year/:month/:day/:title/ # '/YYYY/MM/DD/글제목/' 형태로 설정
 plugins:
-  - jekyll-paginate
+  - jekyll-paginate # Pagination 플러그인 사용
 
-paginate: 7
-paginate_path: "/page/:num/"
+# Pagination 설정
+paginate: 7 # 한 페이지당 7개의 글 표시
+paginate_path: "/page/:num/"  # '/page/2/', '/page/3/' 형태로 설정
 
+# 추가 포함 및 SASS 설정
 include:
-  - _pages
+  - _pages  # _pages 폴더를 포함하여 빌드
 
-sass:
+sass: # _sass 폴더에서 SCSS 파일을 관리하고, 압축된 CSS 스타일을 적용
   sass_dir: _sass
   style: compressed
 
