@@ -1,9 +1,9 @@
 ---
 layout: post
-title: 테스트용 Terraform 포트팅
+title: github.io로 블로그 시작하기
 image: 8.jpg
-date: 2023-03-18 09:00:00 +0900
-tags: terraform, architecture
-categories: terraform
+date: 2025-03-18 10:00:00 +0900
+tags: html, architecture
+categories: github_blog
 ---
 test post
