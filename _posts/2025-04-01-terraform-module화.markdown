@@ -3,8 +3,8 @@ layout: post
 title: [개념] terraform module화
 image: terraform.png
 date: 2025-04-01 09:00:00 +0900
-tags: terraform, architecture
-categories: terraform, concept
+tags: [terraform, architecture]
+categories: terraform
 ---
 Terraform 모듈화는 인프라스트럭처 코드를 더 체계적이고 재사용 가능하게 만들기 위한 설계 패턴입니다. 이는 반복적인 코드를 줄이고, 유지보수성을 높이며, 일관된 인프라를 구성할 수 있도록 돕습니다.
 
