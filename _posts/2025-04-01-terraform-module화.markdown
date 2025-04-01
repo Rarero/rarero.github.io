@@ -30,26 +30,26 @@ Terraform 모듈화는 인프라스트럭처 코드를 더 체계적이고 재�
 1. **루트 모듈(Root Module)**: Terraform 명령어를 실행하는 최상위 디렉토리
 2. **서브 모듈(Submodule)**: 별도의 디렉토리에서 정의된 모듈로, `module` 블록을 통해 호출
 
->***예시 디렉토리 구조:***
->```
->.
->├── main.tf
->└── modules/
->    └── vnet/
->        ├── main.tf
->        ├── variables.tf
->        └── outputs.tf
->```
+**예시: 기본 모듈 디렉토리 구조**
+```
+.
+├── main.tf
+└── modules/
+    └── vnet/
+        ├── main.tf
+        ├── variables.tf
+        └── outputs.tf
+```
 <br>
 
->***호출 방법:***
->```hcl
->module "vnet" {
->  source = "./modules/vnet"
->  name   = "example-vnet"
->  cidr   = "10.0.0.0/16"
->}
->```
+**예시: 모듈 호출 방식**
+```hcl
+module "vnet" {
+  source = "./modules/vnet"
+  name   = "example-vnet"
+  cidr   = "10.0.0.0/16"
+}
+```
 
 ---
 
@@ -57,53 +57,55 @@ Terraform 모듈화는 인프라스트럭처 코드를 더 체계적이고 재�
 
 Terraform 모듈은 환경별로 디렉토리를 나누어 각 환경에서 동일한 모듈을 다르게 구성할 수 있습니다. 이 방식은 환경 간 설정 차이는 유지하면서도 일관된 리소스를 쉽게 배포할 수 있게 합니다.
 
->***예시 디렉토리 구조:***
->```
->.
->├── envs/
->│   ├── dev/
->│   │   ├── main.tf
->│   │   └── terraform.tfvars
->│   ├── stage/
->│   │   ├── main.tf
->│   │   └── terraform.tfvars
->│   └── prod/
->│       ├── main.tf
->│       └── terraform.tfvars
->└── modules/
->    └── vnet/
->        ├── main.tf
->        ├── variables.tf
->        └── outputs.tf
->```
+**예시: 환경별 디렉토리 구조**
+```
+.
+├── envs/
+│   ├── dev/
+│   │   ├── main.tf
+│   │   └── terraform.tfvars
+│   ├── stage/
+│   │   ├── main.tf
+│   │   └── terraform.tfvars
+│   └── prod/
+│       ├── main.tf
+│       └── terraform.tfvars
+└── modules/
+    └── vnet/
+        ├── main.tf
+        ├── variables.tf
+        └── outputs.tf
+```
 
-> ***modules/vnet/variables.tf 예시:***
->```
->variable "name" {
->  description = "Virtual Network name"
->  type        = string
->}
->
->variable "cidr" {
->  description = "CIDR block for the Virtual Network"
->  type        = string
->}
->```
+**예시: modules/vnet/variables.tf 변수 정의**
+```
+variable "name" {
+  description = "Virtual Network name"
+  type        = string
+}
 
->***환경별 main.tf 내용 예시 (`envs/dev/main.tf`):***
->```hcl
->module "vnet" {
->  source = "../../modules/vnet"
->  name   = var.name
->  cidr   = var.cidr
->}
->```
+variable "cidr" {
+  description = "CIDR block for the Virtual Network"
+  type        = string
+}
+```
 
->***환경별 변수 파일 (`envs/dev/terraform.tfvars`):***
->```hcl
->name = "dev-vnet"
->cidr = "10.0.0.0/16"
->```
+**예시: 환경별 main.tf 구성**
+환경별 main.tf 내용 예시 (`envs/dev/main.tf`):
+```hcl
+module "vnet" {
+  source = "../../modules/vnet"
+  name   = var.name
+  cidr   = var.cidr
+}
+```
+
+**예시: 환경별 tfvars 파일**
+환경별 변수 파일 (`envs/dev/terraform.tfvars`):
+```hcl
+name = "dev-vnet"
+cidr = "10.0.0.0/16"
+```
 
 이런 구조를 사용하면 환경별로 모듈을 독립적으로 관리하면서도, 공통된 구조와 로직은 유지할 수 있어 코드의 일관성과 유지보수성을 높일 수 있습니다.
 
@@ -113,26 +115,27 @@ Terraform 모듈은 환경별로 디렉토리를 나누어 각 환경에서 동�
 
 `terraform.tfvars` 파일은 Terraform에서 변수 값을 정의하는 파일로, `variables.tf` 파일에 선언된 변수들에 실제 값을 할당하는 데 사용됩니다. 이를 통해 코드와 설정 값을 분리하여 환경에 따라 유연하게 구성을 변경할 수 있습니다.
 
->***예시 variables.tf:***
->```hcl
->variable "name" {}
->variable "cidr" {}
->```
+예시:
+**variables.tf**
+```hcl
+variable "name" {}
+variable "cidr" {}
+```
 
->***예시 terraform.tfvars:***
->```hcl
->name = "dev-vnet"
->cidr = "10.0.0.0/16"
->```
+**terraform.tfvars**
+```hcl
+name = "dev-vnet"
+cidr = "10.0.0.0/16"
+```
 
->***예시 main.tf:***
->```hcl
->module "vnet" {
->  source = "../../modules/vnet"
->  name   = var.name
->  cidr   = var.cidr
->}
->```
+**main.tf**
+```hcl
+module "vnet" {
+  source = "../../modules/vnet"
+  name   = var.name
+  cidr   = var.cidr
+}
+```
 
 ### 5.1 tfvars 파일의 장점
 
@@ -156,22 +159,21 @@ terraform apply -var-file="dev.tfvars"
 
 필요에 따라 location, tags, subnet 목록 등의 값을 추가 변수로 받아 모듈을 더욱 확장할 수 있습니다.
 
->***예시:***
->```hcl
->variable "location" {
->  description = "Azure region"
->  type        = string
->  default     = "koreacentral"
->}
->
->variable "tags" {
->  description = "Resource tags"
->  type        = map(string)
->  default     = {}
->}
->```
+예:
+```hcl
+variable "location" {
+  description = "Azure region"
+  type        = string
+  default     = "koreacentral"
+}
 
-💡 **TIP**: 환경에 따라 `.auto.tfvars` 파일을 만들어두면 Terraform이 자동으로 불러옵니다!
+variable "tags" {
+  description = "Resource tags"
+  type        = map(string)
+  default     = {}
+}
+```
+> 💡 **TIP**: 환경에 따라 `.auto.tfvars` 파일을 만들어두면 Terraform이 자동으로 불러옵니다!
 
 ---
 
