@@ -32,7 +32,8 @@ disqus-identifier: mr-brown # Add your shortname for Disqus Comment. For example
 
 # 빌드 및 배포 설정
 markdown: kramdown  # Markdown엔진으로 kramdown 사용
-permalink: /:year/:month/:day/:title/ # '/YYYY/MM/DD/글제목/' 형태로 설정
+#permalink: /:year/:month/:day/:title/ # '/YYYY/MM/DD/글제목/' 형태로 설정
+permalink: /:categories/:title/
 plugins:
   - jekyll-paginate # Pagination 플러그인 사용
 
