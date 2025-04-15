@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Azure Private DNS 통신 과정
+title: "Azure Private DNS 통신 과정"
 image: terraform.png
 date: 2025-04-15 09:00:00 +0900
 tags: [azure, networking]
