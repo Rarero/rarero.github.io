@@ -36,6 +36,7 @@ markdown: kramdown  # Markdown엔진으로 kramdown 사용
 permalink: /:categories/:title/
 plugins:
   - jekyll-paginate # Pagination 플러그인 사용
+  - jekyll-category-generator
 
 # Pagination 설정
 paginate: 7 # 한 페이지당 7개의 글 표시
