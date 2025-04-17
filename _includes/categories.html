@@ -3,7 +3,7 @@
     {% capture cats %} {% for cat in site.categories %} {{ cat | first }} {% endfor %} {% endcapture %} {% assign sortedCats
     = cats | split: ' ' | sort %} {% for category in sortedCats %}
     <li class="c-categories__item">
-      {# Removed cat_dir logic to match permalink structure #}
+      <!-- Removed cat_dir logic to match permalink structure -->
       <a class="c-categories__link" href="{{ site.baseurl }}/{{ category | downcase | slugify }}/">
         {% for post in site.categories[category] limit: 1 %}
         {% assign empty-figure = nil %}
