@@ -19,7 +19,7 @@ module Jekyll
 
     def generate(site)
       if site.layouts.key? 'category-page'
-        dir = site.config['category_dir'] || 'category'
+        dir = 'categories' # Explicitly set directory to 'categories'
         site.categories.each_key do |category|
           category_dir = File.join(dir, Utils.slugify(category))
           site.pages << CategoryPage.new(site, site.source, category_dir, category)

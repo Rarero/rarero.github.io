@@ -44,6 +44,8 @@ Azure Private DNS Resolver는 Azure 내에서 DNS 쿼리를 안전하게 처리�
 - 온프레미스에서 Azure Private DNS Zone의 이름을 해석해야 하는 경우  
 - 복잡한 하이브리드 DNS 아키텍처를 단순화하려는 경우  
 
+[ Azure DNS Private Resolver 아키텍처 ]
+![alt text](../images/Azure_DNS_Private_Resolver_Architecture.png)
 자세한 내용은 [Azure 공식 문서](https://learn.microsoft.com/ko-kr/azure/dns/dns-private-resolver-overview)를 참고하세요.
 
 ---
@@ -76,10 +78,8 @@ Azure Private DNS Resolver는 모든 환경에서 반드시 필요한 구성 요
 ### 5.3 핵심 요약
 
 | 상황 | Resolver 필요 여부 | 설명 |
-|------|------------------|------|
-| Azure → 온프레미스 도메인 조회 | ✅ 필요 | 아웃바운드 포워딩 구성 |
-| 온프레미스 → Azure Private DNS Zone | ✅ 필요 | 인바운드 엔드포인트 구성 |
-| 외부 → 온프레미스 도메인 | ❌ 불필요 | 온프레미스 DNS 서버 직접 연결 필요 |
-| Azure 리소스 → 퍼블릭 도메인 | ❌ 불필요 | 기본 DNS 경로 사용 |
-
-필요 시 위 내용을 기반으로 도식화하거나 구성 문서로도 확장 가능합니다.
+|:------|:------------------|:------|
+| Azure → 온프레미스 도메인 조회 | 필요 | 아웃바운드 포워딩 구성 |
+| 온프레미스 → Azure Private DNS Zone | 필요 | 인바운드 엔드포인트 구성 |
+| 외부 → 온프레미스 도메인 | 불필요 | 온프레미스 DNS 서버 직접 연결 필요 |
+| Azure 리소스 → 퍼블릭 도메인 | 불필요 | 기본 DNS 경로 사용 |
