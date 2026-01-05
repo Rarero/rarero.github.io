@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "인증(Authentication)과 인가(Authorization): 개념과 차이점 완벽 정리"
+title: "인증(Authentication)과 인가(Authorization): 개념과 차이점"
 date: 2026-01-05 09:00:00 +0900
 tags: [Study, Identity, Governance]
 categories: Azure_Study
