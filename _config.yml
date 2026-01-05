@@ -5,11 +5,11 @@ url: "flexton.netlify.com" # the base hostname & protocol for your site, e.g. ht
 
 # Author (저자 정보)
 author-name:    황상원
-author-image:   author_profile_simson.png
+author-image:   author_profile.jpeg
 author-job:     Cloud Engineer
 author-email:   station7755@gsneotek.com # Add your email for contant form.
 author-twitter: # 빈값. 사용 안함
-about-author: Azure MVP를 꿈꾸는 Cloud Engineer입니다! 기술도 블로그도 모두 초보입니다.
+about-author: 더 나은 내일.
 
 # Social settings
 social-twitter:   # 빈값. 사용 안함
