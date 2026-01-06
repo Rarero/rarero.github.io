@@ -51,7 +51,7 @@ categories: Azure_Study
 | **핵심 질문** | 당신은 누구인가? (Who are you?) | 당신은 무엇을 할 수 있는가? (What can you do?) |
 | **목적** | 신원 확인 | 권한 부여 및 접근 제어 |
 | **순서** | 먼저 수행됨 | 인증 이후에 수행됨 |
-| **웹 상태 코드** | 401 Unauthorize (사실 Unauthenticated가 더 정확한 표현) | 403 Forbidden |
+| **웹 상태 코드** | 401 Unauthorize (Unauthenticated가 더 정확한 표현) | 403 Forbidden |
 | **비유 (회사)** | 사원증을 찍고 게이트 통과 (출근) | 사원증으로 임원실이나 서버실 출입 시도 (권한 확인) |
 
 > **참고**: HTTP 상태 코드 `401 Unauthorized`는 이름 때문에 인가(Authorization) 문제인 것처럼 보일 수 있지만, 실제로는 **인증이 되지 않았음**을 의미합니다. 반면, 인증은 되었지만 권한이 없을 때는 `403 Forbidden`을 사용합니다.
