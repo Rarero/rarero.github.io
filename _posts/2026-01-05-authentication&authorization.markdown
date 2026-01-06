@@ -55,7 +55,6 @@ categories: Azure_Study
 | **웹 상태 코드** | &nbsp; 401 Unauthorize (Unauthenticated가 더 정확한 표현) | &nbsp; 403 Forbidden |
 | **비유 (회사)** | &nbsp; 사원증을 찍고 게이트 통과 (출근) | &nbsp; 사원증으로 임원실이나 서버실 출입 시도 (권한 확인) |
 
-> **참고**: HTTP 상태 코드 `401 Unauthorized`는 이름 때문에 인가(Authorization) 문제인 것처럼 보일 수 있지만, 실제로는 **인증이 되지 않았음**을 의미합니다. 반면, 인증은 되었지만 권한이 없을 때는 `403 Forbidden`을 사용합니다.
 
 ## 4. 요약
 
