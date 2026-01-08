@@ -6,7 +6,7 @@ tags: [Study, Identity, Governance]
 categories: Azure_Study
 ---
 
-지난 포스트 [**인증(Authentication)과 인가(Authorization) (1): 개념과 차이점**]({% post_url 2026-01-05-인증과인가 %})에서는 두 개념의 **본질적인 차이**에 대해 알아보았습니다.
+지난 포스트 [**인증(Authentication)과 인가(Authorization) (1): 개념과 차이점**]({% post_url 2026-01-05-authentication&authorization(1) %})에서는 두 개념의 **본질적인 차이**에 대해 알아보았습니다.
 
 > **(요약)**<br>
 > 인증은 "누구인가?"<br>
