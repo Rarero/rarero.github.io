@@ -117,6 +117,7 @@ Header.Payload.Signature
 <br>
 
 **세션(Session) vs 토큰(Token) 비교**
+
 | 구분 | &nbsp; 세션 (Session) 방식 | &nbsp; 토큰 (Token/JWT) 방식 |
 | :--- | :--- | :--- |
 | **저장소** | &nbsp; 서버 메모리/DB에 정보 저장 | &nbsp; 클라이언트(브라우저 등)에 정보 저장 |
