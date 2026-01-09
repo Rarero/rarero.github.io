@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "[Azure] 인증(Authentication)과 인가(Authorization) (1): 개념과 차이점"
+title: "인증(Authentication)과 인가(Authorization) (1): 개념과 차이점"
 date: 2026-01-05 09:00:00 +0900
 tags: [Study, Identity, Governance]
 ---

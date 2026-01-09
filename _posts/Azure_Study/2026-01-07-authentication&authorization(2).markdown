@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "[Azure] 인증(Authentication)과 인가(Authorization) (2): 동작 원리와 주요 방식"
+title: "인증(Authentication)과 인가(Authorization) (2): 동작 원리와 주요 방식"
 date: 2026-01-07 09:00:00 +0900
 tags: [Study, Identity, Governance]
 ---
