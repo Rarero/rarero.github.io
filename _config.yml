@@ -55,3 +55,6 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - vendor
+
+# Future posts
+future: true

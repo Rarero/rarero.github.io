@@ -57,7 +57,7 @@ categories: Azure_Study
     *   **서버 부하 (Stateful)**: 접속자가 많아지면 모든 세션 정보를 메모리에 저장해야 하므로 서버 부하가 커집니다.
     *   **확장성(Scale-out) 이슈**: 서버를 여러 대(A, B, C)로 늘릴 경우, A서버에 로그인한 사용자가 B서버로 요청을 보내면 B서버는 세션 정보가 없어 로그인이 풀릴 수 있습니다. (이를 해결하기 위해 Sticky Session이나 Session Clustering 등이 필요합니다.)
 
-![session flow](/images/session_flow.svg)
+![session flow](/images/26-01-07-session_flow.svg)
 
 ### 2. 토큰 기반 인증 (JWT - JSON Web Token)
 최근 모바일 앱이나 MSA(Microservices Architecture) 환경에서 표준처럼 사용되는 방식입니다. 핵심은 **"서버가 기억하지 않고, 토큰 자체에 검증 정보를 담는다**(Stateless)"는 점입니다. 가장 대표적인 규격이 **JWT** (JSON Web Token)입니다.
