@@ -3,6 +3,7 @@ layout: post
 title: "인증(Authentication)과 인가(Authorization) (1): 개념과 차이점"
 date: 2026-01-05 09:00:00 +0900
 tags: [Study, Identity, Governance]
+categories: Azure_Study
 ---
 
 웹 개발이나 보안을 공부하다 보면 가장 많이 접하면서도 헷갈리는 두 가지 개념이 있습니다. 바로 **인증**(Authentication)과 **인가**(Authorization)입니다.
