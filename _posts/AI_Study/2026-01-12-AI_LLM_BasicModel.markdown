@@ -3,7 +3,6 @@ layout: post
 title: "LLM 기본 모델과 Azure OpenAI 실습 (1): 모델 호출부터 대화 기능까지"
 date: 2026-01-12 09:00:00 +0900
 tags: [Study, AI, LLM, Azure, OpenAI]
-categories: AI_Study
 ---
 
 이번 포스트에서는 **LLM(Large Language Model)**의 기본 개념을 알아보고, **Azure OpenAI** 서비스를 활용하여 모델 호출부터 대화 기능 구현까지 직접 실습해 보는 과정을 다룹니다.
