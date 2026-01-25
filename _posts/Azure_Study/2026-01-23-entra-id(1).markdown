@@ -991,13 +991,13 @@ CAE:
 
 ## 참고문헌
 
-1. Microsoft Learn, "What is Microsoft Entra ID?"
-2. Microsoft Learn, "Application and service principal objects in Microsoft Entra ID"
-3. RFC 6749, "The OAuth 2.0 Authorization Framework"
-4. OpenID Connect Core 1.0 specification
-5. OASIS SAML 2.0 Technical Overview
-6. Microsoft Learn, "SAML-based single sign-on"
-7. Microsoft Graph API documentation
-8. Microsoft Entra ID Pricing
-9. Microsoft Learn, "Continuous access evaluation"
-10. Microsoft identity platform documentation
+1. [Microsoft Learn, "What is Microsoft Entra ID?"](https://learn.microsoft.com/en-us/entra/fundamentals/whatis)
+2. [Microsoft Learn, "Application and service principal objects in Microsoft Entra ID"](https://learn.microsoft.com/en-us/entra/identity-platform/app-objects-and-service-principals)
+3. [RFC 6749, "The OAuth 2.0 Authorization Framework"](https://www.rfc-editor.org/rfc/rfc6749)
+4. [OpenID Connect Core 1.0 specification](https://openid.net/specs/openid-connect-core-1_0.html)
+5. [OASIS SAML 2.0 Technical Overview](https://www.oasis-open.org/committees/download.php/27819/sstc-saml-tech-overview-2.0-cd-02.pdf)
+6. [Microsoft Learn, "SAML-based single sign-on"](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/what-is-single-sign-on)
+7. [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/overview)
+8. [Microsoft Entra ID Pricing](https://www.microsoft.com/en-us/security/business/microsoft-entra-pricing)
+9. [Microsoft Learn, "Continuous access evaluation"](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-continuous-access-evaluation)
+10. [Microsoft identity platform documentation](https://learn.microsoft.com/en-us/entra/identity-platform/)

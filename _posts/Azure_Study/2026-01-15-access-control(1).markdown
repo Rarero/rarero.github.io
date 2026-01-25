@@ -384,11 +384,11 @@ Enforcement: MAC-like 중앙 정책 강제
 
 ## 참고문헌
 
-1. NIST SP 800-192, "Verification and Test Methods for Access Control Policies/Models"
-2. ANSI INCITS 359-2004, "Role Based Access Control"
-3. NIST SP 800-162, "Guide to Attribute Based Access Control (ABAC) Definition and Considerations", 2014
+1. [NIST SP 800-192, "Verification and Test Methods for Access Control Policies/Models"](https://csrc.nist.gov/publications/detail/sp/800-192/final)
+2. [ANSI INCITS 359-2004, "Role Based Access Control"](https://www.incits.org/standards-information/standards-search)
+3. [NIST SP 800-162, "Guide to Attribute Based Access Control (ABAC) Definition and Considerations", 2014](https://csrc.nist.gov/publications/detail/sp/800-162/final)
 4. David Elliott Bell and Leonard J. LaPadula, "Secure Computer Systems: Mathematical Foundations", MITRE Corporation, 1973
 5. Kenneth J. Biba, "Integrity Considerations for Secure Computer Systems", MITRE Corporation, 1977
 6. David F. Ferraiolo, D. Richard Kuhn, "Role-Based Access Controls", 15th National Computer Security Conference, 1992
-7. OASIS XACML 3.0 Specification
-8. NIST SP 800-207, "Zero Trust Architecture", 2020
+7. [OASIS XACML 3.0 Specification](https://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html)
+8. [NIST SP 800-207, "Zero Trust Architecture", 2020](https://csrc.nist.gov/publications/detail/sp/800-207/final)

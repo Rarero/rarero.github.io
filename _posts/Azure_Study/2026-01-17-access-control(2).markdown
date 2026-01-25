@@ -933,17 +933,17 @@ Lock Types:
 
 ## 참고문헌
 
-1. Microsoft Docs, "Access Control Lists (ACLs)"
-2. Microsoft Azure Storage Documentation, "Shared Access Signatures (SAS)"
+1. [Microsoft Docs, "Access Control Lists (ACLs)"](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-control-lists)
+2. [Microsoft Azure Storage Documentation, "Shared Access Signatures (SAS)"](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview)
 3. Dennis, J. B., Van Horn, E. C., "Programming Semantics for Multiprogrammed Computations", Communications of the ACM, 1966
-4. AWS IAM Documentation, "Policy Evaluation Logic"
-5. Open Policy Agent Documentation, https://www.openpolicyagent.org/
-6. Microsoft Learn, "Azure RBAC documentation"
-7. Microsoft Learn, "How Azure RBAC determines if a user has access to a resource"
-8. Microsoft Learn, "Azure built-in roles"
-9. Microsoft Learn, "Azure custom roles"
-10. Microsoft Learn, "Azure control plane and data plane"
-11. Microsoft Learn, "What is Conditional Access?"
-12. Microsoft Learn, "What is Microsoft Entra Privileged Identity Management?"
-13. Microsoft Learn, "Best practices for Azure RBAC"
-14. Microsoft Learn, "Lock your resources to protect your infrastructure"
+4. [AWS IAM Documentation, "Policy Evaluation Logic"](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html)
+5. [Open Policy Agent Documentation](https://www.openpolicyagent.org/)
+6. [Microsoft Learn, "Azure RBAC documentation"](https://learn.microsoft.com/en-us/azure/role-based-access-control/)
+7. [Microsoft Learn, "How Azure RBAC determines if a user has access to a resource"](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview)
+8. [Microsoft Learn, "Azure built-in roles"](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles)
+9. [Microsoft Learn, "Azure custom roles"](https://learn.microsoft.com/en-us/azure/role-based-access-control/custom-roles)
+10. [Microsoft Learn, "Azure control plane and data plane"](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/control-plane-and-data-plane)
+11. [Microsoft Learn, "What is Conditional Access?"](https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview)
+12. [Microsoft Learn, "What is Microsoft Entra Privileged Identity Management?"](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure)
+13. [Microsoft Learn, "Best practices for Azure RBAC"](https://learn.microsoft.com/en-us/azure/role-based-access-control/best-practices)
+14. [Microsoft Learn, "Lock your resources to protect your infrastructure"](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/lock-resources)

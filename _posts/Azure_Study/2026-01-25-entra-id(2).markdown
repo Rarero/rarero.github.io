@@ -1285,13 +1285,13 @@ Password Reset:
 
 ## 참고문헌
 
-1. Microsoft Learn, "What is Conditional Access?"
-2. Microsoft Learn, "What is Microsoft Entra Privileged Identity Management?"
-3. Microsoft Learn, "What is Identity Protection?"
-4. Microsoft Learn, "Choose the right authentication method for your Microsoft Entra hybrid identity solution"
-5. Microsoft Learn, "What is Microsoft Entra Cloud Sync?"
-6. Microsoft Learn, "B2B collaboration overview"
-7. Microsoft Learn, "Azure Active Directory B2C documentation"
-8. Microsoft Learn, "What is a Primary Refresh Token?"
-9. Microsoft Learn, "Plan a Microsoft Entra hybrid join implementation"
-10. Microsoft Entra ID documentation
+1. [Microsoft Learn, "What is Conditional Access?"](https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview)
+2. [Microsoft Learn, "What is Microsoft Entra Privileged Identity Management?"](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure)
+3. [Microsoft Learn, "What is Identity Protection?"](https://learn.microsoft.com/en-us/entra/id-protection/overview-identity-protection)
+4. [Microsoft Learn, "Choose the right authentication method for your Microsoft Entra hybrid identity solution"](https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/choose-ad-authn)
+5. [Microsoft Learn, "What is Microsoft Entra Cloud Sync?"](https://learn.microsoft.com/en-us/entra/identity/hybrid/cloud-sync/what-is-cloud-sync)
+6. [Microsoft Learn, "B2B collaboration overview"](https://learn.microsoft.com/en-us/entra/external-id/what-is-b2b)
+7. [Microsoft Learn, "Azure Active Directory B2C documentation"](https://learn.microsoft.com/en-us/azure/active-directory-b2c/)
+8. [Microsoft Learn, "What is a Primary Refresh Token?"](https://learn.microsoft.com/en-us/entra/identity/devices/concept-primary-refresh-token)
+9. [Microsoft Learn, "Plan a Microsoft Entra hybrid join implementation"](https://learn.microsoft.com/en-us/entra/identity/devices/hybrid-join-plan)
+10. [Microsoft Entra ID documentation](https://learn.microsoft.com/en-us/entra/identity/)

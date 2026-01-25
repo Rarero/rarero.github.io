@@ -852,14 +852,14 @@ result = conn.search_s(..., attrs=['cn', 'mail'])
 
 ## 참고문헌
 
-1. ITU-T Recommendation X.500 (1988), "The Directory: Overview of concepts, models and services"
-2. RFC 4510, "Lightweight Directory Access Protocol (LDAP): Technical Specification Road Map"
-3. RFC 4511, "Lightweight Directory Access Protocol (LDAP): The Protocol"
-4. RFC 4512, "Lightweight Directory Access Protocol (LDAP): Directory Information Models"
-5. RFC 4513, "Lightweight Directory Access Protocol (LDAP): Authentication Methods and Security Mechanisms"
-6. RFC 4422, "Simple Authentication and Security Layer (SASL)"
-7. RFC 2849, "The LDAP Data Interchange Format (LDIF)"
-8. RFC 3377, "Lightweight Directory Access Protocol (v3): Technical Specification"
-9. RFC 4533, "The Lightweight Directory Access Protocol (LDAP) Content Synchronization Operation"
+1. [ITU-T Recommendation X.500 (1988), "The Directory: Overview of concepts, models and services"](https://www.itu.int/rec/T-REC-X.500)
+2. [RFC 4510, "Lightweight Directory Access Protocol (LDAP): Technical Specification Road Map"](https://www.rfc-editor.org/rfc/rfc4510)
+3. [RFC 4511, "Lightweight Directory Access Protocol (LDAP): The Protocol"](https://www.rfc-editor.org/rfc/rfc4511)
+4. [RFC 4512, "Lightweight Directory Access Protocol (LDAP): Directory Information Models"](https://www.rfc-editor.org/rfc/rfc4512)
+5. [RFC 4513, "Lightweight Directory Access Protocol (LDAP): Authentication Methods and Security Mechanisms"](https://www.rfc-editor.org/rfc/rfc4513)
+6. [RFC 4422, "Simple Authentication and Security Layer (SASL)"](https://www.rfc-editor.org/rfc/rfc4422)
+7. [RFC 2849, "The LDAP Data Interchange Format (LDIF)"](https://www.rfc-editor.org/rfc/rfc2849)
+8. [RFC 3377, "Lightweight Directory Access Protocol (v3): Technical Specification"](https://www.rfc-editor.org/rfc/rfc3377)
+9. [RFC 4533, "The Lightweight Directory Access Protocol (LDAP) Content Synchronization Operation"](https://www.rfc-editor.org/rfc/rfc4533)
 10. Tim Howes, Mark Smith, "LDAP: Programming Directory-Enabled Applications with Lightweight Directory Access Protocol", Macmillan Technical Publishing, 1997
 11. Gerald Carter, "LDAP System Administration", O'Reilly Media, 2003

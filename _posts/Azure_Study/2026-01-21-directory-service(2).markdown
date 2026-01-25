@@ -1185,13 +1185,13 @@ Move-ADDirectoryServerOperationMasterRole -Identity "DC03" -OperationMasterRole 
 
 ## 참고문헌
 
-1. Microsoft Docs, "Active Directory Domain Services Overview"
-2. Microsoft Docs, "How Domain and Forest Trusts Work"
-3. RFC 4120, "The Kerberos Network Authentication Service (V5)"
-4. Microsoft Docs, "[MS-PAC]: Privilege Attribute Certificate Data Structure"
-5. Microsoft Docs, "How Active Directory Replication Topology Works"
-6. Microsoft Docs, "Group Policy Overview"
-7. Microsoft Docs, "Read-Only Domain Controllers"
-8. Microsoft Docs, "FSMO Roles"
+1. [Microsoft Docs, "Active Directory Domain Services Overview"](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview)
+2. [Microsoft Docs, "How Domain and Forest Trusts Work"](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc773178(v=ws.10))
+3. [RFC 4120, "The Kerberos Network Authentication Service (V5)"](https://www.rfc-editor.org/rfc/rfc4120)
+4. [Microsoft Docs, "[MS-PAC]: Privilege Attribute Certificate Data Structure"](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-pac/)
+5. [Microsoft Docs, "How Active Directory Replication Topology Works"](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-r2-and-2008/cc755994(v=ws.10))
+6. [Microsoft Docs, "Group Policy Overview"](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh831791(v=ws.11))
+7. [Microsoft Docs, "Read-Only Domain Controllers"](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-r2-and-2008/cc732801(v=ws.10))
+8. [Microsoft Docs, "FSMO Roles"](https://learn.microsoft.com/en-us/troubleshoot/windows-server/identity/fsmo-roles)
 9. Brian Desmond et al., "Active Directory: Designing, Deploying, and Running Active Directory", O'Reilly Media, 5th Edition, 2013
 10. Microsoft Press, "Windows Server 2022 Inside Out", 2022
