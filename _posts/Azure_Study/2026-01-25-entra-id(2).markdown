@@ -6,9 +6,9 @@ tags: [Study, Azure, Entra ID, Security, Hybrid Identity]
 categories: Azure_Study
 ---
 
-지난 포스트 [**Azure Entra ID (1): 클라우드 Identity 서비스의 기본 개념과 아키텍처**]({% post_url 2026-01-23-entra-id(1) %})에서는 Entra ID의 기본 구조와 인증 프로토콜을 다뤘다.
+지난 포스트 [**Azure Entra ID (1): 클라우드 Identity 서비스의 기본 개념과 아키텍처**]({% post_url 2026-01-23-entra-id(1) %})에서는 Entra ID의 기본 구조와 인증 프로토콜을 다뤘습니다.
 
-이번 포스트에서는 Entra ID의 고급 보안 기능인 Conditional Access, Privileged Identity Management, Identity Protection과 온프레미스 Active Directory와의 하이브리드 통합 시나리오를 심층 분석한다.
+이번 포스트에서는 Entra ID의 고급 보안 기능인 Conditional Access, Privileged Identity Management, Identity Protection과 온프레미스 Active Directory와의 하이브리드 통합 시나리오를 심층 분석합니다.
 
 <br>
 
@@ -16,7 +16,7 @@ categories: Azure_Study
 
 ### 1.1 개념 및 아키텍처
 
-**Conditional Access**는 ABAC(Attribute-Based Access Control) 모델을 구현하는 Entra ID의 정책 엔진이다. "누가, 어디서, 무엇을, 어떻게" 접근하는지에 따라 동적으로 접근 제어를 수행한다.
+**Conditional Access**는 ABAC(Attribute-Based Access Control) 모델을 구현하는 Entra ID의 정책 엔진입니다. "누가, 어디서, 무엇을, 어떻게" 접근하는지에 따라 동적으로 접근 제어를 수행합니다.
 
 **정책 평가 시점**:
 ```
@@ -327,7 +327,7 @@ Access Controls:
 
 ### 2.1 개념 및 필요성
 
-**PIM**은 Just-In-Time (JIT) 권한 부여를 통해 상시 관리자 권한의 위험을 줄인다.
+**PIM**은 Just-In-Time (JIT) 권한 부여를 통해 상시 관리자 권한의 위험을 줄입니다.
 
 **문제점 (PIM 없이)**:
 ```
@@ -475,7 +475,7 @@ Approval Required (승인 필요):
 
 ### 2.5 Access Reviews
 
-**정의**: 정기적으로 역할 할당의 적절성을 검토.
+**정의**: 정기적으로 역할 할당의 적절성을 검토합니다.
 
 **검토 주기**:
 ```
@@ -572,7 +572,7 @@ Management Group
 
 ### 3.1 개념
 
-**Identity Protection**은 AI 기반 위험 탐지 및 자동 대응 시스템이다.
+**Identity Protection**은 AI 기반 위험 탐지 및 자동 대응 시스템입니다.
 
 **핵심 기능**:
 1. **위험 탐지**: 이상 로그인 및 사용자 행동 감지
@@ -832,7 +832,7 @@ AADRiskyUsers
 
 ### 4.2 Entra Connect (구 Azure AD Connect)
 
-**역할**: 온프레미스 AD와 Entra ID 간 Identity 동기화.
+**역할**: 온프레미스 AD와 Entra ID 간 Identity 동기화입니다.
 
 **아키텍처**:
 ```
@@ -984,7 +984,7 @@ Computer Objects (선택적):
 
 ### 4.4 Seamless SSO
 
-**목적**: 온프레미스 도메인 가입 PC에서 자동 로그인.
+**목적**: 온프레미스 도메인 가입 PC에서 자동 로그인입니다.
 
 **동작 원리**:
 ```
@@ -1023,7 +1023,7 @@ AD:
 
 ### 4.5 Hybrid Azure AD Join
 
-**정의**: 디바이스가 온프레미스 AD와 Entra ID에 동시 가입.
+**정의**: 디바이스가 온프레미스 AD와 Entra ID에 동시 가입합니다.
 
 **디바이스 상태**:
 ```
@@ -1112,7 +1112,7 @@ Hybrid Joined:
 
 ### 5.1 B2B Collaboration
 
-**목적**: 외부 협력자를 조직 리소스에 초대.
+**목적**: 외부 협력자를 조직 리소스에 초대합니다.
 
 **게스트 사용자 초대**:
 ```powershell
@@ -1256,7 +1256,7 @@ Password Reset:
 
 ## 정리
 
-이번 포스트에서는 Entra ID의 고급 보안 기능과 하이브리드 Identity 통합을 다뤘다.
+이번 포스트에서는 Entra ID의 고급 보안 기능과 하이브리드 Identity 통합을 다뤘습니다.
 
 **핵심 요약**:
 1. **Conditional Access**: ABAC 기반 동적 접근 제어, 위치/디바이스/위험 기반 정책
@@ -1279,10 +1279,11 @@ Password Reset:
   - Identity Protection
 ```
 
-이로써 접근제어, 디렉토리 서비스, Azure Entra ID에 대한 전체 시리즈를 마무리한다.
+이로써 접근제어, 디렉토리 서비스, Azure Entra ID에 대한 전체 시리즈를 마무리합니다.
 
 <br>
 
+<!--
 ## 참고문헌
 
 1. [Microsoft Learn, "What is Conditional Access?"](https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview)
@@ -1295,3 +1296,5 @@ Password Reset:
 8. [Microsoft Learn, "What is a Primary Refresh Token?"](https://learn.microsoft.com/en-us/entra/identity/devices/concept-primary-refresh-token)
 9. [Microsoft Learn, "Plan a Microsoft Entra hybrid join implementation"](https://learn.microsoft.com/en-us/entra/identity/devices/hybrid-join-plan)
 10. [Microsoft Entra ID documentation](https://learn.microsoft.com/en-us/entra/identity/)
+-->
+-->

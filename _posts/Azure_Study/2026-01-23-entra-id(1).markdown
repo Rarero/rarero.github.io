@@ -6,9 +6,9 @@ tags: [Study, Azure, Entra ID, Cloud Identity, AAD]
 categories: Azure_Study
 ---
 
-지난 포스트 [**디렉토리 서비스(Directory Service) (2): Active Directory 심층 분석**]({% post_url 2026-01-21-directory-service(2) %})에서는 온프레미스 Active Directory의 내부 동작을 다뤘다.
+지난 포스트 [**디렉토리 서비스(Directory Service) (2): Active Directory 심층 분석**]({% post_url 2026-01-21-directory-service(2) %})에서는 온프레미스 Active Directory의 내부 동작을 다뤘습니다.
 
-이번 포스트에서는 Microsoft의 클라우드 Identity 플랫폼인 **Microsoft Entra ID** (구 Azure Active Directory)의 기본 개념, 아키텍처, 핵심 프로토콜을 분석한다.
+이번 포스트에서는 Microsoft의 클라우드 Identity 플랫폼인 **Microsoft Entra ID** (구 Azure Active Directory)의 기본 개념, 아키텍처, 핵심 프로토콜을 분석합니다.
 
 <br>
 
@@ -16,7 +16,7 @@ categories: Azure_Study
 
 ### 1.1 정의 및 위치
 
-**Microsoft Entra ID**는 클라우드 기반 Identity 및 Access Management (IAM) 서비스다. 2023년 7월 Azure Active Directory에서 Microsoft Entra ID로 브랜드가 변경되었다.
+**Microsoft Entra ID**는 클라우드 기반 Identity 및 Access Management (IAM) 서비스입니다. 2023년 7월 Azure Active Directory에서 Microsoft Entra ID로 브랜드가 변경되었습니다.
 
 **핵심 역할**:
 1. **인증 (Authentication)**: 사용자 신원 확인
@@ -41,7 +41,7 @@ categories: Azure_Study
 | **범위** | 조직 네트워크 | 인터넷 전역 |
 | **주요 시나리오** | Windows 도메인 관리, 레거시 앱 | SaaS 앱, 모바일, API 접근 제어 |
 
-**중요**: Entra ID는 AD의 "클라우드 버전"이 아니다. 완전히 다른 설계 철학과 프로토콜을 가진 독립적인 서비스다.
+**중요**: Entra ID는 AD의 "클라우드 버전"이 아닙니다. 완전히 다른 설계 철학과 프로토콜을 가진 독립적인 서비스입니다.
 
 > 참고: Microsoft Learn, "What is Microsoft Entra ID?"
 
@@ -76,7 +76,7 @@ categories: Azure_Study
 
 ### 2.1 Tenant (테넌트)
 
-**정의**: Entra ID의 기본 격리 단위. 조직을 대표하는 전용 인스턴스.
+**정의**: Entra ID의 기본 격리 단위. 조직을 대표하는 전용 인스턴스입니다.
 
 **특징**:
 - 고유한 ID: Tenant ID (GUID)
@@ -251,7 +251,7 @@ Service Principal (Tenant B):
 
 ### 2.3 Administrative Units
 
-**정의**: 관리 범위를 제한하는 논리적 컨테이너. Active Directory의 OU와 유사하지만 더 제한적이다.
+**정의**: 관리 범위를 제한하는 논리적 컨테이너. Active Directory의 OU와 유사하지만 더 제한적입니다.
 
 **사용 사례**:
 ```
@@ -279,7 +279,7 @@ Entra ID는 온프레미스 AD와 달리 현대적인 웹 표준 프로토콜을
 
 ### 3.1 OAuth 2.0
 
-**역할**: 인가(Authorization) 프레임워크. 서드파티 앱이 사용자 리소스에 접근할 수 있도록 권한 위임.
+**역할**: 인가(Authorization) 프레임워크. 서드파티 앱이 사용자 리소스에 접근할 수 있도록 권한 위임합니다.
 
 **주요 Grant Types**:
 
@@ -386,7 +386,7 @@ grant_type=password
 
 ### 3.2 OpenID Connect (OIDC)
 
-**역할**: OAuth 2.0 위에 구축된 인증(Authentication) 레이어.
+**역할**: OAuth 2.0 위에 구축된 인증(Authentication) 레이어입니다.
 
 **OAuth 2.0 vs OIDC**:
 ```
@@ -561,7 +561,7 @@ user_name = decoded['name']
 
 ### 4.1 개요
 
-**정의**: Entra ID 및 Microsoft 365 리소스에 접근하는 통합 REST API.
+**정의**: Entra ID 및 Microsoft 365 리소스에 접근하는 통합 REST API입니다.
 
 **엔드포인트**:
 ```
@@ -985,10 +985,11 @@ CAE:
 
 <br>
 
-다음 포스트에서는 Entra ID의 고급 기능인 Conditional Access, Privileged Identity Management, Identity Protection, 그리고 온프레미스 AD와의 하이브리드 통합 시나리오를 상세히 다룰 예정이다.
+다음 포스트에서는 Entra ID의 고급 기능인 Conditional Access, Privileged Identity Management, Identity Protection, 그리고 온프레미스 AD와의 하이브리드 통합 시나리오를 상세히 다룰 예정입니다.
 
 <br>
 
+<!--
 ## 참고문헌
 
 1. [Microsoft Learn, "What is Microsoft Entra ID?"](https://learn.microsoft.com/en-us/entra/fundamentals/whatis)
@@ -1001,3 +1002,5 @@ CAE:
 8. [Microsoft Entra ID Pricing](https://www.microsoft.com/en-us/security/business/microsoft-entra-pricing)
 9. [Microsoft Learn, "Continuous access evaluation"](https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-continuous-access-evaluation)
 10. [Microsoft identity platform documentation](https://learn.microsoft.com/en-us/entra/identity-platform/)
+-->
+-->

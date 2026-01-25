@@ -6,9 +6,9 @@ tags: [Study, Azure, RBAC, IAM, Security]
 categories: Azure_Study
 ---
 
-지난 포스트 [**접근제어(Access Control) (1): 기본 개념과 주요 모델**]({% post_url 2026-01-15-access-control(1) %})에서는 DAC, MAC, RBAC, ABAC 등 접근제어의 주요 모델들을 살펴봤다.
+지난 포스트 [**접근제어(Access Control) (1): 기본 개념과 주요 모델**]({% post_url 2026-01-15-access-control(1) %})에서는 DAC, MAC, RBAC, ABAC 등 접근제어의 주요 모델들을 살펴봤습니다.
 
-이번 포스트에서는 접근제어가 실제 시스템에서 어떻게 구현되는지, 그리고 Azure의 핵심 접근제어 메커니즘인 **Azure RBAC**의 내부 동작 원리를 깊이 있게 분석한다.
+이번 포스트에서는 접근제어가 실제 시스템에서 어떻게 구현되는지, 그리고 Azure의 핵심 접근제어 메커니즘인 **Azure RBAC**의 내부 동작 원리를 깊이 있게 분석합니다.
 
 <br>
 
@@ -17,10 +17,10 @@ categories: Azure_Study
 ### 1.1 ACL (Access Control List)
 
 **개념**
-각 객체(리소스)에 연결된 **허가 목록**으로, "누가 이 리소스에 대해 무엇을 할 수 있는지"를 명시한다.
+각 객체(리소스)에 연결된 **허가 목록**으로, "누가 이 리소스에 대해 무엇을 할 수 있는지"를 명시합니다.
 
 **구조**
-ACL은 ACE(Access Control Entry)들의 리스트로 구성된다:
+ACL은 ACE(Access Control Entry)들의 리스트로 구성됩니다:
 
 ```
 ACL = [ ACE1, ACE2, ACE3, ... ]
@@ -87,7 +87,7 @@ ACL Entries:
 ### 1.2 Capability-Based Security
 
 **개념**
-주체가 **능력(Capability)**이라는 토큰을 보유하면 해당 토큰이 명시하는 객체와 작업에 접근할 수 있는 모델이다. ACL과 반대로 "주체 중심" 접근제어다.
+주체가 **능력(Capability)**이라는 토큰을 보유하면 해당 토큰이 명시하는 객체와 작업에 접근할 수 있는 모델입니다. ACL과 반대로 "주체 중심" 접근제어입니다.
 
 **Capability의 구조**
 ```
@@ -148,7 +148,7 @@ Capability = {
 ### 1.3 Policy-Based Access Control
 
 **개념**
-선언적 정책(Policy)을 평가하여 접근을 결정하는 방식이다. ABAC의 구현 형태로, 정책 언어로 복잡한 규칙을 표현한다.
+선언적 정책(Policy)을 평가하여 접근을 결정하는 방식입니다. ABAC의 구현 형태로, 정책 언어로 복잡한 규칙을 표현합니다.
 
 **정책 언어 예시**
 
@@ -225,7 +225,7 @@ allow {
 
 ## 2. Azure RBAC 심층 분석
 
-Azure RBAC(Role-Based Access Control)는 Azure의 핵심 접근제어 시스템이다. Azure Resource Manager(ARM) 레이어에서 동작하며, 모든 Azure 리소스에 대한 권한을 통합 관리한다.
+Azure RBAC(Role-Based Access Control)는 Azure의 핵심 접근제어 시스템입니다. Azure Resource Manager(ARM) 레이어에서 동작하며, 모든 Azure 리소스에 대한 권한을 통합 관리합니다.
 
 ### 2.1 Azure RBAC의 핵심 구성요소
 
@@ -315,7 +315,7 @@ Security Principal + Role + Scope의 조합:
 
 ### 2.2 Azure RBAC 권한 평가 프로세스
 
-Azure는 사용자의 모든 요청에 대해 다음과 같은 다단계 평가 프로세스를 수행한다.
+Azure는 사용자의 모든 요청에 대해 다음과 같은 다단계 평가 프로세스를 수행합니다.
 
 **1단계: 인증 (Authentication)**
 ```
@@ -552,7 +552,7 @@ Azure는 75개 이상의 기본 제공 역할을 제공한다. 주요 역할들�
 
 ### 2.4 커스텀 역할 (Custom Roles)
 
-기본 제공 역할로 충분하지 않을 때 조직의 요구사항에 맞는 커스텀 역할을 생성할 수 있다.
+기본 제공 역할로 충분하지 않을 때 조직의 요구사항에 맞는 커스텀 역할을 생성할 수 있습니다.
 
 **커스텀 역할 생성 예시**
 
@@ -611,7 +611,7 @@ az role definition create --role-definition @vm-operator-role.json
 
 ### 2.5 Management Plane vs Data Plane
 
-Azure의 작업은 두 평면으로 분류된다:
+Azure의 작업은 두 평면으로 분류됩니다:
 
 **Management Plane**
 - **대상**: 리소스 자체의 생명주기 관리
@@ -918,7 +918,7 @@ Lock Types:
 
 ## 정리
 
-이번 포스트에서는 접근제어의 구현 메커니즘(ACL, Capability, Policy)과 Azure RBAC의 심층 동작 원리를 살펴봤다.
+이번 포스트에서는 접근제어의 구현 메커니즘(ACL, Capability, Policy)과 Azure RBAC의 심층 동작 원리를 살펴봤습니다.
 
 **핵심 요약**:
 1. Azure RBAC는 Security Principal + Role + Scope의 할당 조합
@@ -927,10 +927,11 @@ Lock Types:
 4. 조건부 액세스와 PIM을 통해 ABAC 및 JIT 구현 가능
 5. 최소 권한 원칙과 그룹 기반 할당이 모범 사례
 
-다음 포스트 시리즈에서는 **디렉토리 서비스(Directory Service)**의 개념과 구현 방식을 다룰 예정이다.
+다음 포스트 시리즈에서는 **디렉토리 서비스(Directory Service)**의 개념과 구현 방식을 다루겠습니다.
 
 <br>
 
+<!--
 ## 참고문헌
 
 1. [Microsoft Docs, "Access Control Lists (ACLs)"](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-control-lists)
@@ -947,3 +948,5 @@ Lock Types:
 12. [Microsoft Learn, "What is Microsoft Entra Privileged Identity Management?"](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure)
 13. [Microsoft Learn, "Best practices for Azure RBAC"](https://learn.microsoft.com/en-us/azure/role-based-access-control/best-practices)
 14. [Microsoft Learn, "Lock your resources to protect your infrastructure"](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/lock-resources)
+-->
+-->

@@ -6,9 +6,9 @@ tags: [Study, Active Directory, Kerberos, Windows]
 categories: Azure_Study
 ---
 
-지난 포스트 [**디렉토리 서비스(Directory Service) (1): 기본 개념과 프로토콜**]({% post_url 2026-01-19-directory-service(1) %})에서는 LDAP과 X.500 기반의 디렉토리 서비스 기본 개념을 다뤘다.
+지난 포스트 [**디렉토리 서비스(Directory Service) (1): 기본 개념과 프로토콜**]({% post_url 2026-01-19-directory-service(1) %})에서는 LDAP과 X.500 기반의 디렉토리 서비스 기본 개념을 다뤘습니다.
 
-이번 포스트에서는 Windows 환경의 핵심 인프라인 **Active Directory**의 내부 구조, Kerberos 인증, 복제 메커니즘, Group Policy 등을 심층 분석한다.
+이번 포스트에서는 Windows 환경의 핵심 인프라인 **Active Directory**의 내부 구조, Kerberos 인증, 복제 메커니즘, Group Policy 등을 심층 분석합니다.
 
 <br>
 
@@ -16,7 +16,7 @@ categories: Azure_Study
 
 ### 1.1 정의 및 역할
 
-**Active Directory Domain Services (AD DS)**는 Microsoft가 Windows 2000부터 제공하는 디렉토리 서비스로, Windows 네트워크 환경에서 중앙화된 인증, 인가, 리소스 관리를 담당한다.
+**Active Directory Domain Services (AD DS)**는 Microsoft가 Windows 2000부터 제공하는 디렉토리 서비스로, Windows 네트워크 환경에서 중앙화된 인증, 인가, 리소스 관리를 담당합니다.
 
 **핵심 기능**:
 
@@ -134,7 +134,7 @@ Forest Root Domain: example.com
 
 ### 2.2 Domain (도메인)
 
-**정의**: 공통 디렉토리 데이터베이스를 공유하는 관리 단위.
+**정의**: 공통 디렉토리 데이터베이스를 공유하는 관리 단위입니다.
 
 **도메인의 역할**:
 - 보안 경계 (각 도메인별 관리자 분리)
@@ -166,7 +166,7 @@ DC=korea,DC=asia,DC=example,DC=com
 
 ### 2.3 Organizational Unit (OU)
 
-**정의**: 도메인 내에서 객체를 조직하는 논리적 컨테이너.
+**정의**: 도메인 내에서 객체를 조직하는 논리적 컨테이너입니다.
 
 **OU의 용도**:
 - 관리 위임 (Delegation)
@@ -200,7 +200,7 @@ DC=example,DC=com
 
 ### 2.4 Trust Relationship (트러스트 관계)
 
-**정의**: 도메인 또는 포레스트 간 인증 경로.
+**정의**: 도메인 또는 포레스트 간 인증 경로입니다.
 
 **트러스트 방향**:
 ```
@@ -350,7 +350,7 @@ Location: "Seoul HQ, Building A"
 
 ## 4. Kerberos 인증
 
-AD는 **Kerberos v5** (RFC 4120)를 기본 인증 프로토콜로 사용한다.
+AD는 **Kerberos v5** (RFC 4120)를 기본 인증 프로토콜로 사용합니다.
 
 ### 4.1 Kerberos 구성요소
 
@@ -618,7 +618,7 @@ PAC 구조:
 
 ### 5.1 복제 모델
 
-AD는 **Multi-Master Replication** 모델을 사용한다.
+AD는 **Multi-Master Replication** 모델을 사용합니다.
 
 **특징**:
 - 모든 DC가 쓰기 가능 (RODC 제외)
@@ -851,7 +851,7 @@ repadmin /showrepl * /csv | ConvertFrom-Csv | Where {$_.LastFailureStatus -ne 0}
 
 ### 6.1 GPO 구조
 
-**Group Policy Object (GPO)**는 설정 집합을 담고 있는 객체다.
+**Group Policy Object (GPO)**는 설정 집합을 담고 있는 객체입니다.
 
 **GPO 구성**:
 ```
@@ -1170,7 +1170,7 @@ Move-ADDirectoryServerOperationMasterRole -Identity "DC03" -OperationMasterRole 
 
 ## 정리
 
-이번 포스트에서는 Active Directory의 논리적/물리적 구조, Kerberos 인증 메커니즘, 복제 프로세스, Group Policy, FSMO 역할 등을 심층 분석했다.
+이번 포스트에서는 Active Directory의 논리적/물리적 구조, Kerberos 인증 메커니즘, 복제 프로세스, Group Policy, FSMO 역할 등을 심층 분석했습니다.
 
 **핵심 요약**:
 1. AD는 Multi-Master LDAP 디렉토리 + Kerberos KDC + DNS + GPO의 통합 시스템
@@ -1179,10 +1179,11 @@ Move-ADDirectoryServerOperationMasterRole -Identity "DC03" -OperationMasterRole 
 4. GPO의 LSDOU 순서와 상속 메커니즘으로 세밀한 정책 제어
 5. FSMO 역할로 특정 작업의 일관성 보장
 
-다음 포스트 시리즈에서는 **Azure Entra ID (구 Azure AD)**의 아키텍처와 클라우드 디렉토리 서비스를 다룰 예정이다.
+다음 포스트 시리즈에서는 **Azure Entra ID (구 Azure AD)**의 아키텍처와 클라우드 디렉토리 서비스를 다루겠습니다.
 
 <br>
 
+<!--
 ## 참고문헌
 
 1. [Microsoft Docs, "Active Directory Domain Services Overview"](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview)
@@ -1195,3 +1196,5 @@ Move-ADDirectoryServerOperationMasterRole -Identity "DC03" -OperationMasterRole 
 8. [Microsoft Docs, "FSMO Roles"](https://learn.microsoft.com/en-us/troubleshoot/windows-server/identity/fsmo-roles)
 9. Brian Desmond et al., "Active Directory: Designing, Deploying, and Running Active Directory", O'Reilly Media, 5th Edition, 2013
 10. Microsoft Press, "Windows Server 2022 Inside Out", 2022
+-->
+-->

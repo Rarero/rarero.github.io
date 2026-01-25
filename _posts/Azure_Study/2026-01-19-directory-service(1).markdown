@@ -6,9 +6,9 @@ tags: [Study, Directory, LDAP, Identity]
 categories: Azure_Study
 ---
 
-접근제어를 구현하려면 사용자, 그룹, 리소스 등의 정보를 체계적으로 저장하고 조회할 수 있는 시스템이 필요하다. 이러한 역할을 수행하는 것이 **디렉토리 서비스(Directory Service)**다.
+접근제어를 구현하려면 사용자, 그룹, 리소스 등의 정보를 체계적으로 저장하고 조회할 수 있는 시스템이 필요합니다. 이러한 역할을 수행하는 것이 **디렉토리 서비스(Directory Service)**입니다.
 
-이번 포스트에서는 디렉토리 서비스의 기본 개념, 역사적 배경, 그리고 핵심 프로토콜들을 정리한다.
+이번 포스트에서는 디렉토리 서비스의 기본 개념, 역사적 배경, 그리고 핵심 프로토콜들을 정리합니다.
 
 <br>
 
@@ -16,7 +16,7 @@ categories: Azure_Study
 
 ### 1.1 정의
 
-디렉토리 서비스는 네트워크 상의 리소스(사용자, 그룹, 디바이스, 애플리케이션 등)에 대한 정보를 **계층적**이고 **중앙집중화된** 데이터베이스에 저장하고, 이를 효율적으로 검색할 수 있도록 하는 분산 정보 서비스다.
+디렉토리 서비스는 네트워크 상의 리소스(사용자, 그룹, 디바이스, 애플리케이션 등)에 대한 정보를 **계층적**이고 **중앙집중화된** 데이터베이스에 저장하고, 이를 효율적으로 검색할 수 있도록 하는 분산 정보 서비스입니다.
 
 **핵심 특징**:
 
@@ -77,7 +77,7 @@ dc=example,dc=com
 ### 2.1 X.500 표준 (1988)
 
 **탄생 배경**
-1980년대, 전 세계적으로 분산된 조직의 정보를 통합 관리할 필요성이 대두되었다. ITU-T와 ISO는 공동으로 **X.500** 표준을 개발했다.
+1980년대, 전 세계적으로 분산된 조직의 정보를 통합 관리할 필요성이 대두되었습니다. ITU-T와 ISO는 공동으로 **X.500** 표준을 개발했습니다.
 
 **X.500의 핵심 개념**
 
@@ -123,7 +123,7 @@ Transport Layer: OSI TP4
 ### 2.2 LDAP의 등장 (1993)
 
 **탄생 배경**
-X.500의 복잡성을 해결하고 TCP/IP 네트워크에서 사용할 수 있도록 미시간 대학교의 Tim Howes와 동료들이 **LDAP(Lightweight Directory Access Protocol)**을 개발했다.
+X.500의 복잡성을 해결하고 TCP/IP 네트워크에서 사용할 수 있도록 미시간 대학교의 Tim Howes와 동료들이 **LDAP(Lightweight Directory Access Protocol)**을 개발했습니다.
 
 **"Lightweight"의 의미**:
 - OSI 전체 스택 대신 TCP/IP만 사용
@@ -159,7 +159,7 @@ LDAPv3 (RFC 2251, 1997 → RFC 4511, 2006)
 ### 3.1 LDAP 데이터 모델
 
 **1) 엔트리 (Entry)**
-디렉토리의 기본 단위. 각 엔트리는 고유한 **DN(Distinguished Name)**으로 식별된다.
+디렉토리의 기본 단위. 각 엔트리는 고유한 **DN(Distinguished Name)**으로 식별됩니다.
 
 ```
 DN: uid=alice,ou=Engineering,dc=example,dc=com
@@ -170,7 +170,7 @@ Entry 구성:
 ```
 
 **2) 속성 (Attribute)**
-엔트리를 구성하는 정보 요소. 각 속성은 **속성 타입(Attribute Type)**과 하나 이상의 **값(Value)**을 가진다.
+엔트리를 구성하는 정보 요소. 각 속성은 **속성 타입(Attribute Type)**과 하나 이상의 **값(Value)**을 가집니다.
 
 ```
 objectClass: inetOrgPerson       # 속성 타입: objectClass, 값: inetOrgPerson
@@ -212,7 +212,7 @@ objectClass: inetOrgPerson
 ```
 
 **4) DN (Distinguished Name)**
-엔트리의 완전한 경로. 파일 시스템의 절대 경로와 유사하다.
+엔트리의 완전한 경로. 파일 시스템의 절대 경로와 유사합니다.
 
 ```
 DN 구조:
@@ -280,7 +280,7 @@ employeeNumber: 12345
 
 ### 3.3 LDAP 작업 (Operations)
 
-LDAP는 9개의 핵심 작업을 정의한다.
+LDAP는 9개의 핵심 작업을 정의합니다.
 
 **1) Bind (인증)**
 ```
@@ -846,10 +846,11 @@ result = conn.search_s(..., attrs=['cn', 'mail'])
 
 <br>
 
-다음 포스트에서는 Microsoft **Active Directory**의 내부 구조, Kerberos 인증, Group Policy, 복제 메커니즘 등을 심층적으로 분석할 예정이다.
+다음 포스트에서는 Microsoft **Active Directory**의 내부 구조, Kerberos 인증, Group Policy, 복제 메커니즘 등을 심층적으로 분석할 예정입니다.
 
 <br>
 
+<!--
 ## 참고문헌
 
 1. [ITU-T Recommendation X.500 (1988), "The Directory: Overview of concepts, models and services"](https://www.itu.int/rec/T-REC-X.500)
@@ -863,3 +864,5 @@ result = conn.search_s(..., attrs=['cn', 'mail'])
 9. [RFC 4533, "The Lightweight Directory Access Protocol (LDAP) Content Synchronization Operation"](https://www.rfc-editor.org/rfc/rfc4533)
 10. Tim Howes, Mark Smith, "LDAP: Programming Directory-Enabled Applications with Lightweight Directory Access Protocol", Macmillan Technical Publishing, 1997
 11. Gerald Carter, "LDAP System Administration", O'Reilly Media, 2003
+-->
+-->
