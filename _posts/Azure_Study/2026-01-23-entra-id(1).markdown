@@ -1,0 +1,1003 @@
+---
+layout: post
+title: "Azure Entra ID (1): 클라우드 Identity 서비스의 기본 개념과 아키텍처"
+date: 2026-01-23 09:00:00 +0900
+tags: [Study, Azure, Entra ID, Cloud Identity, AAD]
+categories: Azure_Study
+---
+
+지난 포스트 [**디렉토리 서비스(Directory Service) (2): Active Directory 심층 분석**]({% post_url 2026-01-21-directory-service(2) %})에서는 온프레미스 Active Directory의 내부 동작을 다뤘다.
+
+이번 포스트에서는 Microsoft의 클라우드 Identity 플랫폼인 **Microsoft Entra ID** (구 Azure Active Directory)의 기본 개념, 아키텍처, 핵심 프로토콜을 분석한다.
+
+<br>
+
+## 1. Microsoft Entra ID 개요
+
+### 1.1 정의 및 위치
+
+**Microsoft Entra ID**는 클라우드 기반 Identity 및 Access Management (IAM) 서비스다. 2023년 7월 Azure Active Directory에서 Microsoft Entra ID로 브랜드가 변경되었다.
+
+**핵심 역할**:
+1. **인증 (Authentication)**: 사용자 신원 확인
+2. **인가 (Authorization)**: 리소스 접근 권한 관리
+3. **디렉토리 서비스**: 사용자, 그룹, 애플리케이션 정보 저장
+4. **애플리케이션 관리**: SaaS 앱 통합 및 SSO
+5. **디바이스 관리**: 모바일 및 데스크톱 디바이스 등록
+
+### 1.2 Entra ID vs Active Directory
+
+이름의 유사성에도 불구하고 두 서비스는 근본적으로 다른 아키텍처를 가진다.
+
+| 측면 | Active Directory (온프레미스) | Microsoft Entra ID (클라우드) |
+|------|------------------------------|------------------------------|
+| **아키텍처** | 계층적 (Forest, Domain, OU) | 플랫 구조 (Tenant) |
+| **프로토콜** | LDAP, Kerberos, NTLM | HTTP/HTTPS (REST API, OAuth, SAML, OIDC) |
+| **인증** | Kerberos, NTLM | OAuth 2.0, OpenID Connect, SAML 2.0 |
+| **쿼리** | LDAP | Microsoft Graph API |
+| **관리** | Group Policy | Intune, Conditional Access Policy |
+| **복제** | Multi-Master (DC 간) | Global Service (자동 복제) |
+| **스키마** | 확장 가능 (직접 수정) | 고정 (Microsoft 관리) |
+| **범위** | 조직 네트워크 | 인터넷 전역 |
+| **주요 시나리오** | Windows 도메인 관리, 레거시 앱 | SaaS 앱, 모바일, API 접근 제어 |
+
+**중요**: Entra ID는 AD의 "클라우드 버전"이 아니다. 완전히 다른 설계 철학과 프로토콜을 가진 독립적인 서비스다.
+
+> 참고: Microsoft Learn, "What is Microsoft Entra ID?"
+
+### 1.3 Entra ID의 진화
+
+```
+2012: Windows Azure Active Directory 출시
+  - Office 365 인증 서비스로 시작
+  
+2014: Azure Active Directory로 이름 변경
+  - 엔터프라이즈 기능 추가 (MFA, Conditional Access)
+  
+2015: Azure AD B2C 출시
+  - 소비자 대상 Identity 관리
+  
+2018: Azure AD B2B 강화
+  - 외부 협력자 초대 및 관리
+  
+2020: Passwordless 인증 확대
+  - FIDO2, Windows Hello, Microsoft Authenticator
+  
+2023: Microsoft Entra로 브랜드 통합
+  - Entra ID (구 Azure AD)
+  - Entra ID Protection
+  - Entra Permissions Management
+  - Entra Verified ID
+```
+
+<br>
+
+## 2. Entra ID 핵심 개념
+
+### 2.1 Tenant (테넌트)
+
+**정의**: Entra ID의 기본 격리 단위. 조직을 대표하는 전용 인스턴스.
+
+**특징**:
+- 고유한 ID: Tenant ID (GUID)
+- 기본 도메인: `{name}.onmicrosoft.com`
+- 완전히 격리된 네임스페이스
+- 다른 Tenant와 독립적인 관리
+
+**Tenant 구조**:
+```
+Tenant: contoso.onmicrosoft.com
+  Tenant ID: a1234567-89ab-cdef-0123-456789abcdef
+  
+  ├── Primary Domain: contoso.onmicrosoft.com
+  ├── Custom Domains: contoso.com, contoso.co.kr
+  ├── Users: alice@contoso.com, bob@contoso.com
+  ├── Groups: Engineering, Sales, Admins
+  ├── Applications: 
+  │     ├── Office 365
+  │     ├── Custom Web App
+  │     └── Third-party SaaS
+  └── Subscriptions:
+        ├── Subscription 1 (Production)
+        └── Subscription 2 (Development)
+```
+
+**Tenant 타입**:
+
+**1) Workforce Tenant (직원용)**
+```
+목적: 조직 내부 직원 관리
+사용자: 직원 계정
+라이선스: Microsoft 365, Azure AD Premium
+```
+
+**2) External Tenant (외부용, 구 B2C)**
+```
+목적: 고객/소비자 계정 관리
+사용자: 소셜 로그인 (Google, Facebook), 로컬 계정
+라이선스: MAU (Monthly Active Users) 기반
+```
+
+**Multi-Tenant vs Single-Tenant**:
+```
+Single-Tenant (대부분의 기업):
+  - 하나의 조직 = 하나의 Tenant
+  
+Multi-Tenant (대기업, 계열사):
+  - 여러 Tenant를 B2B로 연결
+  - 예: 모회사 Tenant + 자회사 Tenant A + 자회사 Tenant B
+```
+
+### 2.2 Directory Objects
+
+**User (사용자)**
+```json
+{
+  "id": "12345678-1234-1234-1234-123456789abc",
+  "userPrincipalName": "alice@contoso.com",
+  "displayName": "Alice Smith",
+  "mail": "alice.smith@contoso.com",
+  "jobTitle": "Senior Engineer",
+  "department": "Engineering",
+  "officeLocation": "Seoul Office",
+  "mobilePhone": "+82-10-1234-5678",
+  "accountEnabled": true,
+  "userType": "Member"
+}
+```
+
+**User 타입**:
+- **Member**: 조직 직원
+- **Guest**: B2B 외부 사용자 (다른 조직)
+- **External**: B2C 소비자 계정
+
+**Group (그룹)**
+
+**Security Group**:
+```json
+{
+  "id": "87654321-4321-4321-4321-abcdef123456",
+  "displayName": "Engineering Team",
+  "mailEnabled": false,
+  "securityEnabled": true,
+  "groupTypes": [],
+  "membershipRule": null,
+  "members": [
+    "alice@contoso.com",
+    "bob@contoso.com"
+  ]
+}
+```
+
+**Microsoft 365 Group**:
+```json
+{
+  "displayName": "Project Alpha",
+  "mailEnabled": true,
+  "mailNickname": "projectalpha",
+  "securityEnabled": false,
+  "groupTypes": ["Unified"],
+  "resources": {
+    "mailbox": "projectalpha@contoso.com",
+    "sharepoint": "https://contoso.sharepoint.com/sites/projectalpha",
+    "teams": "Project Alpha Team",
+    "planner": "Project Alpha Plan"
+  }
+}
+```
+
+**그룹 멤버십 타입**:
+```
+Assigned (할당됨):
+  - 수동으로 멤버 추가/제거
+  
+Dynamic (동적):
+  - 규칙 기반 자동 멤버십
+  - 예: department eq 'Engineering'
+```
+
+**동적 그룹 규칙 예시**:
+```
+# Engineering 부서의 모든 정규직
+(user.department -eq "Engineering") -and (user.employeeType -eq "Employee")
+
+# 서울 오피스의 Manager 이상
+(user.officeLocation -eq "Seoul") -and (user.jobTitle -contains "Manager")
+
+# 특정 도메인의 Guest
+(user.userType -eq "Guest") -and (user.mail -contains "@partner.com")
+```
+
+**Application (애플리케이션)**
+```json
+{
+  "id": "app-guid",
+  "appId": "client-id",
+  "displayName": "Contoso Web App",
+  "identifierUris": ["https://contoso.com/app"],
+  "requiredResourceAccess": [
+    {
+      "resourceAppId": "00000003-0000-0000-c000-000000000000",
+      "resourceAccess": [
+        {
+          "id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d",
+          "type": "Scope"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Service Principal (서비스 주체)**
+- 애플리케이션의 Tenant별 인스턴스
+- Application Object: 전역 정의
+- Service Principal: Tenant별 인스턴스 (권한, 역할 할당)
+
+```
+Application Object (전역):
+  App ID: 12345-abcde
+  
+Service Principal (Tenant A):
+  Object ID: sp-001
+  Assigned Roles: Reader
+  
+Service Principal (Tenant B):
+  Object ID: sp-002
+  Assigned Roles: Contributor
+```
+
+> 참고: Microsoft Learn, "Application and service principal objects in Microsoft Entra ID"
+
+### 2.3 Administrative Units
+
+**정의**: 관리 범위를 제한하는 논리적 컨테이너. Active Directory의 OU와 유사하지만 더 제한적이다.
+
+**사용 사례**:
+```
+Administrative Unit: "Seoul Office"
+  Members:
+    - Users: alice, bob, charlie
+    - Groups: Seoul-Admins
+  
+  Scoped Administrators:
+    - User Admin (Seoul Office scope):
+        - 서울 오피스 사용자만 관리 가능
+        - 다른 Administrative Unit 접근 불가
+```
+
+**제한사항**:
+- GPO 적용 불가 (AD OU와의 차이)
+- 중첩 불가
+- 디바이스는 포함 불가 (사용자와 그룹만)
+
+<br>
+
+## 3. Entra ID 인증 프로토콜
+
+Entra ID는 온프레미스 AD와 달리 현대적인 웹 표준 프로토콜을 사용한다.
+
+### 3.1 OAuth 2.0
+
+**역할**: 인가(Authorization) 프레임워크. 서드파티 앱이 사용자 리소스에 접근할 수 있도록 권한 위임.
+
+**주요 Grant Types**:
+
+**1) Authorization Code Flow**
+웹 애플리케이션의 표준 흐름.
+
+```
+1. 사용자 → 앱: 로그인 버튼 클릭
+
+2. 앱 → Entra ID: 인증 요청 (브라우저 리디렉션)
+   GET https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize?
+     client_id=<app-id>
+     &response_type=code
+     &redirect_uri=https://app.contoso.com/callback
+     &scope=openid profile email
+     &state=<random-state>
+
+3. Entra ID → 사용자: 로그인 페이지 표시
+
+4. 사용자 → Entra ID: 자격 증명 제출 (+ MFA)
+
+5. Entra ID → 앱: Authorization Code 반환
+   HTTP 302 Redirect to:
+   https://app.contoso.com/callback?
+     code=<authorization-code>
+     &state=<random-state>
+
+6. 앱 → Entra ID: Access Token 요청 (백엔드 서버)
+   POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token
+   Content-Type: application/x-www-form-urlencoded
+   
+   grant_type=authorization_code
+   &code=<authorization-code>
+   &redirect_uri=https://app.contoso.com/callback
+   &client_id=<app-id>
+   &client_secret=<app-secret>
+
+7. Entra ID → 앱: Token 응답
+   {
+     "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+     "token_type": "Bearer",
+     "expires_in": 3600,
+     "refresh_token": "0.AXEA...",
+     "id_token": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+   }
+
+8. 앱 → API: Access Token으로 리소스 접근
+   GET https://graph.microsoft.com/v1.0/me
+   Authorization: Bearer eyJ0eXAiOiJKV1Qi...
+```
+
+**보안 요소**:
+- **state**: CSRF 공격 방지
+- **PKCE (Proof Key for Code Exchange)**: Authorization Code 가로채기 방지 (모바일 앱)
+- **client_secret**: 서버 간 통신 인증
+
+**2) Client Credentials Flow**
+서비스 간 인증 (사용자 개입 없음).
+
+```
+Daemon App → Entra ID:
+POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token
+
+grant_type=client_credentials
+&client_id=<app-id>
+&client_secret=<app-secret>
+&scope=https://graph.microsoft.com/.default
+
+Entra ID → App:
+{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "token_type": "Bearer",
+  "expires_in": 3600
+}
+```
+
+**사용 사례**:
+- 백그라운드 서비스
+- 스케줄러
+- 데이터 동기화 작업
+
+**3) Resource Owner Password Credentials (ROPC)**
+**비권장**: 레거시 앱 전용. 앱이 직접 사용자 패스워드를 받음.
+
+```
+App → Entra ID:
+POST .../token
+
+grant_type=password
+&username=alice@contoso.com
+&password=<user-password>
+&client_id=<app-id>
+&scope=openid
+
+주의사항:
+  - MFA 사용 불가
+  - Conditional Access 제한적 지원
+  - 가능하면 Auth Code Flow 사용 권장
+```
+
+> 참고: 
+> - RFC 6749, "The OAuth 2.0 Authorization Framework"
+> - Microsoft identity platform documentation
+
+### 3.2 OpenID Connect (OIDC)
+
+**역할**: OAuth 2.0 위에 구축된 인증(Authentication) 레이어.
+
+**OAuth 2.0 vs OIDC**:
+```
+OAuth 2.0:
+  - 인가(Authorization): "이 앱이 내 이메일을 읽을 수 있게 허가"
+  - 토큰: Access Token
+  
+OIDC:
+  - 인증(Authentication): "이 사용자가 Alice임을 증명"
+  - 토큰: ID Token (+ Access Token)
+```
+
+**ID Token 구조** (JWT):
+```json
+{
+  "typ": "JWT",
+  "alg": "RS256",
+  "kid": "key-id"
+}
+.
+{
+  "iss": "https://login.microsoftonline.com/{tenant}/v2.0",
+  "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+  "aud": "<client-id>",
+  "exp": 1706169600,
+  "iat": 1706166000,
+  "nbf": 1706166000,
+  "name": "Alice Smith",
+  "preferred_username": "alice@contoso.com",
+  "oid": "12345678-1234-1234-1234-123456789abc",
+  "tid": "a1234567-89ab-cdef-0123-456789abcdef",
+  "nonce": "<nonce-value>",
+  "aio": "...",
+  "roles": ["Admin", "User"],
+  "groups": ["Engineering"]
+}
+.
+<signature>
+```
+
+**ID Token Claims**:
+- **iss** (Issuer): 발급자
+- **sub** (Subject): 사용자 고유 ID (Tenant별)
+- **aud** (Audience): 토큰 대상 (Client ID)
+- **oid** (Object ID): Entra ID 사용자 Object ID
+- **tid** (Tenant ID): Tenant 식별자
+- **roles**: 애플리케이션 역할
+- **groups**: 그룹 멤버십 (선택적)
+
+**OIDC Discovery**:
+```
+GET https://login.microsoftonline.com/{tenant}/v2.0/.well-known/openid-configuration
+
+응답:
+{
+  "authorization_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize",
+  "token_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
+  "jwks_uri": "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys",
+  "issuer": "https://login.microsoftonline.com/{tenant}/v2.0",
+  "response_types_supported": ["code", "token", "id_token"],
+  "scopes_supported": ["openid", "profile", "email"],
+  ...
+}
+```
+
+**토큰 검증**:
+```python
+import jwt
+from cryptography.hazmat.primitives import serialization
+
+# 1. JWKS 엔드포인트에서 공개키 가져오기
+jwks_uri = "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys"
+# 2. ID Token의 'kid' 헤더로 해당 키 선택
+# 3. 서명 검증
+decoded = jwt.decode(
+    id_token,
+    public_key,
+    algorithms=["RS256"],
+    audience=client_id,
+    issuer=f"https://login.microsoftonline.com/{tenant}/v2.0"
+)
+# 4. Claims 추출
+user_oid = decoded['oid']
+user_name = decoded['name']
+```
+
+> 참고: OpenID Connect Core 1.0 specification
+
+### 3.3 SAML 2.0
+
+**역할**: 레거시 엔터프라이즈 앱 통합. XML 기반 SSO 프로토콜.
+
+**SAML Actors**:
+- **Identity Provider (IdP)**: Entra ID
+- **Service Provider (SP)**: 애플리케이션 (예: Salesforce, ServiceNow)
+
+**SAML SSO Flow (SP-Initiated)**:
+```
+1. 사용자 → SP: 앱 접근 시도
+   https://app.salesforce.com
+
+2. SP → 사용자: SAML AuthN Request (리디렉션)
+   HTTP 302 to:
+   https://login.microsoftonline.com/{tenant}/saml2?SAMLRequest=<base64-encoded-xml>
+
+3. 사용자 → IdP (Entra ID): AuthN Request 전달
+
+4. IdP → 사용자: 로그인 페이지 표시 (미인증 시)
+
+5. 사용자 → IdP: 자격 증명 제출
+
+6. IdP → 사용자: SAML Response (리디렉션)
+   HTTP 302 to:
+   https://app.salesforce.com/saml/acs
+   with POST data:
+   SAMLResponse=<base64-encoded-saml-assertion>
+
+7. 사용자 → SP: SAML Response 전달
+
+8. SP: SAML Assertion 검증
+   - 서명 확인 (IdP의 X.509 인증서)
+   - Audience 확인
+   - Conditions (NotBefore, NotOnOrAfter) 확인
+
+9. SP → 사용자: 앱 세션 생성, 접근 허용
+```
+
+**SAML Assertion 구조**:
+```xml
+<saml:Assertion>
+  <saml:Issuer>https://sts.windows.net/{tenant}/</saml:Issuer>
+  <Signature>...</Signature>
+  <saml:Subject>
+    <saml:NameID>alice@contoso.com</saml:NameID>
+  </saml:Subject>
+  <saml:Conditions NotBefore="2026-01-23T10:00:00Z" 
+                   NotOnOrAfter="2026-01-23T11:00:00Z">
+    <saml:AudienceRestriction>
+      <saml:Audience>https://app.salesforce.com</saml:Audience>
+    </saml:AudienceRestriction>
+  </saml:Conditions>
+  <saml:AttributeStatement>
+    <saml:Attribute Name="http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress">
+      <saml:AttributeValue>alice@contoso.com</saml:AttributeValue>
+    </saml:Attribute>
+    <saml:Attribute Name="http://schemas.microsoft.com/identity/claims/objectidentifier">
+      <saml:AttributeValue>12345678-1234-1234-1234-123456789abc</saml:AttributeValue>
+    </saml:Attribute>
+  </saml:AttributeStatement>
+</saml:Assertion>
+```
+
+**SAML vs OIDC**:
+| 측면 | SAML 2.0 | OpenID Connect |
+|------|----------|----------------|
+| **형식** | XML | JSON (JWT) |
+| **복잡도** | 높음 | 낮음 |
+| **크기** | 크다 (verbose XML) | 작다 |
+| **모바일** | 어려움 | 네이티브 지원 |
+| **사용 사례** | 레거시 엔터프라이즈 앱 | 현대적 웹/모바일 앱 |
+| **표준 단체** | OASIS | OpenID Foundation |
+
+**권장 사항**: 신규 앱은 OIDC 사용, 레거시 SaaS 통합에만 SAML 사용.
+
+> 참고: 
+> - OASIS SAML 2.0 Technical Overview
+> - Microsoft Learn, "SAML-based single sign-on"
+
+<br>
+
+## 4. Microsoft Graph API
+
+### 4.1 개요
+
+**정의**: Entra ID 및 Microsoft 365 리소스에 접근하는 통합 REST API.
+
+**엔드포인트**:
+```
+https://graph.microsoft.com/{version}/{resource}
+
+Versions:
+  - v1.0: 프로덕션 안정 버전
+  - beta: 최신 기능 (프로덕션 비권장)
+```
+
+**대체 대상**:
+- Azure AD Graph API (deprecated)
+- LDAP queries (온프레미스 AD)
+
+### 4.2 인증
+
+**Access Token 획득**:
+```http
+POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token
+
+grant_type=client_credentials
+&client_id=<app-id>
+&client_secret=<app-secret>
+&scope=https://graph.microsoft.com/.default
+```
+
+**API 호출**:
+```http
+GET https://graph.microsoft.com/v1.0/users
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
+```
+
+### 4.3 주요 리소스 및 작업
+
+**Users**:
+```http
+# 사용자 목록
+GET /users
+
+# 특정 사용자 조회
+GET /users/{id}
+GET /users/alice@contoso.com
+
+# 사용자 생성
+POST /users
+{
+  "accountEnabled": true,
+  "displayName": "Charlie Brown",
+  "mailNickname": "charlie",
+  "userPrincipalName": "charlie@contoso.com",
+  "passwordProfile": {
+    "forceChangePasswordNextSignIn": true,
+    "password": "TempP@ss123!"
+  }
+}
+
+# 사용자 속성 업데이트
+PATCH /users/{id}
+{
+  "jobTitle": "Lead Engineer",
+  "department": "Engineering"
+}
+
+# 사용자 삭제
+DELETE /users/{id}
+```
+
+**Groups**:
+```http
+# 그룹 생성
+POST /groups
+{
+  "displayName": "AI Research Team",
+  "mailEnabled": false,
+  "mailNickname": "airesearch",
+  "securityEnabled": true
+}
+
+# 멤버 추가
+POST /groups/{group-id}/members/$ref
+{
+  "@odata.id": "https://graph.microsoft.com/v1.0/users/{user-id}"
+}
+
+# 그룹 멤버 조회
+GET /groups/{group-id}/members
+
+# 동적 그룹 규칙 설정
+PATCH /groups/{group-id}
+{
+  "membershipRule": "(user.department -eq \"Engineering\")",
+  "membershipRuleProcessingState": "On",
+  "groupTypes": ["DynamicMembership"]
+}
+```
+
+**Applications**:
+```http
+# 앱 등록 목록
+GET /applications
+
+# 앱의 서비스 주체 조회
+GET /servicePrincipals?$filter=appId eq '{app-id}'
+
+# 앱에 API 권한 추가
+PATCH /applications/{app-object-id}
+{
+  "requiredResourceAccess": [
+    {
+      "resourceAppId": "00000003-0000-0000-c000-000000000000",
+      "resourceAccess": [
+        {
+          "id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d",
+          "type": "Scope"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 4.4 쿼리 파라미터
+
+**$filter**:
+```http
+# 부서가 Engineering인 사용자
+GET /users?$filter=department eq 'Engineering'
+
+# 계정이 활성화된 Guest
+GET /users?$filter=accountEnabled eq true and userType eq 'Guest'
+
+# 특정 날짜 이후 생성된 그룹
+GET /groups?$filter=createdDateTime ge 2026-01-01T00:00:00Z
+```
+
+**$select**:
+```http
+# 특정 속성만 반환
+GET /users?$select=displayName,mail,department
+```
+
+**$expand**:
+```http
+# 관련 리소스 포함
+GET /users/{id}?$expand=manager,memberOf
+
+# 그룹의 멤버 확장
+GET /groups/{id}?$expand=members
+```
+
+**$orderby**:
+```http
+# 정렬
+GET /users?$orderby=displayName
+
+# 내림차순
+GET /users?$orderby=createdDateTime desc
+```
+
+**$top** and **$skip**:
+```http
+# 페이징
+GET /users?$top=10&$skip=20
+```
+
+**복합 쿼리**:
+```http
+GET /users?
+  $filter=department eq 'Engineering' and accountEnabled eq true
+  &$select=displayName,mail,jobTitle
+  &$orderby=displayName
+  &$top=50
+```
+
+### 4.5 Batch Requests
+
+여러 요청을 하나로 묶어 네트워크 왕복 감소.
+
+```http
+POST https://graph.microsoft.com/v1.0/$batch
+Content-Type: application/json
+
+{
+  "requests": [
+    {
+      "id": "1",
+      "method": "GET",
+      "url": "/users/alice@contoso.com"
+    },
+    {
+      "id": "2",
+      "method": "GET",
+      "url": "/users/bob@contoso.com"
+    },
+    {
+      "id": "3",
+      "method": "PATCH",
+      "url": "/users/charlie@contoso.com",
+      "body": {
+        "jobTitle": "Senior Engineer"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}
+
+응답:
+{
+  "responses": [
+    {
+      "id": "1",
+      "status": 200,
+      "body": { ... }
+    },
+    {
+      "id": "2",
+      "status": 200,
+      "body": { ... }
+    },
+    {
+      "id": "3",
+      "status": 204
+    }
+  ]
+}
+```
+
+### 4.6 Change Notifications (Webhooks)
+
+리소스 변경 시 실시간 알림.
+
+```http
+# Subscription 생성
+POST /subscriptions
+{
+  "changeType": "created,updated",
+  "notificationUrl": "https://webhook.contoso.com/api/notifications",
+  "resource": "users",
+  "expirationDateTime": "2026-01-30T18:23:45.9356913Z",
+  "clientState": "secretClientValue"
+}
+
+# Webhook 알림 수신 예시
+POST https://webhook.contoso.com/api/notifications
+{
+  "value": [
+    {
+      "subscriptionId": "sub-guid",
+      "clientState": "secretClientValue",
+      "changeType": "updated",
+      "resource": "users/alice@contoso.com",
+      "resourceData": {
+        "id": "12345678-1234-1234-1234-123456789abc",
+        "@odata.type": "#Microsoft.Graph.User"
+      },
+      "tenantId": "tenant-guid"
+    }
+  ]
+}
+```
+
+> 참고: Microsoft Graph API documentation
+
+<br>
+
+## 5. Entra ID 라이선스 및 에디션
+
+### 5.1 에디션 비교
+
+| 기능 | Free | Office 365 | Premium P1 | Premium P2 |
+|------|------|------------|------------|------------|
+| **사용자/그룹 관리** | ✅ | ✅ | ✅ | ✅ |
+| **SSO (앱 10개)** | ✅ | ✅ | ✅ | ✅ |
+| **SSO (무제한)** | ❌ | ❌ | ✅ | ✅ |
+| **MFA** | ❌ | ✅ | ✅ | ✅ |
+| **Conditional Access** | ❌ | ❌ | ✅ | ✅ |
+| **PIM (Privileged Identity Management)** | ❌ | ❌ | ❌ | ✅ |
+| **Identity Protection** | ❌ | ❌ | ❌ | ✅ |
+| **Access Reviews** | ❌ | ❌ | ❌ | ✅ |
+| **Entitlement Management** | ❌ | ❌ | ❌ | ✅ |
+
+**Free 에디션**:
+- Azure 구독 생성 시 기본 포함
+- 사용자 최대 500,000명
+- 기본 디렉토리 서비스
+- 앱 통합 제한적 (10개)
+
+**Premium P1**:
+- 조건부 액세스 (위치, 디바이스 기반)
+- 동적 그룹
+- 셀프 서비스 암호 재설정
+- 온프레미스 쓰기 저장 (하이브리드)
+
+**Premium P2**:
+- Identity Protection (위험 기반 정책)
+- Privileged Identity Management (JIT 권한)
+- Access Reviews (정기 권한 검토)
+- Entitlement Management (패키지 기반 접근 관리)
+
+> 참고: Microsoft Entra ID Pricing
+
+<br>
+
+## 6. Entra ID 아키텍처
+
+### 6.1 전역 분산 아키텍처
+
+Entra ID는 전 세계 Azure 리전에 분산된 Multi-Master 서비스다.
+
+**특징**:
+```
+Global Service:
+  - 60+ Azure 리전에 복제본
+  - 지역별 최적 라우팅 (Anycast)
+  - 자동 페일오버
+  
+High Availability:
+  - 99.99% SLA
+  - 리전 장애 시 자동 전환
+  
+Performance:
+  - 로컬 리전에서 읽기 처리
+  - 쓰기는 Primary에서 처리 후 복제
+```
+
+**데이터 레지던시**:
+```
+EU Data Boundary:
+  - EU 고객 데이터는 EU 리전에만 저장
+  - GDPR 준수
+  
+US Data Boundary:
+  - 미국 고객 데이터는 미국 리전에 저장
+```
+
+### 6.2 인증 플로우 아키텍처
+
+**컴포넌트**:
+```
+User Agent (Browser/App)
+  ↓
+Azure Front Door (Global Load Balancer)
+  ↓
+Authentication Service (login.microsoftonline.com)
+  ├── MFA Service
+  ├── Conditional Access Engine
+  └── Token Service
+      ↓
+Directory Service
+  ├── User Store
+  ├── Group Store
+  └── Policy Store
+```
+
+**인증 단계**:
+```
+1. 사용자 인증 요청
+   ↓
+2. Primary Credentials 검증
+   - Password Hash
+   - Password + MFA
+   - Passwordless (FIDO2, WHfB)
+   ↓
+3. Conditional Access 평가
+   - User/Group
+   - Location
+   - Device State
+   - Risk Level
+   ↓
+4. Token 발급
+   - Access Token
+   - ID Token
+   - Refresh Token
+   ↓
+5. Token 서명 및 반환
+```
+
+### 6.3 토큰 수명 주기
+
+**기본 수명**:
+```
+Access Token: 1시간
+ID Token: 1시간
+Refresh Token: 
+  - Web App: 90일 (비활성 시 만료)
+  - Native App: 90일
+  - Refresh Token Lifetime Policy로 조정 가능
+```
+
+**Token Lifetime Policy**:
+```json
+{
+  "TokenLifetimePolicy": {
+    "Version": 1,
+    "AccessTokenLifetime": "02:00:00",
+    "RefreshTokenMaxAge": "90.00:00:00",
+    "RefreshTokenMaxInactiveTime": "14.00:00:00"
+  }
+}
+```
+
+**Continuous Access Evaluation (CAE)**:
+```
+기존:
+  - Access Token 유효 기간 내에는 취소 불가
+  - 사용자 비활성화 후에도 최대 1시간 접근 가능
+
+CAE:
+  - 중요 이벤트 발생 시 즉시 토큰 무효화
+  - 이벤트 예시:
+    * 사용자 삭제/비활성화
+    * 패스워드 변경
+    * MFA 활성화
+    * 관리자가 모든 세션 취소
+  - 지원 서비스: Microsoft Graph, Exchange Online, SharePoint Online
+```
+
+> 참고: Microsoft Learn, "Continuous access evaluation"
+
+<br>
+
+다음 포스트에서는 Entra ID의 고급 기능인 Conditional Access, Privileged Identity Management, Identity Protection, 그리고 온프레미스 AD와의 하이브리드 통합 시나리오를 상세히 다룰 예정이다.
+
+<br>
+
+## 참고문헌
+
+1. Microsoft Learn, "What is Microsoft Entra ID?"
+2. Microsoft Learn, "Application and service principal objects in Microsoft Entra ID"
+3. RFC 6749, "The OAuth 2.0 Authorization Framework"
+4. OpenID Connect Core 1.0 specification
+5. OASIS SAML 2.0 Technical Overview
+6. Microsoft Learn, "SAML-based single sign-on"
+7. Microsoft Graph API documentation
+8. Microsoft Entra ID Pricing
+9. Microsoft Learn, "Continuous access evaluation"
+10. Microsoft identity platform documentation

@@ -1,0 +1,1297 @@
+---
+layout: post
+title: "Azure Entra ID (2): 고급 보안 기능과 하이브리드 Identity 통합"
+date: 2026-01-25 09:00:00 +0900
+tags: [Study, Azure, Entra ID, Security, Hybrid Identity]
+categories: Azure_Study
+---
+
+지난 포스트 [**Azure Entra ID (1): 클라우드 Identity 서비스의 기본 개념과 아키텍처**]({% post_url 2026-01-23-entra-id(1) %})에서는 Entra ID의 기본 구조와 인증 프로토콜을 다뤘다.
+
+이번 포스트에서는 Entra ID의 고급 보안 기능인 Conditional Access, Privileged Identity Management, Identity Protection과 온프레미스 Active Directory와의 하이브리드 통합 시나리오를 심층 분석한다.
+
+<br>
+
+## 1. Conditional Access (조건부 액세스)
+
+### 1.1 개념 및 아키텍처
+
+**Conditional Access**는 ABAC(Attribute-Based Access Control) 모델을 구현하는 Entra ID의 정책 엔진이다. "누가, 어디서, 무엇을, 어떻게" 접근하는지에 따라 동적으로 접근 제어를 수행한다.
+
+**정책 평가 시점**:
+```
+사용자 인증 성공 후, 토큰 발급 전
+  ↓
+Conditional Access 정책 평가
+  ↓
+조건 충족 시: 토큰 발급
+조건 미충족 시: MFA 요구 또는 차단
+```
+
+**정책 구성 요소**:
+```
+IF (Assignments 조건 충족)
+THEN (Access Controls 적용)
+```
+
+### 1.2 Assignments (할당)
+
+**1) Users and Groups**
+```
+포함 (Include):
+  - 특정 사용자
+  - 특정 그룹
+  - 모든 사용자
+  - All guests and external users
+  
+제외 (Exclude):
+  - Emergency Access Account (Break-glass)
+  - Service Account
+```
+
+**예시**:
+```
+Include: All Users
+Exclude: 
+  - Emergency-Admin@contoso.com
+  - Service-Account-Group
+```
+
+**2) Cloud Apps or Actions**
+```
+대상 애플리케이션:
+  - All cloud apps
+  - Office 365
+  - 특정 앱 (예: Salesforce, AWS Console)
+  - User Actions (예: Register security info)
+```
+
+**3) Conditions (조건)**
+
+**a) Sign-in Risk (로그인 위험)**
+```
+위험 수준:
+  - No risk
+  - Low
+  - Medium
+  - High
+
+판단 기준 (Identity Protection):
+  - 익명 IP
+  - 비정상 이동 (Atypical travel)
+  - 감염된 디바이스
+  - 유출된 자격 증명
+```
+
+**b) Device Platforms**
+```
+플랫폼:
+  - Android
+  - iOS
+  - Windows
+  - macOS
+  - Linux
+
+예시: iOS/Android만 허용, Windows는 차단
+```
+
+**c) Locations**
+```
+위치 정의:
+  - 신뢰할 수 있는 IP 범위
+    * 회사 네트워크: 203.0.113.0/24
+    * VPN: 198.51.100.0/24
+  - 국가/지역
+    * 한국, 미국만 허용
+    * 북한, 러시아 차단
+  - 모든 위치
+  - 알 수 없는 위치
+```
+
+**Named Location 설정**:
+```json
+{
+  "displayName": "Corporate Network",
+  "ipRanges": [
+    "203.0.113.0/24",
+    "198.51.100.0/24"
+  ],
+  "isTrusted": true
+}
+```
+
+**d) Client Apps**
+```
+앱 타입:
+  - Browser
+  - Mobile apps and desktop clients
+  - Exchange ActiveSync clients
+  - Other clients (IMAP, POP, SMTP 등)
+```
+
+**e) Device State**
+```
+디바이스 상태:
+  - Hybrid Azure AD joined
+  - Marked as compliant (Intune)
+  - Require approved client app
+```
+
+**Filter for Devices** (고급):
+```
+예시 필터:
+  device.model -eq "Surface Pro"
+  device.manufacturer -eq "Microsoft"
+  device.trustType -eq "AzureAD"
+```
+
+### 1.3 Access Controls (액세스 제어)
+
+**Grant (권한 부여)**
+
+**1) Block Access**
+```
+완전 차단:
+  - 조건 충족 시 접근 거부
+  - 예: 특정 국가에서 접근 차단
+```
+
+**2) Grant Access with Conditions**
+```
+조건부 허용:
+  ☑ Require multifactor authentication
+  ☑ Require device to be marked as compliant
+  ☑ Require Hybrid Azure AD joined device
+  ☑ Require approved client app
+  ☑ Require app protection policy
+  ☑ Require password change
+
+조합 방식:
+  - Require ALL the selected controls (AND)
+  - Require ONE of the selected controls (OR)
+```
+
+**Session (세션 제어)**
+
+**1) Sign-in Frequency**
+```
+세션 재인증 간격:
+  - Every time
+  - 1 hour
+  - 4 hours
+  - 1 day
+  - 7 days
+
+예시: 민감한 앱은 4시간마다 재인증 요구
+```
+
+**2) Persistent Browser Session**
+```
+브라우저 세션 유지:
+  - Always persistent
+  - Never persistent
+  
+"로그인 상태 유지" 옵션 제어
+```
+
+**3) Application Enforced Restrictions**
+```
+제한된 세션:
+  - SharePoint/Exchange에서 다운로드 차단
+  - 읽기 전용 모드
+```
+
+**4) Conditional Access App Control**
+```
+Microsoft Defender for Cloud Apps 통합:
+  - Monitor only
+  - Block downloads
+  - Monitor and limit activities
+```
+
+### 1.4 정책 예시
+
+**예시 1: 관리자에게 MFA 강제**
+```
+Assignments:
+  Users: Directory Readers, Global Administrators
+  Cloud apps: All cloud apps
+  Conditions: None
+  
+Access Controls:
+  Grant: Require multifactor authentication
+```
+
+**예시 2: 외부 네트워크에서 접근 시 규정 준수 디바이스 요구**
+```
+Assignments:
+  Users: All users
+  Cloud apps: Office 365
+  Conditions:
+    Locations: Any location
+    Exclude: Trusted locations (Corporate Network)
+  
+Access Controls:
+  Grant: Require device to be marked as compliant
+```
+
+**예시 3: 고위험 로그인 차단**
+```
+Assignments:
+  Users: All users
+  Cloud apps: All cloud apps
+  Conditions:
+    Sign-in risk: High
+  
+Access Controls:
+  Block access
+```
+
+**예시 4: 특정 국가에서만 허용**
+```
+Assignments:
+  Users: All users
+  Cloud apps: Azure Management
+  Conditions:
+    Locations: Any location
+    Exclude: South Korea, United States
+  
+Access Controls:
+  Block access
+```
+
+**예시 5: 레거시 인증 차단**
+```
+Assignments:
+  Users: All users
+  Cloud apps: All cloud apps
+  Conditions:
+    Client apps: Other clients
+  
+Access Controls:
+  Block access
+
+목적: IMAP, POP3, SMTP 등 레거시 프로토콜 차단
+     (Modern Authentication만 허용)
+```
+
+### 1.5 정책 평가 프로세스
+
+**평가 순서**:
+```
+1. 모든 정책 수집
+   - 사용자에게 적용 가능한 정책 필터링
+
+2. 차단 정책 우선 평가
+   - Block Access 정책이 하나라도 있으면 즉시 차단
+
+3. Grant 정책 평가
+   - 모든 Grant 조건을 수집
+   - "Require ALL" vs "Require ONE" 로직 적용
+
+4. Session 제어 적용
+   - 가장 제한적인 세션 설정 적용
+
+5. 최종 결정
+   - Success: 토큰 발급
+   - Failure: 오류 반환 (error code 포함)
+```
+
+**Report-only Mode**:
+```
+프로덕션 적용 전 테스트:
+  - 정책을 실제로 강제하지 않고 로그만 기록
+  - Sign-in logs에서 "Report-only" 탭 확인
+  - 영향도 분석 후 정식 활성화
+```
+
+**What If Tool**:
+```
+시뮬레이션:
+  User: alice@contoso.com
+  App: Office 365
+  Location: Unknown
+  Device: iOS
+  
+결과:
+  ✅ Policy 1: MFA Required
+  ❌ Policy 2: Not Applied (Device platform mismatch)
+  ✅ Policy 3: Compliant device required
+```
+
+> 참고: Microsoft Learn, "What is Conditional Access?"
+
+<br>
+
+## 2. Privileged Identity Management (PIM)
+
+### 2.1 개념 및 필요성
+
+**PIM**은 Just-In-Time (JIT) 권한 부여를 통해 상시 관리자 권한의 위험을 줄인다.
+
+**문제점 (PIM 없이)**:
+```
+시나리오:
+  - Alice는 Global Administrator 역할 보유
+  - 99%의 시간은 일반 업무만 수행
+  - 1%만 관리 작업 수행
+  
+위험:
+  - 자격 증명 탈취 시 즉시 전체 테넌트 장악
+  - 실수로 중요 설정 변경
+  - 감사 추적 부족
+```
+
+**PIM 적용 후**:
+```
+시나리오:
+  - Alice는 평소 User 권한만 보유
+  - 관리 작업 필요 시 PIM으로 Global Administrator 활성화 요청
+  - 승인 후 8시간 동안만 권한 보유
+  - 8시간 후 자동으로 User로 회귀
+  
+이점:
+  - 공격 표면 최소화
+  - 모든 권한 활성화 로그 기록
+  - 승인 워크플로우로 책임 추적
+```
+
+### 2.2 PIM 역할 할당 상태
+
+**Eligible (적격)**:
+```
+의미: 역할을 활성화할 자격이 있음
+상태: 권한 없음
+작업: 활성화 요청 가능
+```
+
+**Active (활성)**:
+```
+영구 할당:
+  - 항상 권한 보유
+  - 레거시 방식 (비권장)
+  
+시간 제한:
+  - PIM으로 활성화된 권한
+  - 만료 시간 설정 (최대 24시간)
+```
+
+**Expired (만료)**:
+```
+이전 활성화 이력
+재활성화 가능
+```
+
+### 2.3 역할 활성화 프로세스
+
+**1) 활성화 요청**
+```powershell
+# Azure Portal
+PIM → My Roles → Activate
+
+# PowerShell
+New-AzureADMSPrivilegedRoleAssignmentRequest `
+  -ProviderId "aadRoles" `
+  -ResourceId "{tenant-id}" `
+  -RoleDefinitionId "{role-id}" `
+  -SubjectId "{user-id}" `
+  -Type "UserAdd" `
+  -Reason "Emergency deployment"
+```
+
+**2) 인증 및 승인**
+```
+Self-Activation (자가 승인):
+  1. MFA 인증 수행
+  2. 사유 입력 (Business Justification)
+  3. 즉시 활성화
+  
+Approval Required (승인 필요):
+  1. MFA 인증 수행
+  2. 사유 입력
+  3. 승인자에게 알림 전송
+  4. 승인자가 검토 및 승인/거부
+  5. 승인 시 활성화
+```
+
+**3) 활성화 기간**
+```
+기본 설정:
+  - 최대 활성화 기간: 8시간
+  - 연장 불가
+  - 만료 전 재활성화 가능
+```
+
+**4) 만료 및 비활성화**
+```
+자동 만료:
+  - 설정된 시간 후 자동 비활성화
+  
+수동 비활성화:
+  - 사용자가 조기 종료
+  - 관리자가 강제 종료
+```
+
+### 2.4 역할 설정 (Role Settings)
+
+**Activation (활성화)**
+```json
+{
+  "maximumDuration": "PT8H",
+  "requireJustification": true,
+  "requireTicketInfo": false,
+  "requireMFA": true,
+  "requireApproval": true,
+  "approvers": [
+    {
+      "id": "{approver-user-id}",
+      "type": "User"
+    }
+  ]
+}
+```
+
+**Assignment (할당)**
+```json
+{
+  "allowPermanentEligibleAssignment": false,
+  "maximumEligibleDuration": "P365D",
+  "requireJustification": true,
+  "requireMFA": true,
+  "requireApproval": true
+}
+```
+
+**Notification (알림)**
+```
+활성화 시 알림:
+  - 역할 활성화자
+  - 승인자
+  - Global Administrator
+  
+만료 전 알림:
+  - 7일 전, 1일 전, 1시간 전
+```
+
+### 2.5 Access Reviews
+
+**정의**: 정기적으로 역할 할당의 적절성을 검토.
+
+**검토 주기**:
+```
+Frequency:
+  - Weekly
+  - Monthly
+  - Quarterly
+  - Semi-annually
+  - Annually
+
+Duration: 1주일 ~ 4주
+
+Reviewers:
+  - Manager
+  - Selected users
+  - Members (self-review)
+  - Group owners
+```
+
+**검토 프로세스**:
+```
+1. Access Review 시작
+   ↓
+2. 검토자에게 알림 전송
+   ↓
+3. 검토자가 각 할당 검토
+   - Approve: 역할 유지
+   - Deny: 역할 제거
+   - Don't know: 추가 검토 필요
+   ↓
+4. 검토 종료
+   ↓
+5. 자동 적용 (Auto-apply):
+   - Deny된 할당 제거
+   - 미응답 시 기본 동작 (제거 또는 유지)
+```
+
+**검토 설정 예시**:
+```json
+{
+  "displayName": "Quarterly Global Admin Review",
+  "scope": {
+    "roleId": "62e90394-69f5-4237-9190-012177145e10"
+  },
+  "reviewers": [
+    {
+      "type": "Manager"
+    }
+  ],
+  "settings": {
+    "recurrence": "quarterly",
+    "duration": "P14D",
+    "autoApplyDecisions": true,
+    "defaultDecisionIfReviewerNotRespond": "Deny",
+    "justificationRequired": true
+  }
+}
+```
+
+### 2.6 PIM for Azure Resources
+
+Azure RBAC 역할도 PIM으로 관리 가능.
+
+**적용 범위**:
+```
+Management Group
+  └── Subscription
+        └── Resource Group
+              └── Resource
+```
+
+**예시**:
+```
+역할: Owner (Subscription level)
+할당: Alice (Eligible)
+활성화 조건:
+  - MFA 필수
+  - 승인 필요
+  - 최대 4시간
+  - 사유 필수
+
+시나리오:
+  1. Alice가 긴급 배포를 위해 Owner 활성화 요청
+  2. Manager가 승인
+  3. 4시간 동안 Subscription Owner 권한 보유
+  4. 배포 완료 후 수동 비활성화 또는 자동 만료
+```
+
+> 참고: Microsoft Learn, "What is Microsoft Entra Privileged Identity Management?"
+
+<br>
+
+## 3. Identity Protection
+
+### 3.1 개념
+
+**Identity Protection**은 AI 기반 위험 탐지 및 자동 대응 시스템이다.
+
+**핵심 기능**:
+1. **위험 탐지**: 이상 로그인 및 사용자 행동 감지
+2. **위험 점수**: User Risk, Sign-in Risk 산출
+3. **자동 대응**: Conditional Access와 통합하여 자동 차단/MFA
+
+### 3.2 Risk Detections (위험 탐지)
+
+**Sign-in Risk** (로그인 시점 위험):
+
+**1) Anonymous IP Address**
+```
+탐지:
+  - Tor 네트워크
+  - VPN (익명 프록시)
+  - 익명 IP 서비스
+
+위험 수준: Medium
+```
+
+**2) Atypical Travel**
+```
+탐지:
+  - 짧은 시간 내 물리적으로 불가능한 거리 이동
+  - 예: 1시간 만에 서울 → 뉴욕 로그인
+
+계산:
+  Location 1: Seoul (10:00 AM)
+  Location 2: New York (11:00 AM)
+  Distance: 11,000 km
+  Time: 1 hour
+  → Impossible travel detected
+
+위험 수준: Medium ~ High
+```
+
+**3) Malware Linked IP Address**
+```
+탐지:
+  - Microsoft Threat Intelligence가 악성코드 활동을 확인한 IP
+
+위험 수준: Medium
+```
+
+**4) Unfamiliar Sign-in Properties**
+```
+탐지:
+  - 새로운 디바이스
+  - 새로운 브라우저
+  - 새로운 위치
+  - 이전 로그인 패턴과 상이
+
+학습 기간: 14일
+위험 수준: Medium
+```
+
+**5) Leaked Credentials**
+```
+탐지:
+  - 다크 웹, 공개 데이터 유출 목록에서 발견된 자격 증명
+  - Microsoft Threat Intelligence 소스
+
+위험 수준: High
+```
+
+**6) Azure AD Threat Intelligence**
+```
+탐지:
+  - Microsoft 내부 및 외부 위협 인텔리전스
+  - 알려진 공격 패턴
+
+위험 수준: High
+```
+
+**User Risk** (누적 위험):
+
+**1) Leaked Credentials**
+```
+영향: 사용자 계정 자체가 손상되었을 가능성
+지속성: 패스워드 변경 시까지 유지
+```
+
+**2) Azure AD Threat Intelligence**
+```
+영향: 사용자의 비정상적 행동 패턴
+예시:
+  - 대량 다운로드
+  - 비정상적 시간대 활동
+  - 권한 상승 시도
+```
+
+**3) Suspicious Inbox Manipulation Rules**
+```
+탐지:
+  - 의심스러운 이메일 전달 규칙 생성
+  - 예: 모든 이메일을 외부로 전달
+
+위험 수준: Medium
+```
+
+### 3.3 Risk Levels (위험 수준)
+
+```
+Low:
+  - 약한 신호
+  - 추가 검증 권장
+
+Medium:
+  - 중간 강도 신호
+  - MFA 요구 권장
+
+High:
+  - 강한 신호
+  - 패스워드 변경 또는 차단 권장
+
+None:
+  - 위험 신호 없음
+```
+
+### 3.4 위험 기반 정책
+
+**Sign-in Risk Policy**:
+```
+IF Sign-in Risk >= Medium
+THEN Require MFA
+
+설정:
+  Assignments:
+    Users: All users
+    Exclude: Emergency accounts
+  
+  Conditions:
+    Sign-in risk: Medium and above
+  
+  Access Controls:
+    Grant access
+    Require multifactor authentication
+```
+
+**User Risk Policy**:
+```
+IF User Risk >= High
+THEN Require password change
+
+설정:
+  Assignments:
+    Users: All users
+    Exclude: Emergency accounts
+  
+  Conditions:
+    User risk: High
+  
+  Access Controls:
+    Grant access
+    Require password change
+```
+
+### 3.5 위험 조사 및 해결
+
+**Risky Users Report**:
+```powershell
+# PowerShell
+Get-AzureADRiskyUser
+
+# Graph API
+GET https://graph.microsoft.com/v1.0/identityProtection/riskyUsers
+
+응답:
+{
+  "value": [
+    {
+      "id": "user-id",
+      "userPrincipalName": "alice@contoso.com",
+      "riskLevel": "high",
+      "riskState": "atRisk",
+      "riskLastUpdatedDateTime": "2026-01-25T10:30:00Z",
+      "riskDetail": "leakedCredentials"
+    }
+  ]
+}
+```
+
+**위험 해결 옵션**:
+
+**1) Confirm Compromised**
+```
+관리자 조치:
+  - 계정이 실제로 침해되었음을 확인
+  - 자동 작업:
+    * 모든 Refresh Token 취소
+    * 패스워드 재설정 강제
+    * User Risk를 "Confirmed compromised"로 설정
+```
+
+**2) Dismiss Risk**
+```
+관리자 조치:
+  - 오탐(False Positive)으로 판단
+  - 위험 무시 및 상태 초기화
+```
+
+**3) Self-Remediation**
+```
+사용자 조치:
+  - MFA 완료 (Sign-in Risk 해결)
+  - 패스워드 변경 (User Risk 해결)
+  - 자동으로 위험 상태 해제
+```
+
+### 3.6 Workbook 및 모니터링
+
+**Sign-ins by Risk Level**:
+```
+KQL Query:
+SigninLogs
+| where TimeGenerated > ago(7d)
+| summarize Count=count() by RiskLevelDuringSignIn
+| render piechart
+```
+
+**Top Risky Users**:
+```
+KQL Query:
+AADRiskyUsers
+| where RiskState == "atRisk"
+| top 10 by RiskLevel desc
+| project UserPrincipalName, RiskLevel, RiskDetail
+```
+
+> 참고: Microsoft Learn, "What is Identity Protection?"
+
+<br>
+
+## 4. 하이브리드 Identity (Hybrid Identity)
+
+### 4.1 개요 및 시나리오
+
+대부분의 조직은 온프레미스 Active Directory와 Entra ID를 함께 사용한다.
+
+**하이브리드 시나리오**:
+```
+온프레미스 환경:
+  - Windows Server AD (사용자, 그룹, 컴퓨터)
+  - 레거시 앱 (LDAP, Kerberos 인증)
+  - 파일 서버, 프린터
+
+클라우드 환경:
+  - Microsoft 365 (Exchange Online, SharePoint)
+  - Azure 리소스
+  - SaaS 앱 (Salesforce, ServiceNow)
+
+요구사항:
+  - 단일 Identity로 양쪽 접근
+  - 중앙 집중식 관리
+  - SSO 경험
+```
+
+### 4.2 Entra Connect (구 Azure AD Connect)
+
+**역할**: 온프레미스 AD와 Entra ID 간 Identity 동기화.
+
+**아키텍처**:
+```
+On-Premises AD
+  ↓ (동기화)
+Entra Connect Sync Engine
+  ↓ (HTTPS)
+Microsoft Entra ID
+```
+
+**동기화 대상**:
+```
+User Objects:
+  - UserPrincipalName
+  - sAMAccountName
+  - DisplayName
+  - Mail
+  - Department
+  - ... (선택 가능)
+
+Group Objects:
+  - Security Groups
+  - Distribution Groups
+  - Member/MemberOf
+
+Computer Objects (선택적):
+  - Domain-joined computers
+```
+
+**동기화 방향**:
+```
+기본: 단방향 (AD → Entra ID)
+
+쓰기 저장(Writeback) 옵션:
+  - Password Writeback: Entra ID에서 변경한 패스워드를 AD로
+  - Device Writeback: Entra ID 등록 디바이스를 AD로
+  - Group Writeback: M365 그룹을 AD로
+```
+
+### 4.3 인증 방법
+
+**1) Password Hash Synchronization (PHS)**
+
+**동작 원리**:
+```
+1. AD Connect가 사용자 패스워드 해시를 가져옴
+   - NTLM Hash: MD4(UTF-16LE(password))
+   
+2. 추가 해싱 수행
+   - Hash of Hash: PBKDF2(Hash, Salt, 1000 iterations)
+   
+3. Entra ID로 전송 및 저장
+   
+4. 사용자 인증 시
+   - Entra ID가 자체적으로 패스워드 검증
+   - 온프레미스 AD 접근 불필요
+```
+
+**장점**:
+- 고가용성 (온프레미스 AD 다운되어도 클라우드 인증 가능)
+- Identity Protection 지원 (유출된 자격 증명 탐지)
+- 간단한 구성
+
+**단점**:
+- 패스워드 해시가 클라우드에 저장 (일부 조직 정책 위반 가능)
+
+**2) Pass-Through Authentication (PTA)**
+
+**동작 원리**:
+```
+1. 사용자가 Entra ID에 로그인 시도
+   
+2. Entra ID가 Authentication Agent로 요청 전달
+   - 암호화된 큐에 요청 추가
+   
+3. 온프레미스 Authentication Agent가 요청 수신
+   - 에이전트가 Azure Service Bus로 폴링
+   
+4. Agent가 AD에 패스워드 검증 요청
+   - Win32 LogonUser API 호출
+   
+5. AD가 검증 결과 반환
+   
+6. Agent가 결과를 Entra ID로 전달
+   
+7. Entra ID가 사용자에게 토큰 발급
+```
+
+**Authentication Agent**:
+```
+설치 위치: 온프레미스 서버 (DC 아님)
+필요 개수: 최소 3개 (고가용성)
+아웃바운드만: 443 포트 (인바운드 방화벽 불필요)
+```
+
+**장점**:
+- 패스워드가 클라우드에 저장되지 않음
+- 온프레미스 AD가 패스워드 검증의 유일한 주체
+
+**단점**:
+- 온프레미스 Agent 필요 (가용성 의존)
+- Identity Protection 기능 제한적
+
+**3) Federation (ADFS)**
+
+**동작 원리**:
+```
+1. 사용자가 Entra ID에 로그인 시도
+   
+2. Entra ID가 ADFS로 리디렉션
+   - Federated domain임을 인식
+   
+3. ADFS가 사용자 인증
+   - Windows Integrated Auth (Kerberos)
+   - Forms-based Auth
+   - Certificate-based Auth
+   
+4. ADFS가 SAML Token 발급
+   
+5. 사용자가 SAML Token을 Entra ID에 제출
+   
+6. Entra ID가 Token 검증 후 OAuth Token 발급
+```
+
+**장점**:
+- 고급 인증 시나리오 (SmartCard, 3rd-party MFA)
+- 온프레미스 완전 제어
+- 복잡한 Claim 변환
+
+**단점**:
+- 높은 복잡도 (ADFS 팜, WAP, 인증서 관리)
+- 추가 인프라 비용
+- Single Point of Failure
+
+**인증 방법 비교**:
+
+| 측면 | PHS | PTA | Federation |
+|------|-----|-----|------------|
+| **패스워드 위치** | 클라우드 (해시) | 온프레미스만 | 온프레미스만 |
+| **고가용성** | 높음 (독립적) | 중간 (Agent 필요) | 낮음 (ADFS 필요) |
+| **Identity Protection** | 완전 지원 | 제한적 | 제한적 |
+| **복잡도** | 낮음 | 중간 | 높음 |
+| **추가 인프라** | 없음 | Agent 서버 | ADFS 팜 |
+| **권장 사용** | 대부분의 조직 | 규정 요구사항 | 고급 인증 시나리오 |
+
+**Microsoft 권장사항**: PHS + Seamless SSO
+
+> 참고: Microsoft Learn, "Choose the right authentication method for your Microsoft Entra hybrid identity solution"
+
+### 4.4 Seamless SSO
+
+**목적**: 온프레미스 도메인 가입 PC에서 자동 로그인.
+
+**동작 원리**:
+```
+전제 조건:
+  - 도메인 가입 PC
+  - 회사 네트워크 (또는 VPN)
+
+프로세스:
+1. 사용자가 PC 로그온 (Windows Kerberos)
+   
+2. 브라우저가 Entra ID 접근 시도
+   
+3. Entra ID가 Kerberos 티켓 요청
+   - SPN: AZUREADSSOACC (AD에 미리 생성된 계정)
+   
+4. 브라우저가 AD에서 Kerberos 티켓 획득
+   
+5. 티켓을 Entra ID에 제출
+   
+6. Entra ID가 티켓 검증 (공유 키로)
+   
+7. 패스워드 입력 없이 로그인 완료
+```
+
+**설정 요구사항**:
+```
+AD:
+  - AZUREADSSOACC 컴퓨터 계정 생성
+  - AES256 Kerberos 암호화 지원
+
+클라이언트:
+  - Intranet Zone에 Entra ID URL 추가
+    * https://autologon.microsoftazuread-sso.com
+  - "Automatic logon with current username and password" 허용
+```
+
+### 4.5 Hybrid Azure AD Join
+
+**정의**: 디바이스가 온프레미스 AD와 Entra ID에 동시 가입.
+
+**디바이스 상태**:
+```
+AD Joined Only:
+  - 온프레미스 리소스만 접근
+  - Kerberos 인증
+  
+Entra ID Joined:
+  - 클라우드 리소스만 접근
+  - 온프레미스 리소스 접근 불가
+  
+Hybrid Joined:
+  - 양쪽 모두 접근
+  - Primary Refresh Token (PRT) 보유
+```
+
+**등록 프로세스** (Windows 10/11):
+```
+1. 디바이스가 AD 도메인 가입
+   
+2. Group Policy 또는 Entra Connect로 등록 트리거
+   
+3. 디바이스가 Device Registration Service에 접속
+   - https://enterpriseregistration.windows.net
+   
+4. Entra ID가 디바이스 인증서 발급
+   
+5. 디바이스 객체가 Entra ID에 생성
+   - deviceId
+   - OS Version
+   - BitLocker Recovery Key (선택적)
+   
+6. Entra Connect가 AD 디바이스 객체를 동기화
+```
+
+**Primary Refresh Token (PRT)**:
+```
+역할: 디바이스 기반 SSO 토큰
+
+발급 조건:
+  - Hybrid Joined 디바이스
+  - 사용자가 도메인 계정으로 로그인
+  
+유효 기간: 14일 (지속적 갱신)
+
+사용:
+  - Microsoft 앱 (Edge, Office, Teams) 자동 로그인
+  - Conditional Access 디바이스 검증
+```
+
+**Conditional Access 통합**:
+```
+정책:
+  Require Hybrid Azure AD joined device
+  
+효과:
+  - 회사 PC에서만 접근 허용
+  - 개인 PC 차단
+```
+
+### 4.6 Entra Connect Cloud Sync
+
+**차이점**: 경량 에이전트 기반 동기화.
+
+**기존 Entra Connect vs Cloud Sync**:
+
+| 측면 | Entra Connect | Cloud Sync |
+|------|---------------|------------|
+| **아키텍처** | 온프레미스 서버에 동기화 엔진 | 클라우드 서비스 + 경량 에이전트 |
+| **고가용성** | Active-Standby (수동) | Multi-Agent (자동) |
+| **관리** | 온프레미스 GUI/PowerShell | Azure Portal |
+| **업데이트** | 수동 업그레이드 | 자동 업그레이드 |
+| **복잡한 변환** | 지원 | 제한적 |
+| **멀티 포레스트** | 단일 인스턴스 | 여러 에이전트 |
+| **쓰기 저장** | 모든 타입 | Password만 |
+
+**권장 사용**:
+- Cloud Sync: 신규 배포, 간단한 동기화
+- Entra Connect: 복잡한 변환, 전체 쓰기 저장 필요
+
+> 참고: Microsoft Learn, "What is Microsoft Entra Cloud Sync?"
+
+<br>
+
+## 5. B2B 및 B2C
+
+### 5.1 B2B Collaboration
+
+**목적**: 외부 협력자를 조직 리소스에 초대.
+
+**게스트 사용자 초대**:
+```powershell
+# PowerShell
+New-AzureADMSInvitation `
+  -InvitedUserEmailAddress "partner@external.com" `
+  -InviteRedirectUrl "https://myapp.contoso.com" `
+  -SendInvitationMessage $true
+
+# Graph API
+POST https://graph.microsoft.com/v1.0/invitations
+{
+  "invitedUserEmailAddress": "partner@external.com",
+  "inviteRedirectUrl": "https://myapp.contoso.com",
+  "sendInvitationMessage": true
+}
+```
+
+**상환(Redemption) 프로세스**:
+```
+1. 외부 사용자가 초대 이메일 수신
+   
+2. 링크 클릭 및 동의 페이지
+   - 조직의 프라이버시 정책 확인
+   
+3. 자신의 Identity로 인증
+   - Microsoft 계정
+   - Google
+   - Facebook
+   - 기타 Entra ID
+   
+4. Consent 후 리소스 접근
+   
+5. Entra ID에 Guest 사용자 생성
+   - UserType: Guest
+   - UPN: partner_external.com#EXT#@contoso.onmicrosoft.com
+```
+
+**Guest 사용자 관리**:
+```
+권한:
+  - 기본적으로 제한적 권한 (Directory 읽기 제한)
+  - 그룹 멤버십으로 리소스 접근 부여
+  
+접근 제어:
+  - Conditional Access 적용 가능
+  - MFA 요구 가능 (게스트 테넌트 또는 호스트 테넌트)
+  
+Lifecycle:
+  - Access Reviews로 정기 검토
+  - 자동 제거 정책
+```
+
+**Cross-tenant Access Settings**:
+```
+Inbound:
+  - 어떤 외부 조직의 사용자를 허용할지
+  - B2B Direct Connect 허용 여부
+  
+Outbound:
+  - 우리 사용자가 외부 조직에 접근 허용 여부
+  - 특정 조직만 허용/차단
+```
+
+### 5.2 B2C (External ID)
+
+**목적**: 소비자 대상 앱의 Identity 관리.
+
+**주요 기능**:
+```
+Local Accounts:
+  - 이메일 + 패스워드
+  - 전화번호 + SMS OTP
+  
+Social Logins:
+  - Google
+  - Facebook
+  - Microsoft Account
+  - Apple ID
+  - Twitter/X
+  
+Enterprise Logins:
+  - SAML
+  - OpenID Connect
+  
+사용자 정의 속성:
+  - 생년월일
+  - 선호 언어
+  - 마케팅 동의
+```
+
+**User Flows**:
+```
+Sign-up and Sign-in:
+  - 가입 + 로그인 통합 페이지
+  - 소셜/로컬 계정 선택
+  
+Profile Editing:
+  - 사용자 정보 수정
+  
+Password Reset:
+  - 이메일/SMS 기반 재설정
+```
+
+**Custom Policies (Identity Experience Framework)**:
+```xml
+<TrustFrameworkPolicy>
+  <UserJourney Id="SignUpOrSignIn">
+    <OrchestrationSteps>
+      <OrchestrationStep Order="1" Type="CombinedSignInAndSignUp">
+        <ClaimsProviderSelections>
+          <ClaimsProviderSelection TargetClaimsExchangeId="GoogleExchange" />
+          <ClaimsProviderSelection TargetClaimsExchangeId="LocalAccountSignin" />
+        </ClaimsProviderSelections>
+      </OrchestrationStep>
+      ...
+    </OrchestrationSteps>
+  </UserJourney>
+</TrustFrameworkPolicy>
+```
+
+**토큰 커스터마이징**:
+```json
+{
+  "id_token": {
+    "sub": "user-id",
+    "email": "user@example.com",
+    "given_name": "John",
+    "family_name": "Doe",
+    "loyalty_number": "12345",
+    "custom_claim": "value"
+  }
+}
+```
+
+> 참고:
+> - Microsoft Learn, "B2B collaboration overview"
+> - Microsoft Learn, "Azure Active Directory B2C documentation"
+
+<br>
+
+## 정리
+
+이번 포스트에서는 Entra ID의 고급 보안 기능과 하이브리드 Identity 통합을 다뤘다.
+
+**핵심 요약**:
+1. **Conditional Access**: ABAC 기반 동적 접근 제어, 위치/디바이스/위험 기반 정책
+2. **PIM**: JIT 권한 부여로 상시 관리자 위험 최소화, 승인 워크플로우 및 Access Reviews
+3. **Identity Protection**: AI 기반 위험 탐지, Sign-in/User Risk 자동 평가 및 대응
+4. **하이브리드 Identity**: PHS/PTA/Federation으로 온프레미스 AD와 통합, Seamless SSO 및 Hybrid Join
+5. **B2B/B2C**: 외부 협력자 및 소비자 Identity 관리
+
+**권장 구성**:
+```
+소규모 조직:
+  - PHS + Seamless SSO
+  - Conditional Access (MFA, Location)
+  - PIM (관리자 역할)
+  
+대규모/규제 조직:
+  - PTA 또는 Federation
+  - Conditional Access (전체 정책 세트)
+  - PIM + Access Reviews
+  - Identity Protection
+```
+
+이로써 접근제어, 디렉토리 서비스, Azure Entra ID에 대한 전체 시리즈를 마무리한다.
+
+<br>
+
+## 참고문헌
+
+1. Microsoft Learn, "What is Conditional Access?"
+2. Microsoft Learn, "What is Microsoft Entra Privileged Identity Management?"
+3. Microsoft Learn, "What is Identity Protection?"
+4. Microsoft Learn, "Choose the right authentication method for your Microsoft Entra hybrid identity solution"
+5. Microsoft Learn, "What is Microsoft Entra Cloud Sync?"
+6. Microsoft Learn, "B2B collaboration overview"
+7. Microsoft Learn, "Azure Active Directory B2C documentation"
+8. Microsoft Learn, "What is a Primary Refresh Token?"
+9. Microsoft Learn, "Plan a Microsoft Entra hybrid join implementation"
+10. Microsoft Entra ID documentation
