@@ -432,8 +432,6 @@ Enforcement: MAC-like 중앙 정책 강제
 
 다음 포스트에서는 이러한 접근제어 모델들이 실제로 어떻게 구현되며, 특히 **Azure RBAC**의 구체적인 동작 메커니즘과 실전 활용법을 다루겠습니다.
 
-<br>
-
 <!-- ## 참고문헌
 
 1. [NIST SP 800-192, "Verification and Test Methods for Access Control Policies/Models"](https://csrc.nist.gov/publications/detail/sp/800-192/final)

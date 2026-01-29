@@ -17,11 +17,12 @@ categories: Azure_Study
 ### 1.1 ACL (Access Control List)
 
 **개념**
+
 각 객체(리소스)에 연결된 **허가 목록**으로, "누가 이 리소스에 대해 무엇을 할 수 있는지"를 명시합니다.
 
 **구조**
-ACL은 ACE(Access Control Entry)들의 리스트로 구성됩니다:
 
+ACL은 ACE(Access Control Entry)들의 리스트로 구성됩니다:
 ```
 ACL = [ ACE1, ACE2, ACE3, ... ]
 
@@ -33,17 +34,24 @@ ACE = {
 ```
 
 **동작 원리**
-1. 주체가 객체 접근 요청
-2. 시스템이 해당 객체의 ACL을 조회
-3. ACL을 순차적으로 검사하여 주체와 매칭되는 ACE 탐색
-4. 매칭되는 ACE의 Permission을 기반으로 허가/거부 결정
+1. **요청**: 주체(사용자, 프로세스 등)가 특정 리소스에 대한 접근을 시스템에 요청합니다.
+2. **조회**: 시스템은 해당 리소스에 연결된 ACL(액세스 제어 목록)을 가져옵니다.
+3. **검사**: ACL 목록의 최상단부터 하단으로 내려가며 **순차적으로** 규칙(ACE)을 검사합니다.
+4. **결정**: 주체와 일치하는 규칙이 발견되면, 즉시 해당 권한(허용 또는 거부)을 적용하고 **검사를 종료**합니다. (First-match-wins)
+
+![acl flow](/images/26-01-17-access-control(2)-acl.png)
 
 **Windows NTFS ACL 예시**
-
 ```
+[시나리오]
+- 사용자: DOMAIN\bob
+- 행동: 'C:\Data\financials.xlsx' 파일에 대해 읽기(Read) 시도
+
+[리소스 정보]
 파일: C:\Data\financials.xlsx
 Owner: DOMAIN\alice
 
+[ACL 정보 (Access Control Entries)]
 ACL Entries:
 1. Principal: DOMAIN\alice
    Permission: Full Control
@@ -60,11 +68,18 @@ ACL Entries:
 4. Principal: DOMAIN\bob
    Permission: Read
    Type: Allow
-```
 
-**평가 순서**:
-- Windows에서는 Deny ACE를 먼저 평가
-- bob이 접근 시: Entry 3(Deny)가 Entry 4(Allow)보다 우선 적용 → 접근 거부
+
+[평가 순서]
+1. Windows ACL은 목록을 순차적으로 평가합니다.
+2. 시스템은 Bob이 'Everyone' 그룹에 속하므로 Entry 3 (Deny) 규칙을 적용합니다.
+3. 거부(Deny) 규칙이 매칭되는 순간, 평가는 즉시 종료되고 접근은 차단됩니다.
+   (따라서 Entry 4에 있는 Bob의 Allow 권한은 확인조차 되지 않거나 무시됩니다.)
+
+[최종 결과]
+- 접근 거부 (Access Denied)
+- ACL에서 'Deny' 권한은 'Allow' 권한보다 우선순위가 높습니다. 즉, 특정 그룹(Everyone)에 대한 거부 설정이 개별 사용자(Bob)에게 부여된 허용 권한을 무효화할 수 있습니다.
+```
 
 **장점**
 - 객체별 세밀한 권한 설정
@@ -80,29 +95,41 @@ ACL Entries:
 - AWS S3 Bucket ACL
 - 네트워크 방화벽 규칙
 
+<!--
 > 참고: Microsoft Docs, "Access Control Lists (ACLs)"
+-->
 
 <br>
 
-### 1.2 Capability-Based Security
+### 1.2 역량 기반 보안 (Capability-Based Security)
 
 **개념**
-주체가 **능력(Capability)**이라는 토큰을 보유하면 해당 토큰이 명시하는 객체와 작업에 접근할 수 있는 모델입니다. ACL과 반대로 "주체 중심" 접근제어입니다.
+
+주체가 **능력(Capability)**이라는 **'열쇠'나 '입장권'과 같은 토큰을 보유**하면, 해당 토큰이 명시하는 객체와 작업에 접근할 수 있는 모델입니다.
+
+ACL이 "이 파일에 누가 접근할 수 있는가?"(객체 중심)를 묻는다면, Capability는 "**이 사용자가 어떤 열쇠들을 가지고 있는가?**"(주체 중심)에 초점을 맞춥니다.
+
+**비유**
+- **ACL**: 나이트클럽 입구의 **VIP 명단**. 경비원이 손님의 신분증을 확인하고 명단에 이름이 있어야 입장시킵니다.
+- **Capability**: **영화 티켓**. 직원은 손님이 누구인지 확인하지 않습니다. 유효한 티켓을 소지하고 있다면 누구나 입장 가능합니다.
 
 **Capability의 구조**
 ```
 Capability = {
-  Object Reference: 객체 식별자
-  Rights: 허용된 작업 집합
-  Signature/Proof: 위변조 방지를 위한 서명
+  Object Reference: 접근할 리소스의 주소나 ID (예: 특정 파일 경로)
+  Rights: 수행 가능한 권한 (예: 읽기, 쓰기)
+  Signature/Proof: 위변조 방지를 위한 암호화 서명 (예: HMAC)
 }
 ```
 
 **동작 원리**
-1. 시스템이 주체에게 Capability 발급
-2. 주체가 작업 수행 시 Capability를 제시
-3. 시스템이 Capability의 유효성과 서명을 검증
-4. 검증 성공 시 Capability에 명시된 작업 허용
+1. **발급**: 리소스 소유자(또는 시스템)가 주체에게 접근 권한이 담긴 'Capability(토큰)'를 발급합니다.
+2. **요청**: 주체가 리소스에 접근할 때, **자신의 신분증 대신 이 Capability를 제시**합니다.
+3. **검증**: 시스템은 주체가 누구인지 확인하는 대신, **Capability가 유효한지(서명이 맞는지, 만료되지 않았는지)만 검증**합니다.
+4. **허용**: 검증이 성공하면 토큰에 명시된 작업을 즉시 허용합니다.
+
+![capability flow](/images/26-01-17-access-control(2)-capability.png)
+
 
 **ACL vs Capability 비교**
 
@@ -138,16 +165,18 @@ Capability = {
    sv=2021-06-08&  # Service Version
    sig=<signature>  # HMAC-SHA256 Signature
    ```
-
+<!--
 > 참고:
 > - Dennis, J. B., Van Horn, E. C., "Programming Semantics for Multiprogrammed Computations", Communications of the ACM, 1966
 > - Microsoft Azure Storage Documentation, "Shared Access Signatures (SAS)"
+-->
 
 <br>
 
-### 1.3 Policy-Based Access Control
+### 1.3 PBAC (Policy-Based Access Control)
 
 **개념**
+
 선언적 정책(Policy)을 평가하여 접근을 결정하는 방식입니다. ABAC의 구현 형태로, 정책 언어로 복잡한 규칙을 표현합니다.
 
 **정책 언어 예시**
@@ -178,35 +207,47 @@ Capability = {
   ]
 }
 ```
-
-**정책 평가 로직**:
+**AWS 정책 평가 로직**:
 - Effect: 결과 (Allow/Deny)
 - Action: 허용할 작업
 - Resource: 대상 리소스
 - Condition: 추가 제약 조건 (IP, 시간 등)
 
-**2) OPA (Open Policy Agent) - Rego 언어**
-```rego
-package authz
-
-default allow = false
-
-allow {
-  input.method == "GET"
-  input.user.role == "reader"
-}
-
-allow {
-  input.method == "POST"
-  input.user.role == "writer"
-  input.resource.owner == input.user.id
+**2) Azure Policy (JSON 기반)**
+```json
+{
+  "mode": "All",
+  "policyRule": {
+    "if": {
+      "allOf": [
+        {
+          "field": "type",
+          "equals": "Microsoft.Compute/virtualMachines"
+        },
+        {
+          "field": "location",
+          "notIn": ["koreacentral", "koreasouth"]
+        }
+      ]
+    },
+    "then": {
+      "effect": "deny"
+    }
+  }
 }
 ```
+**Azure 정책 평가 로직**:
+- Mode: 정책이 평가할 리소스 유형 (모든 리소스, 태그 지원 리소스 등)
+- If: 평가 조건 (리소스의 Field, 위치, 태그 등 비교)
+- Then: 조건 충족 시 적용할 효과
+- Effect: 최종 결과 (Deny, Audit, Append, Modify 등)
 
-**정책 평가 흐름**:
+**동작 원리**:
 1. 접근 요청 → JSON 형태로 input 구성
 2. Policy Engine이 정책 평가
 3. 결과 반환 (true/false 또는 allow/deny)
+
+![pbac flow](/images/26-01-17-access-control(2)-pbac.png)
 
 **장점**
 - 복잡한 비즈니스 규칙을 선언적으로 표현
@@ -217,9 +258,11 @@ allow {
 - 정책 작성 및 디버깅의 학습 곡선
 - 실시간 평가 시 성능 고려 필요
 
+<!--
 > 참고:
 > - AWS IAM Documentation, "Policy Evaluation Logic"
 > - Open Policy Agent Documentation
+-->
 
 <br>
 
@@ -231,14 +274,14 @@ Azure RBAC(Role-Based Access Control)는 Azure의 핵심 접근제어 시스템�
 
 **1) Security Principal (보안 주체)**
 
-접근을 요청하는 ID 객체:
+Azure 리소스에 대한 접근 권한을 요청하는 **ID 객체(Identity Object)**입니다.
 
-- **User**: Microsoft Entra ID(구 Azure AD) 사용자
-- **Group**: 사용자 그룹
-- **Service Principal**: 애플리케이션이나 서비스의 ID
-- **Managed Identity**: Azure 리소스에 자동으로 할당되는 ID
-  - System-assigned: 리소스와 생명주기 동일
-  - User-assigned: 독립적으로 관리되는 ID
+- **User (사용자)**: Microsoft Entra ID(구 Azure AD)에 등록된 사람의 ID입니다.
+- **Group (그룹)**: 여러 사용자에게 동일한 권한을 한 번에 부여하기 위해 묶은 사용자 집합입니다.
+- **Service Principal (서비스 주체)**: 애플리케이션, 호스팅된 서비스, 자동화 도구가 Azure 리소스에 접근할 때 사용하는 ID입니다. (코드에 사용자 계정을 하드코딩하는 대신 사용)
+- **Managed Identity (관리 ID)**: Azure 리소스(VM, App Service 등)에 자동으로 할당되는 특수한 서비스 주체입니다. 개발자가 자격 증명(비밀번호, 키)을 직접 관리할 필요가 없는 것이 가장 큰 장점입니다.
+  - **System-assigned**: 리소스 생성 시 활성화되며, 리소스가 삭제되면 ID도 함께 삭제됩니다. (1:1 관계)
+  - **User-assigned**: 독립적인 리소스로 생성되며, 여러 Azure 리소스에 할당하여 재사용할 수 있습니다. (1:N 관계)
 
 **2) Role Definition (역할 정의)**
 
@@ -278,9 +321,8 @@ Azure RBAC(Role-Based Access Control)는 Azure의 핵심 접근제어 시스템�
 **3) Scope (범위)**
 
 권한이 적용되는 계층적 범위:
-
 ```
-Management Group (최상위)
+Management Group (관리 그룹)
   ↓
 Subscription (구독)
   ↓
@@ -296,7 +338,6 @@ Resource (개별 리소스)
 **4) Role Assignment (역할 할당)**
 
 Security Principal + Role + Scope의 조합:
-
 ```json
 {
   "id": "/subscriptions/{sub-id}/providers/Microsoft.Authorization/roleAssignments/{guid}",
@@ -308,8 +349,9 @@ Security Principal + Role + Scope의 조합:
   }
 }
 ```
-
+<!--
 > 참고: Microsoft Learn, "Azure RBAC documentation"
+-->
 
 <br>
 
@@ -319,8 +361,9 @@ Azure는 사용자의 모든 요청에 대해 다음과 같은 다단계 평가 
 
 **1단계: 인증 (Authentication)**
 ```
-User Request → Microsoft Entra ID
-              → Token 발급 (with claims: user_id, groups, roles)
+User Request
+  → Microsoft Entra ID
+    → Token 발급 (with claims: user_id, groups, roles)
 ```
 
 **2단계: 컨텍스트 수집**
@@ -456,13 +499,16 @@ def evaluate_access(principal, operation, resource):
 → 매칭: False (패턴 불일치)
 ```
 
-> 참고: Microsoft Learn, "How Azure RBAC determines if a user has access to a resource"
+> 참고: [Microsoft Learn, "How Azure RBAC determines if a user has access to a resource"](https://learn.microsoft.com/ko-kr/azure/role-based-access-control/overview)
+
 
 <br>
 
 ### 2.3 기본 제공 역할 (Built-in Roles)
 
-Azure는 75개 이상의 기본 제공 역할을 제공한다. 주요 역할들의 권한 범위를 분석한다.
+Azure는 자원 관리를 효율적으로 수행할 수 있도록 수백개의 기본 제공 역할(Built-in Roles)을 미리 정의해 두었습니다. 이러한 역할들은 일반적인 관리 시나리오에 필요한 권한 조합을 제공하므로, 역할 정의를 처음부터 새로 만들 필요 없이 즉시 사용할 수 있습니다.
+
+권한 있는 관리자 역할인 **Owner(소유자)**와 **Contributor(기여자)**, 그리고 흔히 사용 되는 **Reader(독자)**를 알아보겠습니다.
 
 **1) Owner (소유자)**
 
@@ -474,13 +520,11 @@ Azure는 75개 이상의 기본 제공 역할을 제공한다. 주요 역할들�
   "NotDataActions": []
 }
 ```
-
 - **권한**: 모든 작업 (리소스 생성/삭제/수정 + RBAC 관리)
 - **특징**: 다른 사용자에게 역할 할당 가능
 - **사용 사례**: 구독 관리자, 프로젝트 Owner
 
 **2) Contributor (기여자)**
-
 ```json
 {
   "Actions": ["*"],
@@ -493,13 +537,11 @@ Azure는 75개 이상의 기본 제공 역할을 제공한다. 주요 역할들�
   "NotDataActions": []
 }
 ```
-
 - **권한**: 리소스 관리 (생성/삭제/수정)
 - **제한**: RBAC 역할 할당/삭제 불가
 - **사용 사례**: 개발자, DevOps 엔지니어
 
 **3) Reader (읽기 권한자)**
-
 ```json
 {
   "Actions": ["*/read"],
@@ -508,7 +550,6 @@ Azure는 75개 이상의 기본 제공 역할을 제공한다. 주요 역할들�
   "NotDataActions": []
 }
 ```
-
 - **권한**: 모든 리소스 조회만 가능
 - **제한**: 어떤 변경도 불가
 - **사용 사례**: 감사자, 읽기 전용 사용자
@@ -546,7 +587,7 @@ Azure는 75개 이상의 기본 제공 역할을 제공한다. 주요 역할들�
 - Management Plane 역할(예: Contributor)은 Data Plane 접근 권한을 자동으로 부여하지 않음
 - Blob 데이터를 읽으려면 별도로 `Storage Blob Data Reader` 같은 Data Plane 역할 필요
 
-> 참고: Microsoft Learn, "Azure built-in roles"
+> 참고: [Microsoft Learn, "Azure built-in roles"](https://learn.microsoft.com/ko-kr/azure/role-based-access-control/built-in-roles)
 
 <br>
 
@@ -605,28 +646,27 @@ az role definition create --role-definition @vm-operator-role.json
 - 테넌트당 최대 **5,000개**의 커스텀 역할
 - 역할 정의당 최대 **2,048개**의 Actions
 
-> 참고: Microsoft Learn, "Azure custom roles"
+> 참고: [Microsoft Learn, "Azure custom roles"](https://learn.microsoft.com/ko-kr/azure/role-based-access-control/custom-roles)
 
 <br>
 
-### 2.5 Management Plane vs Data Plane
+### 2.5 제어 평면 (Management Plane) vs 데이터 평면 (Data Plane)
 
-Azure의 작업은 두 평면으로 분류됩니다:
+Azure의 제어평면과 데이터평면으로 작업이 분류됩니다:
 
-**Management Plane**
+**제어 평면(Management Plane)**
 - **대상**: 리소스 자체의 생명주기 관리
 - **작업 예시**: VM 생성, Storage Account 삭제, Virtual Network 구성
 - **엔드포인트**: Azure Resource Manager (management.azure.com)
 - **권한**: Actions/NotActions로 제어
 
-**Data Plane**
+**데이터 평면(Data Plane)**
 - **대상**: 리소스 내부의 데이터 작업
 - **작업 예시**: Blob 읽기/쓰기, SQL 쿼리 실행, Key Vault Secret 접근
 - **엔드포인트**: 각 서비스의 데이터 엔드포인트 (예: myaccount.blob.core.windows.net)
 - **권한**: DataActions/NotDataActions로 제어
 
 **예시: Storage Account**
-
 ```
 Management Plane:
 - Storage Account 생성/삭제
@@ -655,7 +695,7 @@ User A:
 - 별도의 Data Plane 역할(예: `Storage Blob Data Contributor`) 필요
 - 단, Storage Account 키를 직접 사용하면 RBAC를 우회하여 전체 접근 가능 (비권장)
 
-> 참고: Microsoft Learn, "Azure control plane and data plane"
+> 참고: [Microsoft Learn, "Azure control plane and data plane"](https://learn.microsoft.com/ko-kr/azure/azure-resource-manager/management/control-plane-and-data-plane)
 
 <br>
 
@@ -680,7 +720,6 @@ Azure RBAC는 RBAC 모델이지만, Microsoft Entra ID의 **조건부 액세스*
    - Session: 세션 시간 제한, 앱 제어
 
 **통합 시나리오**
-
 ```
 조건부 액세스 정책:
   IF User.Role == "Contributor"
@@ -719,7 +758,7 @@ RBAC:
 }
 ```
 
-> 참고: Microsoft Learn, "What is Conditional Access?"
+> 참고: [Microsoft Learn, "What is Conditional Access?"](https://learn.microsoft.com/ko-kr/entra/identity/conditional-access/overview)
 
 <br>
 
@@ -779,7 +818,7 @@ Just-In-Time (JIT) 권한 부여를 통해 상시 권한 할당의 위험을 줄
 - **감사 추적**: 모든 권한 활성화 로그 기록
 - **적시성**: 필요한 시점에만 권한 부여
 
-> 참고: Microsoft Learn, "What is Microsoft Entra Privileged Identity Management?"
+> 참고: [Microsoft Learn, "What is Microsoft Entra Privileged Identity Management?"](https://learn.microsoft.com/ko-kr/entra/id-governance/privileged-identity-management/pim-configure)
 
 <br>
 
@@ -787,22 +826,22 @@ Just-In-Time (JIT) 권한 부여를 통해 상시 권한 할당의 위험을 줄
 
 **1) 최소 권한 원칙 적용**
 ```
-❌ 나쁜 예: 모든 개발자에게 Subscription Owner 부여
-✅ 좋은 예: Resource Group 수준에서 필요한 역할만 부여
+좋은 예: Resource Group 수준에서 필요한 역할만 부여
+나쁜 예: 모든 개발자에게 Subscription Owner 부여
 ```
 
 **2) 그룹 기반 할당**
 ```
-❌ 나쁜 예: 각 사용자에게 개별적으로 역할 할당
-✅ 좋은 예: DevTeam 그룹을 만들고 그룹에 역할 할당
+좋은 예: DevTeam 그룹을 만들고 그룹에 역할 할당
+나쁜 예: 각 사용자에게 개별적으로 역할 할당
 ```
 
 **3) 적절한 범위 선택**
 ```
 필요한 최소 범위에서 할당:
 Management Group > Subscription > Resource Group > Resource
-                                              ↑
-                                         대부분의 경우 여기서 할당
+                                        ↑
+                                대부분의 경우 여기서 할당
 ```
 
 **4) 서비스 주체 권한 최소화**
@@ -812,13 +851,11 @@ Management Group > Subscription > Resource Group > Resource
   "appId": "{app-id}",
   "roleAssignments": [
     {
-      "role": "Storage Blob Data Contributor",  // ✅ 특정 역할
-      "scope": "/subscriptions/.../storageAccounts/myapp-storage"  // ✅ 특정 리소스
+      "role": "Storage Blob Data Contributor",
+      "scope": "/subscriptions/.../storageAccounts/myapp-storage"
     }
   ]
 }
-
-// ❌ 피해야 할 패턴: Subscription 수준에서 Contributor 역할
 ```
 
 **5) 정기적 권한 검토**
@@ -831,8 +868,8 @@ Get-AzRoleAssignment -Scope "/subscriptions/{sub-id}" |
 
 **6) Managed Identity 활용**
 ```
-❌ 나쁜 예: Service Principal 자격 증명을 코드에 하드코딩
-✅ 좋은 예: VM에 Managed Identity 할당하여 자격 증명 없이 인증
+좋은 예: VM에 Managed Identity 할당하여 자격 증명 없이 인증
+나쁜 예: Service Principal 자격 증명을 코드에 하드코딩
 ```
 
 **7) 감사 로그 모니터링**
@@ -845,7 +882,7 @@ Get-AzRoleAssignment -Scope "/subscriptions/{sub-id}" |
 Azure Monitor 또는 Sentinel로 이상 패턴 탐지
 ```
 
-> 참고: Microsoft Learn, "Best practices for Azure RBAC"
+> 참고: [Microsoft Learn, "Best practices for Azure RBAC"](https://learn.microsoft.com/ko-kr/azure/role-based-access-control/best-practices)
 
 <br>
 
@@ -867,7 +904,6 @@ Azure에는 RBAC 외에도 여러 접근제어 메커니즘이 존재한다. 각
 ### 3.2 Azure Policy
 
 **목적**: 리소스의 **규정 준수(Compliance)** 강제
-
 ```json
 {
   "policyRule": {
@@ -901,7 +937,6 @@ Azure에는 RBAC 외에도 여러 접근제어 메커니즘이 존재한다. 각
 ### 3.3 Resource Locks
 
 **목적**: 실수로 인한 중요 리소스 삭제/수정 방지
-
 ```
 Lock Types:
 - CanNotDelete: 삭제 차단 (수정은 가능)
@@ -912,7 +947,7 @@ Lock Types:
 - Resource Lock은 RBAC 권한보다 우선함
 - Owner 역할을 가져도 Lock이 걸린 리소스는 삭제 불가
 
-> 참고: Microsoft Learn, "Lock your resources to protect your infrastructure"
+> 참고: [Microsoft Learn, "Lock your resources to protect your infrastructure"](https://learn.microsoft.com/ko-kr/azure/azure-resource-manager/management/lock-resources?tabs=json)
 
 <br>
 
@@ -928,8 +963,6 @@ Lock Types:
 5. 최소 권한 원칙과 그룹 기반 할당이 모범 사례
 
 다음 포스트 시리즈에서는 **디렉토리 서비스(Directory Service)**의 개념과 구현 방식을 다루겠습니다.
-
-<br>
 
 <!--
 ## 참고문헌
@@ -948,5 +981,4 @@ Lock Types:
 12. [Microsoft Learn, "What is Microsoft Entra Privileged Identity Management?"](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-configure)
 13. [Microsoft Learn, "Best practices for Azure RBAC"](https://learn.microsoft.com/en-us/azure/role-based-access-control/best-practices)
 14. [Microsoft Learn, "Lock your resources to protect your infrastructure"](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/lock-resources)
--->
 -->
