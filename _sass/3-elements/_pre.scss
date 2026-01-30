@@ -4,10 +4,13 @@
 
 pre {
   overflow: auto;
-  padding: 25px;
+  padding: 16px;
   font-size: 14px;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  word-break: break-all;
-  font-family: Courier, monospace;
+  line-height: 1.45;
+  white-space: pre;
+  word-wrap: normal;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  background-color: #f6f8fa;
+  border-radius: 6px;
+  border: 1px solid #e1e4e8;
 }
