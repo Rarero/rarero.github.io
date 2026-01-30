@@ -101,3 +101,78 @@ $(document).ready(function () {
 
 
 });
+
+  /* =======================
+  // Sidebar Toggle
+  ======================= */
+  $('.js-sidebar-toggle').click(function() {
+    $('body').toggleClass('layout-collapsed');
+  });
+
+  /* =======================
+  // Table of Contents
+  ======================= */
+  var $toc = $('#toc');
+  if ($toc.length) {
+    var $headers = $('.c-article__content').find('h1, h2, h3');
+    
+    if ($headers.length > 1) {
+       var html = '<ul>';
+       var prevLevel = 0;
+       
+       $headers.each(function(index) {
+          var $this = $(this);
+          // Set ID if not present
+          var id = $this.attr('id');
+          if (!id) {
+             id = 'header-' + index;
+             $this.attr('id', id);
+          }
+          
+          var level = parseInt($this.prop('tagName').replace('H', ''));
+          
+          if (index === 0) prevLevel = level;
+          
+          if (level > prevLevel) {
+             html += '<ul>';
+          } else if (level < prevLevel) {
+             // Close strictly based on difference
+             // Note: This simple logic assumes levels don't skip weirdly (e.g. h1 -> h4 -> h2)
+             // For valid HTML, <ul> should be inside <li>. Doing loose list for simplicity.
+             for (var i = 0; i < prevLevel - level; i++) {
+                html += '</ul>';
+             }
+          }
+          
+          html += '<li><a href="#' + id + '">' + $this.text() + '</a></li>';
+          prevLevel = level;
+       });
+       html += '</ul>';
+       
+       $toc.html(html).show();
+       
+       // Scroll Spy
+       $(window).scroll(function() {
+          var scrollTop = $(window).scrollTop();
+          var $currentSection = null;
+          
+          $headers.each(function() {
+             var $this = $(this);
+             if ($this.offset().top < scrollTop + 150) {
+                $currentSection = $this;
+             }
+          });
+          
+          if ($currentSection) {
+             var id = $currentSection.attr('id');
+             $toc.find('a').removeClass('is-active');
+             var $activeLink = $toc.find('a[href="#' + id + '"]');
+             $activeLink.addClass('is-active');
+             
+             // Keep active link in view within TOC container
+             // Simplified: just scroll into view if needed
+          }
+       });
+    }
+  }
+});
