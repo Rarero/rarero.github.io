@@ -99,9 +99,6 @@ $(document).ready(function () {
     };
   });
 
-
-});
-
   /* =======================
   // Sidebar Toggle
   ======================= */
@@ -117,12 +114,11 @@ $(document).ready(function () {
     var $headers = $('.c-article__content').find('h1, h2, h3');
     
     if ($headers.length > 1) {
-       var html = '<ul>';
+       var html = '<ul class="toc-list">';
        var prevLevel = 0;
        
        $headers.each(function(index) {
           var $this = $(this);
-          // Set ID if not present
           var id = $this.attr('id');
           if (!id) {
              id = 'header-' + index;
@@ -136,9 +132,6 @@ $(document).ready(function () {
           if (level > prevLevel) {
              html += '<ul>';
           } else if (level < prevLevel) {
-             // Close strictly based on difference
-             // Note: This simple logic assumes levels don't skip weirdly (e.g. h1 -> h4 -> h2)
-             // For valid HTML, <ul> should be inside <li>. Doing loose list for simplicity.
              for (var i = 0; i < prevLevel - level; i++) {
                 html += '</ul>';
              }
@@ -168,11 +161,9 @@ $(document).ready(function () {
              $toc.find('a').removeClass('is-active');
              var $activeLink = $toc.find('a[href="#' + id + '"]');
              $activeLink.addClass('is-active');
-             
-             // Keep active link in view within TOC container
-             // Simplified: just scroll into view if needed
           }
        });
     }
   }
+
 });
