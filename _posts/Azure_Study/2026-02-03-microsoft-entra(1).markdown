@@ -406,7 +406,7 @@ Microsoft Entra는 단순히 Azure AD의 이름을 바꾼 것이 아니라, **�
 4. **Entra Verified ID**: 탈중앙화 ID 및 검증 가능한 자격 증명
 5. **Entra Permissions Management**: 멀티 클라우드 권한 최적화
 
-다음 포스트 [**Microsoft Entra (2): Microsoft Entra ID와 Domain Services 심층 분석**]({% post_url 2026-02-05-microsoft-entra(2) %})에서는 가장 핵심적인 두 서비스인 **Entra ID**와 **Entra Domain Services**의 내부 동작 원리, 아키텍처, 그리고 실전 사용 사례를 깊이 있게 다루겠습니다.
+다음 포스트 [**Microsoft Entra (2): Microsoft Entra ID와 Domain Services 심층 분석**]({% post_url Azure_Study/2026-02-05-microsoft-entra(2) %})에서는 가장 핵심적인 두 서비스인 **Entra ID**와 **Entra Domain Services**의 내부 동작 원리, 아키텍처, 그리고 실전 사용 사례를 깊이 있게 다루겠습니다.
 
 <br>
 

@@ -6,7 +6,7 @@ tags: [Study, Azure, Microsoft Entra, Entra ID, Domain Services, Authentication]
 categories: Azure_Study
 ---
 
-지난 포스트 [**Microsoft Entra (1): 서비스 개요와 ID 및 액세스 관리 생태계**]({% post_url 2026-02-03-microsoft-entra(1) %})에서는 Microsoft Entra 제품군의 전체 구조를 살펴봤습니다.
+지난 포스트 [**Microsoft Entra (1): 서비스 개요와 ID 및 액세스 관리 생태계**]({% post_url Azure_Study/2026-02-03-microsoft-entra(1) %})에서는 Microsoft Entra 제품군의 전체 구조를 살펴봤습니다.
 
 이번 포스트에서는 Microsoft Entra 생태계의 **핵심 기반**인 **Entra ID**(구 Azure AD)와 레거시 앱 지원을 위한 **Entra Domain Services**의 내부 동작 원리를 깊이 있게 분석합니다.
 
