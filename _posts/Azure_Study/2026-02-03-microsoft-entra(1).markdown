@@ -10,13 +10,127 @@ categories: Azure_Study
 
 Microsoft는 2022년 Azure Active Directory(Azure AD)를 비롯한 여러 ID 및 액세스 관리 서비스를 **Microsoft Entra** 제품군으로 통합하며 전체 ID 보안 플랫폼을 재편했습니다.
 
+![entraid icon change](/images/26-02-03-microsoft-entra(1)-change_icon.png)
+<div style="text-align: center;"><small>2022년 변경된 아이콘</small></div>
+
+</br>
+
 이번 포스트에서는 Microsoft Entra의 전체 구조와 주요 서비스들을 개요 수준에서 살펴보겠습니다.
+
+> 참고: [Microsoft Learn, "New name for Azure Active Directory"](https://learn.microsoft.com/ko-kr/entra/fundamentals/new-name)
+
 
 <br>
 
 ## 1. Microsoft Entra란?
 
-### 1.1 등장 배경
+### 1.1 온프레미스 Active Directory 개요
+
+Microsoft Entra를 이해하기 위해서는 먼저 전통적인 **온프레미스 Active Directory(AD)**의 개념을 이해해야 합니다.
+
+**Active Directory란?**
+
+Active Directory는 사용자가 Microsoft IT 환경에서 업무를 수행하는 데 도움을 주는 **데이터베이스이자 서비스 집합**입니다.
+
+<br>
+
+**핵심 구성 요소**
+
+**1) 디렉토리 (Directory)**
+
+환경에 대한 중요한 정보를 담고 있는 데이터베이스입니다.
+
+- **저장 대상**: 사용자와 컴퓨터 목록, 권한 정보 등
+- **예시**: 100명의 사용자 계정을 각 사용자의 직책, 전화번호, 비밀번호와 같은 세부정보와 함께 저장
+- **권한 관리**: 누가 무엇을 할 수 있는지 기록
+  - 모든 사용자가 회사 복지 정보를 읽도록 허용
+  - 금융 문서는 소수의 사람들만 보거나 수정하도록 제한
+
+**2) 서비스 (Services)**
+
+IT 환경에서 일어나는 대부분의 활동을 제어하는 서비스입니다.
+
+- **인증 (Authentication)**: 사용자 ID와 비밀번호를 확인하여 사용자가 주장하는 본인이 맞는지 검증
+- **승인 (Authorization)**: 각 사용자가 허용된 데이터에만 액세스할 수 있도록 제어
+
+<br>
+
+**Active Directory의 구조**
+
+AD는 계층적 구조로 조직됩니다:
+
+```
+포리스트 (Forest) - 보안 경계
+    └── 트리 (Tree)
+        └── 도메인 (Domain) - 관리 경계
+            └── 조직 단위 (OU)
+                └── AD 객체 (사용자, 컴퓨터, 프린터 등)
+```
+
+**1) 도메인 (Domain)**
+- 관련된 사용자, 컴퓨터 및 기타 AD 객체로 구성되는 그룹
+- 예: 회사의 시카고 지사를 위한 모든 AD 객체
+- **관리 경계**: 특정 도메인의 객체는 하나의 데이터베이스에 저장되며 함께 관리
+
+**2) 트리 (Trees)**
+- 여러 개의 도메인을 결합한 구조
+
+**3) 포리스트 (Forests)**
+- 여러 개의 트리를 그룹화한 최상위 구조
+- **보안 경계**: 서로 다른 포리스트의 객체는 각 포리스트의 관리자가 신뢰를 형성하지 않는 한 상호 작용 불가
+- 예: 상호 독립된 여러 사업부가 있는 경우 여러 포리스트 생성
+
+<br>
+
+**도메인 컨트롤러 (Domain Controller, DC)**
+
+AD DS(Active Directory Domain Services)를 실행하는 서버를 **도메인 컨트롤러**라고 합니다.
+
+- **AD DS**: Windows Server 운영체제의 기능 (일반 Windows 데스크톱/노트북에는 없음)
+- **다중 DC 구성**: 조직에는 일반적으로 여러 개의 DC가 존재
+- **복제 메커니즘**: 각 DC에는 전체 도메인의 디렉토리 복사본이 있으며, 한 DC에서 변경 사항(비밀번호 변경, 계정 잠금 등)이 발생하면 다른 DC로 자동 복제되어 모든 DC가 최신 상태 유지
+
+<br>
+
+**AD 객체와 특성**
+
+AD 데이터베이스에는 **AD 객체 (AD Objects)**에 대한 정보가 저장됩니다.
+
+**보편적인 AD 객체 유형:**
+- 사용자 (Users)
+- 컴퓨터 (Computers)
+- 애플리케이션 (Applications)
+- 프린터 (Printers)
+- 공유 폴더 (Shared Folders)
+- 조직 단위 (Organizational Units, OU)
+- 그룹 (Groups)
+
+**객체의 특성 (Attributes):**
+
+각 객체는 여러 특성을 가집니다. 예를 들어 사용자 객체의 특성:
+
+- **명시적 특성**: 이름, 비밀번호, 부서, 이메일 주소
+- **내부 특성**: 
+  - GUID (Globally Unique Identifier): 전역 고유 식별자
+  - SID (Security Identifier): 보안 식별자
+  - 마지막 로그온 시간
+  - 그룹 멤버십
+
+<br>
+
+**AD 스키마 (Schema)**
+
+AD는 구조적 데이터베이스로서 **스키마**를 가집니다.
+
+- **스키마 정의**: AD 포리스트에 생성 가능한 모든 객체 클래스의 공식적인 정의와 AD 객체에 존재할 수 있는 모든 특성을 포함
+- **기본 스키마 제공**: AD는 기본 스키마를 제공하지만 관리자가 비즈니스 요구에 맞게 수정 가능
+- **중요 사항**: 스키마를 변경하면 인증 및 승인에 영향을 미치므로 사전에 신중하게 계획 필요
+
+이처럼 Active Directory는 온프레미스 Microsoft 환경의 중심으로, 모든 ID 및 액세스 관리의 기반이 되어 왔습니다.
+
+> 참고: [Quest Software Korea 블로그, "AD(Active Directory)란 무엇인가?"](https://blog.naver.com/quest_kor/221487945625)
+
+### 1.2 등장 배경
 
 **전통적인 ID 관리의 한계**
 
@@ -34,7 +148,7 @@ Microsoft는 이러한 현대적인 요구사항을 충족하기 위해 2022년 
 
 ![entra overview](/images/26-02-03-microsoft-entra(1)-overview.png)
 
-### 1.2 Microsoft Entra의 핵심 가치
+### 1.3 Microsoft Entra의 핵심 가치
 
 Microsoft Entra는 다음 세 가지 핵심 가치를 제공합니다:
 
@@ -407,8 +521,6 @@ Microsoft Entra는 단순히 Azure AD의 이름을 바꾼 것이 아니라, **�
 5. **Entra Permissions Management**: 멀티 클라우드 권한 최적화
 
 다음 포스트 [**Microsoft Entra (2): Microsoft Entra ID와 Domain Services 심층 분석**]({% post_url Azure_Study/2026-02-05-microsoft-entra(2) %})에서는 가장 핵심적인 두 서비스인 **Entra ID**와 **Entra Domain Services**의 내부 동작 원리, 아키텍처, 그리고 실전 사용 사례를 깊이 있게 다루겠습니다.
-
-<br>
 
 <!--
 > 참고 자료:
