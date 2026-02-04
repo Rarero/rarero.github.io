@@ -195,6 +195,7 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 4. 맞춤형 마케팅 및 개인화된 쇼핑 경험 제공
 ```
 > 참고: [Microsoft Learn, "What is Microsoft Entra External ID?"](https://learn.microsoft.com/ko-kr/entra/external-id/external-identities-overview)
+
 ### 2.4 Microsoft Entra Verified ID
 
 **개요**
