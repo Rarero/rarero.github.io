@@ -41,23 +41,20 @@ Microsoft Entra는 **ID 및 네트워크 액세스 제품 제품군**입니다. 
 
 ### 1.2 Microsoft Entra의 핵심 가치
 
-Microsoft Entra는 다음 세 가지 핵심 가치를 제공합니다:
+**1) 통합된 ID 관리 플랫폼**
+- 단일 제어 플레인에서 모든 ID 통합 관리 (사용자, 디바이스, 애플리케이션, 워크로드)
+- 온프레미스, 클라우드, 하이브리드 환경 전반에 일관된 보안 정책 적용
+- 네트워크 액세스 보안까지 포괄하는 엔드투엔드 솔루션
 
-**1) 제로 트러스트 보안 (Zero Trust Security)**
-- 명시적 검증: 모든 액세스 요청을 사용자 ID, 위치, 디바이스 상태, 워크로드, 데이터 분류 등 모든 가용 데이터를 기반으로 검증
-- 최소 권한 액세스: 필요한 시간 동안 필요한 만큼만 권한 부여
-- 침해 가정: 이미 침해당했다고 가정하고 피해 최소화
-
-**2) 통합된 ID 및 네트워크 액세스 관리**
-- 단일 제어 플레인에서 모든 ID 관리
-- 온프레미스, 클라우드, 하이브리드 환경 지원
-- 사용자, 디바이스, 애플리케이션, 워크로드 ID 통합 관리
-- 네트워크 액세스 보안까지 확장
+**2) 제로 트러스트 보안 구현**
+- "절대 신뢰하지 말고, 항상 검증하라"는 원칙 기반
+- 조건부 액세스 및 위험 기반 정책으로 실시간 보안 제어
+- 최소 권한 원칙 적용으로 공격 표면 최소화
 
 **3) 지능형 보안 및 자동화**
-- 머신러닝 기반 위협 탐지 및 자동 대응
-- ID 거버넌스 및 컴플라이언스 자동화
-- 리스크 기반 조건부 액세스 정책
+- AI/머신러닝 기반 위협 탐지 및 자동 대응
+- ID 수명 주기 및 거버넌스 자동화
+- 멀티 클라우드 환경의 권한 관리 및 최적화
 
 > 참고: [Microsoft Learn, "What is Microsoft Entra?"](https://learn.microsoft.com/ko-kr/entra/fundamentals/what-is-entra)
 
@@ -111,23 +108,10 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 - **Microsoft Entra ID P1**: 조건부 액세스, 동적 그룹, 하이브리드 ID
 - **Microsoft Entra ID P2**: ID 보호, 특권 ID 관리(PIM), 액세스 검토
 
-**하위 서비스**
-
-**1) Microsoft Entra ID Protection**
-- 머신러닝 기반 위험 탐지 및 자동 대응
-- 의심스러운 로그인 패턴, 익명 IP 등 감지
-- 위험 기반 정책 적용 (고위험 사용자 차단, 비밀번호 변경 강제)
-
-**2) Microsoft Entra ID Governance**
-- 액세스 검토(Access Reviews): 정기적 권한 검토
-- 권한 관리(Entitlement Management): 셀프서비스 권한 요청
-- 수명 주기 관리: 입사/퇴사 시 자동 계정 관리
-- 특권 ID 관리(PIM): 관리자 권한의 Just-In-Time 활성화
-
-**3) Microsoft Entra Workload ID**
-- 비인간 ID 관리: 애플리케이션, 서비스, 컨테이너 등의 ID 보호
-- 관리 ID(Managed Identity): 자격 증명 없는 인증
-- 워크로드 ID 페더레이션: Kubernetes, GitHub Actions 등 외부 플랫폼 연동
+**주요 하위 서비스**
+- **ID Protection**: AI 기반 위험 탐지 및 자동 대응
+- **ID Governance**: 액세스 검토, 권한 관리, 수명 주기 자동화
+- **Workload ID**: 애플리케이션/서비스 계정의 ID 보호 및 관리
 
 > 상세한 내용은 다음 포스트 [**Microsoft Entra (2): Microsoft Entra ID와 Domain Services 심층 분석**]({% post_url Azure_Study/2026-02-05-microsoft-entra(2) %})에서 다룹니다.
 >
@@ -326,91 +310,11 @@ Microsoft Entra의 최신 확장 영역으로, ID 보안을 넘어 **네트워�
 
 <br>
 
-## 3. Microsoft Entra 제품군의 통합 아키텍처
-
-### 3.1 전체 구조
-
-Microsoft Entra의 각 서비스는 독립적으로 작동하지만, 상호 연계되어 통합된 ID 보안 플랫폼을 구성합니다.
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│              Microsoft Entra 제품군 아키텍처                 │
-└─────────────────────────────────────────────────────────────┘
-
-                    ┌──────────────────────┐
-                    │  Entra ID (Core)     │
-                    │  - SSO               │
-                    │  - MFA               │
-                    │  - Conditional Access│
-                    └──────────┬───────────┘
-                               │
-            ┌──────────────────┼──────────────────┐
-            │                  │                  │
-   ┌────────▼─────────┐ ┌─────▼──────┐  ┌────────▼─────────┐
-   │ Entra Domain     │ │  Entra     │  │ Entra External   │
-   │ Services         │ │  Verified  │  │ ID (B2B/B2C)     │
-   │ - LDAP/Kerberos  │ │  ID        │  │ - Guest Access   │
-   │ - Domain Join    │ │  - SSI     │  │ - Customer Auth  │
-   └──────────────────┘ └────────────┘  └──────────────────┘
-                               │
-                    ┌──────────▼───────────┐
-                    │ Entra Permissions    │
-                    │ Management (CIEM)    │
-                    │ - Multi-cloud        │
-                    └──────────────────────┘
-
-        ┌────────────────────────────────────────┐
-        │   통합 보안 정책 및 거버넌스            │
-        │   - Identity Protection               │
-        │   - Privileged Identity Management    │
-        │   - Access Reviews                    │
-        └────────────────────────────────────────┘
-```
-
-### 3.2 서비스 간 연계 사례
-
-**사례 1: 하이브리드 환경의 통합 ID 관리**
-
-```
-시나리오: 온프레미스와 클라우드가 공존하는 기업
-
-1. 온프레미스 AD에 사용자 계정 존재
-2. Entra ID Connect로 온프레미스 AD와 Entra ID 동기화
-3. 사용자는 동일한 자격 증명으로 온프레미스 앱 및 클라우드 SaaS 앱 접근
-4. 레거시 앱은 Entra Domain Services를 통해 LDAP/Kerberos 인증 사용
-5. Entra ID의 조건부 액세스 정책이 모든 접근에 적용
-```
-
-**사례 2: 외부 협업 및 고객 서비스**
-
-```
-시나리오: 파트너 협업 및 고객용 웹 앱 운영
-
-1. 내부 직원: Entra ID로 관리
-2. 외부 파트너: Entra External ID (B2B)로 게스트 초대
-3. 고객: Entra External ID (CIAM)로 소셜 로그인 제공
-4. 모든 외부 액세스에 대해 조건부 액세스 및 MFA 적용
-5. Permissions Management로 외부 사용자의 권한 최소화
-```
-
-**사례 3: 탈중앙화 ID 및 검증**
-
-```
-시나리오: 교육 기관의 학위 검증
-
-1. 대학이 Entra Verified ID로 디지털 학위 증명서 발급
-2. 졸업생이 디지털 지갑에 증명서 저장
-3. 기업 채용 시 Entra ID를 통해 검증
-4. 실시간 위조 여부 확인, 개인정보는 최소 공개
-```
-
-<br>
-
-## 4. Microsoft Entra의 보안 원칙
+## 3. Microsoft Entra의 보안 원칙
 
 Microsoft Entra는 **제로 트러스트(Zero Trust)** 보안 모델을 기반으로 설계되었습니다.
 
-### 4.1 제로 트러스트 3대 원칙
+### 3.1 제로 트러스트 3대 원칙
 
 **1) 명시적 검증 (Verify Explicitly)**
 - 모든 액세스 요청에 대해 사용자 ID, 위치, 디바이스 상태, 워크로드, 데이터 분류 등 모든 가용 데이터 포인트를 사용하여 검증
@@ -426,7 +330,9 @@ Microsoft Entra는 **제로 트러스트(Zero Trust)** 보안 모델을 기반�
 - 마이크로 세그멘테이션 및 네트워크 격리
 - 이상 행위 탐지 및 자동 대응
 
-### 4.2 Entra에서 제로 트러스트 구현
+### 3.2 Entra에서 제로 트러스트 구현
+
+Entra는 다음과 같은 방식으로 제로 트러스트 원칙을 실제 구현합니다:
 
 **조건부 액세스 (Conditional Access)**
 ```
@@ -438,22 +344,19 @@ IF 사용자가 재무팀 소속이고
 THEN MFA 요구 + 읽기 전용 모드로 제한
 ```
 
-**ID 보호 (Identity Protection)**
-- AI 기반 위험 탐지 (의심스러운 로그인, 비정상 패턴)
-- 자동 위험 기반 정책 적용 (고위험 사용자 차단, 비밀번호 변경 강제)
-
-**특권 액세스 관리 (Privileged Identity Management)**
-- 관리자 권한을 영구 부여하지 않음
-- 필요 시 승인 절차를 거쳐 일시적으로 활성화
-- 모든 특권 액세스 감사 및 모니터링
+**통합 보안 기능**
+- **ID Protection**: AI 기반 실시간 위험 탐지 및 자동 차단
+- **PIM (Privileged Identity Management)**: Just-In-Time 권한 활성화 및 승인 워크플로
+- **Permissions Management**: 멀티 클라우드 환경의 과도한 권한 식별 및 제거
+- **Global Secure Access**: 네트워크 레벨 제로 트러스트 적용
 
 > 참고: [Microsoft Learn, "Zero Trust security model"](https://learn.microsoft.com/ko-kr/security/zero-trust/zero-trust-overview)
 
 <br>
 
-## 5. Microsoft Entra 선택 가이드
+## 4. Microsoft Entra 선택 가이드
 
-### 5.1 서비스 선택 기준
+### 4.1 서비스 선택 기준
 
 | 요구사항 | 추천 서비스 | 주요 인증 프로토콜 |
 |---------|-----------|------------------|
@@ -470,7 +373,7 @@ THEN MFA 요구 + 읽기 전용 모드로 제한
 | 멀티 클라우드 권한 관리 | **Entra Permissions Management** | - |
 | VPN 대체 및 제로 트러스트 네트워크 | **Entra Global Secure Access** | ZTNA |
 
-### 5.2 하이브리드 시나리오
+### 4.2 하이브리드 시나리오
 
 **온프레미스 AD + Entra ID 통합**
 - **Entra ID Connect**: 온프레미스 AD와 Entra ID 동기화
@@ -484,7 +387,7 @@ THEN MFA 요구 + 읽기 전용 모드로 제한
 
 <br>
 
-## 6. 정리
+## 5. 정리
 
 이번 포스트에서는 Microsoft Entra 제품군의 전체 구조와 각 서비스의 역할을 살펴봤습니다.
 
@@ -533,5 +436,4 @@ THEN MFA 요구 + 읽기 전용 모드로 제한
 8. [Microsoft Learn, "What is Global Secure Access?"](https://learn.microsoft.com/ko-kr/entra/global-secure-access/overview-what-is-global-secure-access)
 9. [Microsoft Learn, "Zero Trust security model"](https://learn.microsoft.com/ko-kr/security/zero-trust/zero-trust-overview)
 10. [Microsoft Entra documentation](https://learn.microsoft.com/ko-kr/entra/)
--->
 -->
