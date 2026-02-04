@@ -21,7 +21,7 @@ Microsoft는 2022년 Azure Active Directory(Azure AD)를 비롯한 여러 ID 및
 
 ## 1. Microsoft Entra란 무엇인가?
 
-Microsoft Entra는 **ID 및 네트워크 액세스 제품 제품군**입니다. 조직이 **제로 트러스트(Zero Trust)**<sup>1</sup> 보안 전략을 구현하고, ID를 확인하며, 액세스 조건의 유효성을 검사하고, 사용 권한을 확인하며, 연결 채널을 암호화하고, 손상 여부를 모니터링하는 **트러스트 패브릭(Trust Fabric)**<sup>2</sup>을 만들 수 있도록 지원합니다.
+Microsoft Entra는 **ID 및 네트워크 액세스 관리 제품군**으로, 조직의 **제로 트러스트(Zero Trust)**<sup>1</sup> 보안 전략을 구현하는 **트러스트 패브릭(Trust Fabric)**<sup>2</sup>입니다. ID 검증, 액세스 조건 확인, 권한 관리, 통신 암호화, 위협 모니터링 등 통합 보안 계층을 제공합니다.
 
 > <sup>1</sup> **제로 트러스트(Zero Trust)**: "절대 신뢰하지 말고, 항상 검증하라(Never Trust, Always Verify)"는 보안 원칙입니다. 네트워크 위치와 관계없이 모든 사용자, 디바이스, 애플리케이션의 접근을 명시적으로 검증하고, 최소 권한만 부여하며, 침해를 가정하여 지속적으로 모니터링합니다.
 >
@@ -37,7 +37,7 @@ Microsoft Entra는 **ID 및 네트워크 액세스 제품 제품군**입니다. 
 - **원격 근무 증가**: 어디서나 접근 가능한 유연한 근무 환경
 - **다양한 ID 유형**: 사용자뿐만 아니라 기기, 애플리케이션, 서비스 등 다양한 주체 관리 필요
 
-이러한 변화로 인해 전통적인 경계 기반 보안 모델은 한계에 도달했고, **"절대 신뢰하지 말고, 항상 검증하라(Never Trust, Always Verify)"**는 제로 트러스트 보안 모델이 필요하게 되었습니다.
+이러한 변화로 전통적인 경계 기반 보안 모델은 한계에 도달했고, 새로운 보안 접근 방식이 필요하게 되었습니다.
 
 ### 1.2 Microsoft Entra의 핵심 가치
 
@@ -47,9 +47,9 @@ Microsoft Entra는 **ID 및 네트워크 액세스 제품 제품군**입니다. 
 - 네트워크 액세스 보안까지 포괄하는 엔드투엔드 솔루션
 
 **2) 제로 트러스트 보안 구현**
-- "절대 신뢰하지 말고, 항상 검증하라"는 원칙 기반
+- 명시적 검증, 최소 권한, 침해 가정의 3대 원칙 기반
 - 조건부 액세스 및 위험 기반 정책으로 실시간 보안 제어
-- 최소 권한 원칙 적용으로 공격 표면 최소화
+- AI 기반 위협 탐지 및 자동 대응
 
 **3) 지능형 보안 및 자동화**
 - AI/머신러닝 기반 위협 탐지 및 자동 대응
@@ -62,7 +62,7 @@ Microsoft Entra는 **ID 및 네트워크 액세스 제품 제품군**입니다. 
 
 ## 2. Microsoft Entra 제품군 구조
 
-Microsoft Entra 제품 제품군은 **신뢰할 수 있는 ID에 대한 보안 엔드 투 엔드 액세스의 4가지 단계**를 다룹니다:
+Microsoft Entra 제품군은 **신뢰할 수 있는 ID의 엔드투엔드 보안 액세스**를 4단계로 구현합니다:
 
 1. **제로 트러스트 액세스 제어 설정** (Foundation)
 2. **직원에 대한 보안 액세스** (Employee Access)
@@ -142,9 +142,7 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 
 ### 2.3 Microsoft Entra External ID
 
-**개요**
-
-외부 사용자(파트너, 고객, 공급업체 등)의 ID를 관리하는 서비스입니다. Microsoft는 최근 B2B와 B2C를 **통합된 유연한 플랫폼으로 진화**시키고 있으며, 단일 인터페이스에서 모든 외부 ID를 관리할 수 있도록 개선하고 있습니다.
+외부 사용자(파트너, 고객, 공급업체)의 ID를 관리하는 서비스입니다. B2B(기업 간 협업)와 CIAM(고객 ID 관리)을 통합 플랫폼에서 제공합니다.
 
 **주요 구성 요소**
 
@@ -283,9 +281,7 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 
 > 참고: [Microsoft Learn, "What is Microsoft Entra Permissions Management?"](https://learn.microsoft.com/ko-kr/entra/permissions-management/overview)
 
-### 2.6 Microsoft Entra Global Secure Access (SSE)
-
-**개요**
+### 2.6 Microsoft Entra Global Secure Access
 
 Microsoft Entra의 최신 확장 영역으로, ID 보안을 넘어 **네트워크 액세스 보안(Security Service Edge, SSE)**까지 포괄합니다. 제로 트러스트 네트워크 액세스(ZTNA)를 구현하여 VPN 없이도 안전한 리소스 접근을 제공합니다.
 
@@ -394,9 +390,9 @@ THEN MFA 요구 + 읽기 전용 모드로 제한
 **핵심 요약**:
 
 **1) Microsoft Entra의 정의**
-- ID 및 네트워크 액세스 제품 제품군
-- 제로 트러스트 보안 전략 구현
-- 멀티 클라우드, 하이브리드 환경 지원
+- ID 및 네트워크 액세스 관리 통합 제품군
+- 제로 트러스트 보안 전략 기반 트러스트 패브릭
+- 온프레미스, 클라우드, 하이브리드 환경 지원
 
 **2) 4단계 제품 구조**
 - 1단계: 제로 트러스트 액세스 제어 설정 (Entra ID, Domain Services)
