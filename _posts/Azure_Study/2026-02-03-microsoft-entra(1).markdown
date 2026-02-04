@@ -13,14 +13,8 @@ Microsoft는 2022년 Azure Active Directory(Azure AD)를 비롯한 여러 ID 및
 ![entraid icon change](/images/26-02-03-microsoft-entra(1)-change_icon.png)
 <div style="text-align: center;"><small>2022년 변경된 아이콘</small></div>
 
-</br>
-
 이번 포스트에서는 Microsoft Entra의 전체 구조와 주요 서비스들을 개요 수준에서 살펴보겠습니다.
-
 > 참고: [Microsoft Learn, "New name for Azure Active Directory"](https://learn.microsoft.com/ko-kr/entra/fundamentals/new-name)
-
-
-<br>
 
 ## 1. Microsoft Entra란?
 
