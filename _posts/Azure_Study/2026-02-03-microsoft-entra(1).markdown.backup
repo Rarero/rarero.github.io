@@ -50,12 +50,10 @@ Microsoft Entra는 다음 세 가지 핵심 가치를 제공합니다:
 - 사용자, 디바이스, 애플리케이션, 워크로드 ID 통합 관리
 - 네트워크 액세스 보안까지 확장
 
-**3) 지능형 보안 및 자동화**
-- 머신러닝 기반 위협 탐지 및 자동 대응
+**3) AI 기반 보안 및 자동화**
+- AI 기반 위협 탐지 및 자동 대응
 - ID 거버넌스 및 컴플라이언스 자동화
 - 리스크 기반 조건부 액세스 정책
-
-> 참고: [Microsoft Learn, "What is Microsoft Entra?"](https://learn.microsoft.com/ko-kr/entra/fundamentals/what-is-entra)
 
 <br>
 
@@ -74,25 +72,24 @@ Microsoft Entra 제품 제품군은 **신뢰할 수 있는 ID에 대한 보안 �
 Microsoft Entra (제품군 전체 브랜드)
 ┃
 ┣━━ 1단계: 제로 트러스트 액세스 제어 설정
-┃   ┣━━ Microsoft Entra ID (구 Azure AD / 핵심 기반)
-┃   ┗━━ Microsoft Entra Domain Services (관리형 도메인 서비스)
+┃   ┃
+┃   ┣━━ 🔑 Microsoft Entra ID (구 Azure AD / 핵심 기반)
+┃   ┗━━ 🏛️ Microsoft Entra Domain Services (관리형 도메인 서비스)
 ┃
 ┣━━ 2단계: 직원에 대한 보안 액세스
-┃   ┣━━ Microsoft Entra Private Access (사내망 제로 트러스트 접속)
-┃   ┣━━ Microsoft Entra Internet Access (인터넷/SaaS 트래픽 보호)
-┃   ┣━━ Microsoft Entra ID Governance (ID 거버넌스 및 수명 주기)
-┃   ┣━━ Microsoft Entra ID Protection (위험 탐지 및 대응)
-┃   ┗━━ Microsoft Entra Verified ID (탈중앙화 검증 가능 자격 증명)
+┃   ┃
+┃   ┣━━ 🔒 Microsoft Entra Private Access (사내망 제로 트러스트 접속)
+┃   ┣━━ 🌐 Microsoft Entra Internet Access (인터넷/SaaS 트래픽 보호)
+┃   ┣━━ ⚖️ Microsoft Entra ID Governance (ID 거버넌스 및 수명 주기)
+┃   ┣━━ 🛡️ Microsoft Entra ID Protection (AI 기반 위험 탐지)
+┃   ┗━━ 🆔 Microsoft Entra Verified ID (탈중앙화 검증 가능 자격 증명)
 ┃
 ┣━━ 3단계: 고객 및 파트너를 위한 보안 액세스
-┃   ┗━━ Microsoft Entra External ID (외부 사용자 및 고객 ID 관리)
+┃   ┗━━ 👥 Microsoft Entra External ID (외부 사용자 및 고객 ID 관리)
 ┃
 ┗━━ 4단계: 모든 클라우드에서 액세스 보호
-    ┣━━ Microsoft Entra Workload ID (워크로드 ID 보안)
-    ┗━━ Microsoft Entra Permissions Management (멀티 클라우드 권한 관리)
-```
-
-### 2.1 Microsoft Entra ID
+    ┣━━ 🤖 Microsoft Entra Workload ID (워크로드 ID 보안)
+    ┗━━ 📊 Microsoft Entra Permissions Management (멀티 클라우드 권한 관리)
 
 **개요**
 
@@ -112,7 +109,7 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 **하위 서비스**
 
 **1) Microsoft Entra ID Protection**
-- 머신러닝 기반 위험 탐지 및 자동 대응
+- AI 기반 위험 탐지 및 자동 대응
 - 의심스러운 로그인 패턴, 익명 IP 등 감지
 - 위험 기반 정책 적용 (고위험 사용자 차단, 비밀번호 변경 강제)
 
@@ -128,8 +125,6 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 - 워크로드 ID 페더레이션: Kubernetes, GitHub Actions 등 외부 플랫폼 연동
 
 > 상세한 내용은 다음 포스트 [**Microsoft Entra (2): Microsoft Entra ID와 Domain Services 심층 분석**]({% post_url Azure_Study/2026-02-05-microsoft-entra(2) %})에서 다룹니다.
-
-> 참고: [Microsoft Learn, "What is Microsoft Entra ID?"](https://learn.microsoft.com/ko-kr/entra/fundamentals/whatis)
 
 ### 2.2 Microsoft Entra Domain Services
 
@@ -153,8 +148,6 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 - 스키마 확장 제한
 
 > 상세한 내용은 다음 포스트 [**Microsoft Entra (2): Microsoft Entra ID와 Domain Services 심층 분석**]({% post_url Azure_Study/2026-02-05-microsoft-entra(2) %})에서 다룹니다.
-
-> 참고: [Microsoft Learn, "What is Microsoft Entra Domain Services?"](https://learn.microsoft.com/ko-kr/entra/identity/domain-services/overview)
 
 ### 2.3 Microsoft Entra External ID
 
@@ -194,7 +187,7 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 3. Entra External ID가 고객 프로필 및 인증 관리
 4. 맞춤형 마케팅 및 개인화된 쇼핑 경험 제공
 ```
-> 참고: [Microsoft Learn, "What is Microsoft Entra External ID?"](https://learn.microsoft.com/ko-kr/entra/external-id/external-identities-overview)
+
 ### 2.4 Microsoft Entra Verified ID
 
 **개요**
@@ -241,8 +234,6 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 - **사용자 제어**: ID 데이터에 대한 완전한 소유권
 - **위조 방지**: 암호화 기반 검증
 - **상호 운용성**: W3C 표준 준수
-
-> 참고: [Microsoft Learn, "Introduction to Microsoft Entra Verified ID"](https://learn.microsoft.com/ko-kr/entra/verified-id/decentralized-identifier-overview)
 
 ### 2.5 Microsoft Entra Permissions Management
 
@@ -298,8 +289,6 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 - **컴플라이언스 강화**: 최소 권한 원칙 준수
 - **감사 간소화**: 모든 권한 사용 내역 추적
 
-> 참고: [Microsoft Learn, "What is Microsoft Entra Permissions Management?"](https://learn.microsoft.com/ko-kr/entra/permissions-management/overview)
-
 ### 2.6 Microsoft Entra Global Secure Access (SSE)
 
 **개요**
@@ -322,8 +311,6 @@ Microsoft Entra의 최신 확장 영역으로, ID 보안을 넘어 **네트워�
 - 원격 근무 환경에서 VPN 대체
 - SaaS 및 인터넷 트래픽 보안 강화
 - 레거시 앱에 대한 제로 트러스트 접근 구현
-
-> 참고: [Microsoft Learn, "What is Global Secure Access?"](https://learn.microsoft.com/ko-kr/entra/global-secure-access/overview-what-is-global-secure-access)
 
 <br>
 
@@ -448,8 +435,6 @@ THEN MFA 요구 + 읽기 전용 모드로 제한
 - 필요 시 승인 절차를 거쳐 일시적으로 활성화
 - 모든 특권 액세스 감사 및 모니터링
 
-> 참고: [Microsoft Learn, "Zero Trust security model"](https://learn.microsoft.com/ko-kr/security/zero-trust/zero-trust-overview)
-
 <br>
 
 ## 5. Microsoft Entra 선택 가이드
@@ -485,54 +470,38 @@ THEN MFA 요구 + 읽기 전용 모드로 제한
 
 <br>
 
-## 6. 정리
+## 6. 마치며
 
-이번 포스트에서는 Microsoft Entra 제품군의 전체 구조와 각 서비스의 역할을 살펴봤습니다.
+Microsoft Entra는 단순히 Azure AD의 이름을 바꾼 것이 아니라, **현대적인 ID 및 액세스 관리의 포괄적인 생태계**를 구성하는 전략적 제품군입니다.
 
-**핵심 요약**:
+**핵심 포인트 요약**
 
-**1) Microsoft Entra의 정의**
-- ID 및 네트워크 액세스 제품 제품군
-- 제로 트러스트 보안 전략 구현
-- 멀티 클라우드, 하이브리드 환경 지원
+**1) 핵심 ID 관리 (Core Identity)**
+- **Entra ID**: 모든 서비스의 뿌리, 클라우드 기반 인증 및 SSO
+  - ID Protection: AI 기반 위험 탐지 및 자동 대응
+  - ID Governance: 권한 검토, 액세스 수명 주기, 특권 ID 관리
+  - Workload ID: 비인간 ID 관리 (애플리케이션, 서비스, 컨테이너)
+- **Entra Domain Services**: 레거시 앱 지원을 위한 관리형 도메인 (LDAP, Kerberos)
 
-**2) 4단계 제품 구조**
-- 1단계: 제로 트러스트 액세스 제어 설정 (Entra ID, Domain Services)
-- 2단계: 직원에 대한 보안 액세스 (Private/Internet Access, ID Governance, ID Protection, Verified ID)
-- 3단계: 고객 및 파트너를 위한 보안 액세스 (External ID)
-- 4단계: 모든 클라우드에서 액세스 보호 (Workload ID, Permissions Management)
+**2) 외부 사용자 관리 (External Identity)**
+- **Entra External ID**: 외부 사용자 및 고객 ID 관리
+  - B2B Collaboration: 파트너사 협업
+  - External ID for Customers: 고객용 로그인 (CIAM)
 
-**3) 제로 트러스트 3대 원칙**
-- 명시적 검증 (Verify Explicitly)
-- 최소 권한 액세스 (Least Privilege Access)
-- 침해 가정 (Assume Breach)
+**3) 네트워크 보안 (Network Security)**
+- **Entra Global Secure Access**: 제로 트러스트 네트워크 액세스 (SSE)
+  - Internet Access: SaaS 및 인터넷 트래픽 보호
+  - Private Access: 제로 트러스트 기반 사내망 접속
 
-**4) 서비스 선택 가이드**
-- 직원 인증: Entra ID
-- 레거시 앱: Domain Services
-- 외부 협업: External ID (B2B)
-- 고객 인증: External ID (CIAM)
-- 멀티 클라우드 권한 관리: Permissions Management
-- VPN 대체: Global Secure Access
-
-<br>
+**4) 신원 및 권한 관리 (Identity & Permissions)**
+- **Entra Verified ID**: 탈중앙화 ID 및 검증 가능한 자격 증명 (W3C VC, DID)
+- **Entra Permissions Management**: 멀티 클라우드 권한 최적화 (CIEM, PCI 지표)
 
 다음 포스트 [**Microsoft Entra (2): Microsoft Entra ID와 Domain Services 심층 분석**]({% post_url Azure_Study/2026-02-05-microsoft-entra(2) %})에서는 가장 핵심적인 두 서비스인 **Entra ID**와 **Entra Domain Services**의 내부 동작 원리, 아키텍처, 그리고 실전 사용 사례를 깊이 있게 다루겠습니다.
 
-<br>
-
 <!--
-## 참고문헌
-
-1. [Microsoft Learn, "New name for Azure Active Directory"](https://learn.microsoft.com/ko-kr/entra/fundamentals/new-name)
-2. [Microsoft Learn, "What is Microsoft Entra?"](https://learn.microsoft.com/ko-kr/entra/fundamentals/what-is-entra)
-3. [Microsoft Learn, "What is Microsoft Entra ID?"](https://learn.microsoft.com/ko-kr/entra/fundamentals/whatis)
-4. [Microsoft Learn, "What is Microsoft Entra Domain Services?"](https://learn.microsoft.com/ko-kr/entra/identity/domain-services/overview)
-5. [Microsoft Learn, "What is Microsoft Entra External ID?"](https://learn.microsoft.com/ko-kr/entra/external-id/external-identities-overview)
-6. [Microsoft Learn, "Introduction to Microsoft Entra Verified ID"](https://learn.microsoft.com/ko-kr/entra/verified-id/decentralized-identifier-overview)
-7. [Microsoft Learn, "What is Microsoft Entra Permissions Management?"](https://learn.microsoft.com/ko-kr/entra/permissions-management/overview)
-8. [Microsoft Learn, "What is Global Secure Access?"](https://learn.microsoft.com/ko-kr/entra/global-secure-access/overview-what-is-global-secure-access)
-9. [Microsoft Learn, "Zero Trust security model"](https://learn.microsoft.com/ko-kr/security/zero-trust/zero-trust-overview)
-10. [Microsoft Entra documentation](https://learn.microsoft.com/ko-kr/entra/)
--->
+> 참고 자료:
+> - Microsoft Learn, "What is Microsoft Entra?"
+> - Microsoft Entra documentation
+> - Zero Trust security model - Microsoft Security
 -->
