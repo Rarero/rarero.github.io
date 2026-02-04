@@ -130,7 +130,7 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 - 워크로드 ID 페더레이션: Kubernetes, GitHub Actions 등 외부 플랫폼 연동
 
 > 상세한 내용은 다음 포스트 [**Microsoft Entra (2): Microsoft Entra ID와 Domain Services 심층 분석**]({% post_url Azure_Study/2026-02-05-microsoft-entra(2) %})에서 다룹니다.
-
+>
 > 참고: [Microsoft Learn, "What is Microsoft Entra ID?"](https://learn.microsoft.com/ko-kr/entra/fundamentals/whatis)
 
 ### 2.2 Microsoft Entra Domain Services
@@ -153,7 +153,7 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 - 스키마 확장 제한
 
 > 상세한 내용은 다음 포스트 [**Microsoft Entra (2): Microsoft Entra ID와 Domain Services 심층 분석**]({% post_url Azure_Study/2026-02-05-microsoft-entra(2) %})에서 다룹니다.
-
+>
 > 참고: [Microsoft Learn, "What is Microsoft Entra Domain Services?"](https://learn.microsoft.com/ko-kr/entra/identity/domain-services/overview)
 
 ### 2.3 Microsoft Entra External ID
@@ -197,8 +197,6 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 > 참고: [Microsoft Learn, "What is Microsoft Entra External ID?"](https://learn.microsoft.com/ko-kr/entra/external-id/external-identities-overview)
 
 ### 2.4 Microsoft Entra Verified ID
-
-**개요**
 
 **탈중앙화 ID(Decentralized Identity)** 기반의 검증 가능한 자격 증명 서비스입니다. W3C 표준인 **Verifiable Credentials**와 **Decentralized Identifiers (DIDs)** 를 구현합니다.
 
