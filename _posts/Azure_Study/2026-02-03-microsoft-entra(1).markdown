@@ -98,8 +98,6 @@ Microsoft Entra (제품군 전체 브랜드)
 
 ### 2.1 Microsoft Entra ID
 
-**개요**
-
 Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵심이 되는 서비스**로, 모든 ID 및 액세스 관리의 기반을 제공합니다. 클라우드 기반의 ID 및 액세스 관리 서비스로서 다른 모든 Entra 서비스들이 이 위에서 작동합니다.
 
 **주요 기능**
@@ -108,10 +106,14 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 - **조건부 액세스(Conditional Access)**: 사용자, 위치, 디바이스, 위험도 기반 액세스 제어
 - **애플리케이션 관리**: 앱 등록, 권한 부여, API 보호
 
+<br>
+
 **에디션 구분**
 - **Free**: 기본 ID 관리 및 디렉터리 기능
 - **Microsoft Entra ID P1**: 조건부 액세스, 동적 그룹, 하이브리드 ID
 - **Microsoft Entra ID P2**: ID 보호, 특권 ID 관리(PIM), 액세스 검토
+
+<br>
 
 **하위 서비스**
 
