@@ -155,10 +155,10 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 ```
 시나리오: 외부 컨설턴트와 협업
 
-1. Contoso 회사가 외부 컨설팅 회사 Fabrikam과 협업
-2. Contoso가 Fabrikam 직원(consultant@fabrikam.com)을 B2B 게스트로 초대
-3. Fabrikam 직원은 자신의 회사 계정(Fabrikam AD)으로 로그인
-4. Contoso의 SharePoint, Teams에 접근하여 협업
+1. A사가 외부 컨설팅 회사 B사와 프로젝트 협업
+2. A사가 B사 직원(consultant@b-company.com)을 B2B 게스트로 초대
+3. B사 직원은 자신의 회사 계정으로 로그인
+4. A사의 SharePoint, Teams에 접근하여 협업
 ```
 
 **2) Entra External ID for customers (CIAM - Customer Identity Access Management)**
@@ -171,7 +171,7 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 ```
 시나리오: E-commerce 사이트
 
-1. 온라인 쇼핑몰 앱에서 고객이 회원가입
+1. 온라인 쇼핑몰에서 고객이 회원가입
 2. 고객은 이메일 또는 Google/Facebook 계정으로 가입
 3. Entra External ID가 고객 프로필 및 인증 관리
 4. 맞춤형 마케팅 및 개인화된 쇼핑 경험 제공
