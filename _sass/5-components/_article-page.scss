@@ -11,6 +11,10 @@
   padding: 20px;
   background-color: $white-color;
 
+  @media (min-width: 1101px) {
+    margin-right: 280px;
+  }
+
   p {
     margin-bottom: 20px;
     line-height: 1.8;

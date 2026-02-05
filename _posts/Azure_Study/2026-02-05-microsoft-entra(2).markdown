@@ -34,7 +34,7 @@ Entra ID는 단순한 인증 서비스가 아닙니다. **제로 트러스트 �
    • 대상 애플리케이션
    • 로그인 위험 수준 (Identity Protection 연동)
    • 사용자 위험 수준 (손상된 자격 증명 탐지)
-   ↓
+
 2단계: 정책 평가 (Policy Evaluation)
    1) 세션 세부 정보 수집
       • 네트워크 위치 확인
@@ -45,7 +45,7 @@ Entra ID는 단순한 인증 서비스가 아닙니다. **제로 트러스트 �
       • 충족되지 않은 요구 사항 식별
       • 차단 정책 우선 처리
       • 순차적 제어 요구 (MFA → 준수 디바이스 등)
-   ↓
+
 3단계: 액세스 제어 적용 (Enforcement)
    → 허용 또는 차단 결정
    → 허용 시: 세션 제어 적용
@@ -99,13 +99,11 @@ ID Protection은 두 가지 주요 위험을 탐지합니다:
    • 토큰 클레임 이상 징후
    • 비정상적인 토큰 사용 패턴
    → 위험 수준: 높음
-```
 
 **2) 사용자 위험 (User Risk)**
 
 사용자 계정이 손상되었을 가능성을 누적 평가합니다.
 
-```
 오프라인 분석 예시:
 
 1. 유출된 자격 증명 (Leaked Credentials)
@@ -116,13 +114,11 @@ ID Protection은 두 가지 주요 위험을 탐지합니다:
 2. 악성 IP 주소
    • 알려진 봇넷/C&C 서버에서 로그인
    → 위험 수준: 중간
-```
 
 **위험 기반 조건부 액세스 통합**
 
-ID Protection의 위험 탐지는 조건부 액세스와 자동으로 통합됩니다:
+ID Protection의 위험 탐지는 조건부 액세스와 자동으로 통합됩니다.
 
-```
 위험 기반 정책 예시:
 
 정책 1: "High Risk Remediation"
@@ -146,11 +142,9 @@ ID Protection의 위험 탐지는 조건부 액세스와 자동으로 통합됩�
 1. 위험 탐지 → 조건부 액세스 트리거
 2. 사용자가 MFA 완료 → 위험 자동 감소
 3. 안전한 비밀번호 재설정 → 사용자 위험 해제
-```
 
 **조사 및 대응 워크플로**
 
-```
 조사 프로세스:
 
 1. 위험 탐지 발생
@@ -168,7 +162,6 @@ ID Protection의 위험 탐지는 조건부 액세스와 자동으로 통합됩�
    • 위험 해제
    • 안전 확인
    • 손상 확인
-```
 
 > 참고: [Microsoft Learn, "Microsoft Entra ID Protection이란?"](https://learn.microsoft.com/ko-kr/entra/id-protection/overview-identity-protection)
 
@@ -193,7 +186,6 @@ RBAC 접근 검증 흐름:
 
 **역할 할당의 3대 요소**
 
-```
 역할 할당 = 보안 주체 + 역할 정의 + 범위
 
 1. 보안 주체 (Security Principal)
@@ -201,38 +193,31 @@ RBAC 접근 검증 흐름:
    • 그룹: Finance Team (역할 할당 가능)
    • 서비스 주체: 앱 ID
 
-   +
-
 2. 역할 정의 (Role Definition)
    • 기본 제공: User Administrator
    • 사용자 지정: Custom App Admin
    • 권한 집합: Create/Read/Update
 
-   +
-
 3. 범위 (Scope)
    • 테넌트 전체 (/)
    • 관리 단위 (AU)
    • 특정 애플리케이션
-```
 
 **범위의 세부 제어**
 
-```
 시나리오: 애플리케이션 관리 권한 위임
 
 역할 할당 1 (전역):
-├─ 보안 주체: Alice
-├─ 역할: Application Administrator
-└─ 범위: 테넌트 전체
-   → Alice는 모든 앱 등록 관리 가능
+  • 보안 주체: Alice
+  • 역할: Application Administrator
+  • 범위: 테넌트 전체
+  → Alice는 모든 앱 등록 관리 가능
 
 역할 할당 2 (제한):
-├─ 보안 주체: Bob
-├─ 역할: Application Administrator
-└─ 범위: "Contoso HR App" (특정 앱)
-   → Bob은 HR App만 관리 가능
-```
+  • 보안 주체: Bob
+  • 역할: Application Administrator
+  • 범위: "Contoso HR App" (특정 앱)
+  → Bob은 HR App만 관리 가능
 
 > 참고: [Microsoft Learn, "Microsoft Entra ID의 역할 기반 액세스 제어 개요"](https://learn.microsoft.com/ko-kr/entra/identity/role-based-access-control/custom-overview)
 
@@ -244,7 +229,6 @@ RBAC 접근 검증 흐름:
 
 **PIM의 핵심 개념**
 
-```
 역할 할당 유형:
 
 1. 적격 (Eligible) 할당
@@ -268,11 +252,9 @@ RBAC 접근 검증 흐름:
    - 즉시 권한 사용 가능
    - 시간 제한 설정 권장
    - 긴급 액세스용
-```
 
 **PIM 활성화 워크플로**
 
-```
 역할 활성화 프로세스:
 
 1. 사용자가 Azure Portal에서 역할 활성화 요청
@@ -299,11 +281,9 @@ RBAC 접근 검증 흐름:
 
 6. 활성화 기간 만료 후 자동 비활성화
    → 다시 "적격" 상태로 복귀
-```
 
 **PIM의 보안 이점**
 
-```
 PIM 적용 전:
   • 관리자: 5명
   • 영구 Global Admin: 5명
@@ -316,6 +296,10 @@ PIM 적용 후:
   • 총 노출 시간: 52주 × 4시간 = 208시간
   
   → 노출 시간 감소: 99.5%
+
+> 참고: [Microsoft Learn, "Microsoft Entra Privileged Identity Management란?"](https://learn.microsoft.com/ko-kr/entra/id-governance/privileged-identity-management/pim-configure)
+  
+  → 노출 시간 감소: 99.5%
 ```
 
 > 참고: [Microsoft Learn, "Microsoft Entra Privileged Identity Management란?"](https://learn.microsoft.com/ko-kr/entra/id-governance/privileged-identity-management/pim-configure)
@@ -326,7 +310,6 @@ PIM 적용 후:
 
 Entra ID의 OAuth 2.0/OIDC 인증은 세 가지 유형의 토큰을 사용합니다. 각 토큰은 명확히 구분된 역할을 가집니다.
 
-```
 토큰 유형별 역할:
 
 1. ID Token (JWT) - "사용자가 누구인가?"
@@ -363,11 +346,9 @@ Entra ID의 OAuth 2.0/OIDC 인증은 세 가지 유형의 토큰을 사용합니
    • 보안:
      - Token Rotation (회전 방식)
      - 탈취 감지 시 즉시 무효화
-```
 
 **토큰 발급 및 갱신 흐름**
 
-```
 1. 초기 인증 (Authorization Code Flow)
    사용자 로그인 → Authorization Code
    → ID Token + Access Token + Refresh Token
@@ -389,11 +370,9 @@ Entra ID의 OAuth 2.0/OIDC 인증은 세 가지 유형의 토큰을 사용합니
      - 조건부 액세스 정책 변경
    
    → 즉시 토큰 무효화
-```
 
 **세션 관리 및 SSO**
 
-```
 Entra ID 세션 계층:
 
 1. Primary Refresh Token (PRT)
@@ -410,7 +389,6 @@ Entra ID 세션 계층:
    • 개별 앱별 토큰
    • 짧은 수명 (1시간)
    • API 호출 전용
-```
 
 > 참고: [Microsoft Learn, "Microsoft Entra 인증"](https://learn.microsoft.com/ko-kr/entra/identity/authentication/overview-authentication)
 
@@ -506,7 +484,6 @@ Entra ID 세션 계층:
 
 외부 워크로드(GitHub Actions, Kubernetes, Terraform Cloud)가 비밀 없이 Azure에 접근할 수 있게 합니다.
 
-```
 예시: GitHub Actions에서 Azure 배포
 
 기존 방식 (비권장):
@@ -528,11 +505,9 @@ Entra ID 세션 계층:
      • Azure Access Token 발급
   
   결과: Secret 관리 불필요
-```
 
 **보안 이점**
 
-```
 관리 ID 적용 전:
   • 코드에 자격 증명 하드코딩
   • Key Vault에 저장해도 접근 필요
@@ -544,20 +519,19 @@ Entra ID 세션 계층:
   ✓ Azure가 자동으로 토큰 발급/갱신
   ✓ 토큰 유출 시에도 제한적 권한
   ✓ RBAC로 세밀한 권한 제어 가능
-```
 
 > 참고: [Microsoft Learn, "Azure 리소스에 대한 관리 ID"](https://learn.microsoft.com/ko-kr/entra/identity/managed-identities-azure-resources/overview)
 
 <br>
 
-```
+**SAML 2.0 페더레이션 흐름:**
+
 1. 사용자가 Salesforce 접근
 2. Salesforce가 사용자를 Entra ID로 리디렉션 (SAML Request)
 3. Entra ID가 사용자 인증 (이미 로그인 상태면 스킵)
 4. Entra ID가 SAML Response (Assertion) 발급
 5. 사용자가 SAML Response를 들고 Salesforce로 리디렉션
 6. Salesforce가 SAML Response 검증 후 로그인 완료
-```
 
 <br>
 
@@ -569,7 +543,6 @@ Entra ID 세션 계층:
 
 많은 기존 애플리케이션은 **LDAP**, **Kerberos**, **NTLM** 같은 전통적인 인증 프로토콜에 의존합니다. 하지만 Entra ID는 이러한 프로토콜을 지원하지 않습니다.
 
-```
 문제 시나리오:
 
 - 10년 된 Java 엔터프라이즈 앱
@@ -577,7 +550,6 @@ Entra ID 세션 계층:
 - Kerberos를 통해 인증 수행
 
 → Entra ID로는 직접 통합 불가!
-```
 
 **해결책: Entra Domain Services**
 
@@ -694,7 +666,6 @@ LDAPS 설정:
 
 Domain Services는 Kerberos KDC (Key Distribution Center) 역할을 수행합니다.
 
-```
 Kerberos 인증 흐름:
 
 1. 사용자가 도메인 가입 VM에 로그인
@@ -704,7 +675,6 @@ Kerberos 인증 흐름:
 5. VM이 KDC에 서비스 티켓 요청 (TGT 사용)
 6. KDC가 서비스 티켓 발급
 7. VM이 서비스 티켓으로 파일 서버에 인증
-```
 
 **NTLM 인증**
 
@@ -722,7 +692,6 @@ Domain Services는 두 개의 기본 GPO를 제공합니다:
 
 **사용자 정의 GPO 생성**
 
-```
 GPO 생성 및 적용:
 
 1. 도메인 가입 Windows VM에서 GPMC (Group Policy Management Console) 실행
@@ -731,7 +700,6 @@ GPO 생성 및 적용:
    - 예: 화면 보호기 활성화, 비밀번호 정책, 소프트웨어 배포
 4. GPO를 OU에 연결
 5. 도메인 컴퓨터가 다음 그룹 정책 업데이트 시 설정 적용
-```
 
 ### 2.4 Domain Services vs 온프레미스 AD DS
 
