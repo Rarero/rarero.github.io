@@ -103,7 +103,7 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 - **조건부 액세스(Conditional Access)**: 사용자, 위치, 디바이스, 위험도 기반 액세스 제어
 - **애플리케이션 관리**: 앱 등록, 권한 부여, API 보호
 
-**에디션 구분**
+**라이선스 구분**
 - **Free**: 기본 ID 관리 및 디렉터리 기능
 - **Microsoft Entra ID P1**: 조건부 액세스, 동적 그룹, 하이브리드 ID
 - **Microsoft Entra ID P2**: ID 보호, 특권 ID 관리(PIM), 액세스 검토
@@ -144,6 +144,8 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 
 외부 사용자(파트너, 고객, 공급업체)의 ID를 관리하는 서비스입니다. B2B(기업 간 협업)와 CIAM(고객 ID 관리)을 통합 플랫폼에서 제공합니다.
 
+![external id](/images/26-02-03-microsoft-entra(1)-external_id.png)
+
 **주요 구성 요소**
 
 **1) Entra External ID for B2B (Business-to-Business)**
@@ -176,7 +178,11 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 3. Entra External ID가 고객 프로필 및 인증 관리
 4. 맞춤형 마케팅 및 개인화된 쇼핑 경험 제공
 ```
+
+
+
 > 참고: [Microsoft Learn, "What is Microsoft Entra External ID?"](https://learn.microsoft.com/ko-kr/entra/external-id/external-identities-overview)
+
 
 ### 2.4 Microsoft Entra Verified ID
 
