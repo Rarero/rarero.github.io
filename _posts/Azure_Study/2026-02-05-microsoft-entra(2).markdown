@@ -12,7 +12,50 @@ categories: Azure_Study
 
 <br>
 
-## 1. 조건부 액세스: 정책 엔진 내부 구조
+## 1. 조건부 액세스 (Conditional Access)
+
+**조건부 액세스란?**
+
+조건부 액세스는 **제로 트러스트 보안 모델**의 핵심 구성 요소로, 사용자가 클라우드 앱에 접근할 때 **누가(Who), 어디서(Where), 무엇을(What), 어떻게(How)** 접근하는지를 평가하여 액세스를 허용하거나 차단하는 정책 기반 접근 제어 시스템입니다.
+
+**핵심 개념:**
+
+```
+조건부 액세스 = 신호 평가 + 의사 결정 + 제어 적용
+
+신호 (Signals):
+• 사용자/그룹 멤버십
+• IP 위치 정보
+• 디바이스 상태 (관리됨/비관리됨)
+• 애플리케이션
+• 실시간 위험 탐지
+
+의사 결정 (Decision):
+• 액세스 차단
+• 액세스 허용
+• 추가 요구사항 (MFA, 디바이스 준수 등)
+
+제어 (Controls):
+• Grant: MFA, 규정 준수 디바이스, 승인된 앱
+• Session: 로그인 빈도, 앱 제한, 영구 브라우저 세션
+```
+
+**왜 필요한가?**
+
+전통적인 경계 기반 보안(방화벽, VPN)은 클라우드 시대에 한계가 있습니다:
+- 사용자가 어디서든(집, 카페, 해외) 접근
+- BYOD(Bring Your Own Device) 증가
+- SaaS 앱의 폭발적 증가
+- 내부자 위협 및 자격 증명 탈취 공격
+
+조건부 액세스는 **컨텍스트 기반 동적 제어**를 통해 이러한 문제를 해결합니다.
+
+> **실무 예시:**
+> - 사무실 내부에서는 자유롭게 접근, 외부에서는 MFA 요구
+> - 재무 데이터는 회사 관리 디바이스에서만 접근 허용
+> - 위험한 로그인 시도는 즉시 차단하고 관리자에게 알림
+
+<br>
 
 ### 1.1 정책 평가 엔진의 실행 순서
 
@@ -90,269 +133,181 @@ categories: Azure_Study
    - 결과를 비동기로 로그에 기록
    - 사용자 경험에 영향 없음
 
-### 1.2 복잡한 정책 조합 시나리오
+### 1.2 정책 조합과 충돌 해결
 
-**시나리오 1: 역할 기반 위치 제한**
+**복수 정책 적용 시 처리 방식:**
 
-```
-요구사항: 재무팀은 본사에서만 SAP 접근 가능
+조건부 액세스에서는 여러 정책이 동시에 적용될 수 있으며, 이때 다음 규칙에 따라 처리됩니다:
 
-정책 설계:
-├─ 정책 A: "Finance - Office Only"
-│  ├─ 할당: 그룹 = "Finance Team"
-│  ├─ 클라우드 앱: SAP ERP
-│  ├─ 조건: 위치 ≠ "Corporate HQ"
-│  └─ 제어: 차단
-│
-└─ 정책 B: "Finance - MFA Required"
-   ├─ 할당: 그룹 = "Finance Team"
-   ├─ 클라우드 앱: SAP ERP
-   ├─ 조건: 위치 = "Corporate HQ"
-   └─ 제어: MFA 필요
+1. **Block 우선 원칙**
+   - 단 하나라도 "차단" 제어가 충족되면 즉시 접근 거부
+   - 나머지 정책은 평가하지 않음 (성능 최적화)
 
-평가 로직:
-- 사무실 외부 → 정책 A 차단 (조기 종료)
-- 사무실 내부 → 정책 B MFA 요구
-```
+2. **Grant 요구사항 누적**
+   - 모든 Grant 정책의 요구사항이 AND로 결합
+   - 예: 정책A(MFA) + 정책B(디바이스 준수) = MFA **그리고** 디바이스 준수 모두 필요
 
-**시나리오 2: 위험 기반 적응형 MFA**
+3. **Session 제어 병합**
+   - 가장 제한적인 값 적용
+   - 예: 정책A(로그인 빈도 8시간) + 정책B(로그인 빈도 4시간) = **4시간** 적용
+
+**실무 적용 예시:**
 
 ```
-요구사항: 로그인 위험에 따라 동적으로 MFA 요구
+시나리오: 위험 기반 적응형 접근 제어
 
 정책 계층:
-├─ 정책 1: "High Risk Block" (우선순위 1)
-│  ├─ 조건: 로그인 위험 = 높음
-│  └─ 제어: 차단
-│
-├─ 정책 2: "Medium Risk MFA" (우선순위 2)
-│  ├─ 조건: 로그인 위험 = 중간
-│  └─ 제어: MFA 필요
-│
-└─ 정책 3: "Low Risk Compliant Device" (우선순위 3)
-   ├─ 조건: 로그인 위험 = 낮음
-   └─ 제어: 규정 준수 디바이스 필요
+1. 높은 위험 → 즉시 차단 (Block 우선)
+2. 중간 위험 → MFA 요구 (Grant)
+3. 낮은 위험 + 외부 위치 → 관리 디바이스 필요 (Grant)
 
-위험 점수 계산:
-- IP 평판: 20점
-- 불가능한 여행: 50점
-- 익명 IP: 30점
-- 비정상 토큰: 40점
-
-총점 → 위험 수준 매핑:
-  0-20: 낮음
- 21-50: 중간
- 51+: 높음
+평가 예시:
+• 높은 위험 탐지 → 1번 정책 차단 (즉시 종료)
+• 중간 위험 + 사무실 → 2번 정책 MFA 요구
+• 낮은 위험 + VPN → 3번 정책 관리 디바이스 검증
+• 중간 위험 + 외부 → 2번+3번 누적 (MFA **그리고** 관리 디바이스)
 ```
 
-**시나리오 3: 디바이스 신뢰 레벨 기반 액세스**
+**정책 설계 베스트 프랙티스:**
 
-```
-디바이스 분류:
-├─ Tier 0: Entra Hybrid Join + Intune 관리 + BitLocker
-├─ Tier 1: Entra Join + Intune 관리
-├─ Tier 2: Entra Registered (개인 디바이스)
-└─ Tier 3: 미등록 디바이스
+- **명확한 범위 설정**: 포함/제외 그룹을 명확히 구분하여 의도하지 않은 적용 방지
+- **테스트 모드 활용**: 보고서 전용 모드로 먼저 영향도 분석
+- **예외 관리**: Break Glass 계정은 모든 정책에서 제외
+- **정책 수 최소화**: 유사한 조건은 하나의 정책으로 통합하여 성능 향상
 
-앱별 정책:
-├─ SAP (민감)
-│  └─ Tier 0만 허용
-│
-├─ SharePoint (중간 민감도)
-│  └─ Tier 0/1 허용, Tier 2 MFA 필요
-│
-└─ Outlook Web (낮은 민감도)
-   └─ Tier 0/1/2 허용, Tier 3 차단
+### 1.3 세션 제어: 실시간 접근 관리
 
-구현:
-정책 1: "SAP - Tier 0 Only"
-  • 앱: SAP
-  • 조건: 디바이스 상태 ≠ (Hybrid Join AND Compliant)
-  • 제어: 차단
+조건부 액세스의 **세션 제어**는 로그인 성공 후에도 지속적으로 사용자 활동을 제어합니다. 토큰에 특수 클레임을 주입하여 구현됩니다.
 
-정책 2: "SharePoint - BYOD MFA"
-  • 앱: SharePoint
-  • 조건: 디바이스 상태 = Registered (BYOD)
-  • 제어: MFA 필요
+**주요 세션 제어 유형:**
 
-정책 3: "Outlook - Managed Only"
-  • 앱: Outlook Web
-  • 조건: 디바이스 상태 = 미등록
-  • 제어: 차단
-```
+1. **애플리케이션 적용 제한 (App Enforced Restrictions)**
+   - SharePoint/Exchange에 다운로드, 인쇄, 복사 제한 적용
+   - 토큰 클레임: `"xms_cc": ["CP1"]` 주입
+   - 앱이 클레임을 읽고 제한 기능 활성화
 
-### 1.3 세션 제어의 내부 메커니즘
+2. **로그인 빈도 (Sign-in Frequency)**
+   - Refresh Token 수명을 단축하여 주기적 재인증 강제
+   - 민감한 앱 접근 시 자주 재인증 (예: 1시간마다)
 
-조건부 액세스의 세션 제어는 **토큰 클레임 주입**을 통해 구현됩니다.
-
-**애플리케이션 적용 제한 (App Enforced Restrictions)**
-
-```
-메커니즘:
-1. CA 정책이 세션 제어 "앱 적용 제한" 활성화
-2. Entra ID가 액세스 토큰에 특수 클레임 주입:
-   {
-     "xms_cc": ["CP1"],  // Compliance Policy 1
-     "acrs": "c1"        // Authentication Context Reference
-   }
-3. SharePoint/Exchange가 토큰 클레임 검사
-4. CP1 정책 적용:
-   - 다운로드 차단
-   - 인쇄 차단
-   - 복사/붙여넣기 제한
-
-제한 사항:
-- SharePoint Online, Exchange Online만 지원
-- 레거시 인증 프로토콜(POP3, IMAP) 미지원
-- 클라이언트 앱이 클레임 인식 필요
-```
-
-**로그인 빈도 (Sign-in Frequency)**
-
-```
-구현 방식:
-1. Refresh Token 수명 단축
-   기본: 90일 → 정책: 1시간
-   
-2. Access Token exp 클레임 조정
-   기본: 1시간 → 정책: 30분
-
-3. PRT (Primary Refresh Token) TTL 재정의
-   Windows 10/11 디바이스의 PRT 수명 단축
-
-토큰 갱신 시나리오:
-- 사용자가 30분 후 리소스 접근 시도
-- Access Token 만료 → Refresh Token으로 갱신 시도
-- Refresh Token도 만료 → 재인증 요구
-- MFA 재수행 (정책에 따라)
-```
+3. **영구 브라우저 세션 (Persistent Browser Session)**
+   - "로그인 상태 유지" 옵션 제어
+   - 공용 디바이스에서는 항상 비활성화
 
 **지속적 액세스 평가 (Continuous Access Evaluation, CAE)**
 
-```
-기존 토큰 모델 문제:
-- Access Token 수명: 1시간
-- 사용자 계정 비활성화해도 토큰이 유효하면 1시간 동안 접근 가능
-- 보안 위협
-
-CAE 해결 방법:
-1. 장기 수명 토큰 발급 (24시간)
-   {
-     "exp": 1234567890,  // 24시간 후
-     "xms_cc": ["cp1"],
-     "client_claims": {...}
-   }
-
-2. 리소스 서버가 토큰 검증 시 CAE 이벤트 확인
-   GET https://graph.microsoft.com/v1.0/me
-   → Graph API가 Entra ID CAE 엔드포인트 조회
-
-3. 중요 이벤트 발생 시 즉시 토큰 무효화
-   - 사용자 계정 비활성화
-   - 비밀번호 재설정
-   - 관리자가 세션 취소
-   - IP 위치 급변 (불가능한 여행)
-
-4. 토큰 무효화 응답
-   HTTP 401 Unauthorized
-   WWW-Authenticate: Bearer realm="", error="insufficient_claims",
-     claims="eyJ..."
-
-5. 클라이언트가 재인증 수행
-
-지원 리소스:
-- Microsoft Graph
-- SharePoint Online
-- Exchange Online
-- Teams
-
-CAE 미지원 클라이언트:
-- 레거시 인증 (Basic Auth)
-- SMTP, POP3, IMAP
-```
-
-### 1.4 정책 충돌 해결 알고리즘
-
-여러 정책이 동일한 사용자/앱에 적용될 때 충돌이 발생할 수 있습니다.
-
-**충돌 해결 규칙:**
+CAE는 기존 토큰 모델의 **시간 지연 문제**를 해결합니다.
 
 ```
-1. Block 우선 (최우선)
-   정책 A: Grant (MFA)
-   정책 B: Block
-   → 결과: Block (정책 A 무시)
+기존 방식의 문제:
+Access Token 수명 1시간 → 계정 비활성화해도 토큰 유효 시 1시간 접근 가능
 
-2. Grant 조건 누적 (AND 결합)
-   정책 A: Grant (MFA)
-   정책 B: Grant (Compliant Device)
-   → 결과: MFA AND Compliant Device
+CAE 해결책:
+1. 장기 토큰 발급 (24시간) + 실시간 이벤트 모니터링
+2. 중요 이벤트 발생 시 **즉시** 토큰 무효화:
+   • 계정 비활성화/삭제
+   • 비밀번호 재설정
+   • 관리자 세션 취소
+   • IP 위치 급변 (불가능한 여행)
+3. 리소스 서버가 매 요청마다 이벤트 확인
+4. 무효화 감지 시 HTTP 401 + 재인증 요구
 
-3. Session 제어 병합 (가장 제한적)
-   정책 A: Sign-in Frequency = 8 hours
-   정책 B: Sign-in Frequency = 4 hours
-   → 결과: 4 hours
-
-4. 범위 포함/제외 Set 연산
-   정책 A: Users = "Finance Team"
-   정책 B: Exclude Users = "CFO"
-   → Finance 멤버이지만 CFO는 정책 미적용
-
-5. 충족 불가능 조건 검증
-   정책 A: Grant (MFA)
-   정책 B: Grant (MFA) + Block
-   → 오류: 관리자에게 정책 수정 요청
+결과: 보안 이벤트 대응 시간 1시간 → 즉시 (수초 내)
 ```
 
-**정책 우선순위 알고리즘 (유사 코드):**
+**지원 서비스:** Microsoft Graph, SharePoint, Exchange, Teams  
+**제한사항:** 레거시 인증(POP3, IMAP, SMTP) 미지원
 
-```python
-def evaluate_policies(user, app, context):
-    applicable_policies = filter_policies(user, app, context)
-    
-    # 1. Block 정책 우선 평가
-    for policy in applicable_policies:
-        if policy.grant_control == "Block":
-            if policy.conditions.match(context):
-                return DENY  # 조기 종료
-    
-    # 2. Grant 요구사항 수집
-    required_controls = set()
-    for policy in applicable_policies:
-        if policy.grant_control == "Grant":
-            if policy.conditions.match(context):
-                required_controls.update(policy.controls)
-    
-    # 3. 충돌 검사
-    if "Block" in required_controls:
-        log_error("Conflicting policies detected")
-        return DENY
-    
-    # 4. 사용자가 요구사항 충족하는지 검증
-    if verify_user_satisfies(required_controls, context):
-        # 5. Session 제어 적용
-        session_controls = merge_session_controls(applicable_policies)
-        return GRANT_WITH_SESSION(session_controls)
-    else:
-        return REQUIRE_CONTROLS(required_controls)
+### 1.4 정책 평가 최적화
 
-def merge_session_controls(policies):
-    merged = {}
-    
-    # 가장 짧은 로그인 빈도 선택
-    signin_frequencies = [p.signin_freq for p in policies if p.signin_freq]
-    if signin_frequencies:
-        merged["signin_frequency"] = min(signin_frequencies)
-    
-    # 앱 제한 병합
-    app_restrictions = [p.app_restrictions for p in policies if p.app_restrictions]
-    if app_restrictions:
-        merged["app_restrictions"] = union(app_restrictions)
-    
-    return merged
+**평가 순서와 성능:**
+
+조건부 액세스 엔진은 수백 개의 정책을 효율적으로 처리하기 위해 다음과 같이 최적화됩니다:
+
+1. **정책 필터링 (Policy Filtering)**
+   - 사용자/그룹/앱 범위로 먼저 필터링 → 불필요한 정책 제외
+   - 해시 테이블 기반 O(1) 조회로 성능 최적화
+
+2. **Block 정책 우선 평가**
+   - 차단 정책을 먼저 평가하여 조기 종료
+   - 평균 평가 시간: 50-150ms
+
+3. **신호 캐싱**
+   - 그룹 멤버십: 5분 캐시
+   - 디바이스 준수 상태: 5분 캐시
+   - 위치 정보: 1시간 캐시
+
+4. **병렬 신호 수집**
+   - 디바이스 상태, 위험 점수, 그룹 멤버십을 동시 조회
+   - 대기 시간 최소화
+
+**정책 설계 권장사항:**
+
+- 정책 수는 50개 이하로 유지 (성능 고려)
+- 유사한 조건은 하나의 정책으로 통합
+- 포함/제외 그룹을 명확히 구분
+- 보고서 전용 모드로 영향도 사전 테스트
+
+## 2. Identity Protection: ML 기반 위험 탐지
+
+**Identity Protection이란?**
+
+Entra ID Identity Protection은 **머신러닝 기반 위험 탐지 서비스**로, 사용자 로그인 및 계정 활동에서 의심스러운 패턴을 실시간으로 식별하고 자동으로 대응합니다.
+
+**핵심 기능:**
+
+```
+1. 위험 탐지 (Risk Detection)
+   자동 탐지 항목:
+   • 익명 IP 주소 (Tor, VPN)
+   • 비정형 여행 (불가능한 거리/시간)
+   • 맬웨어 연결 IP 주소
+   • 유출된 자격 증명
+   • 비정상적인 로그인 속성
+   • 암호 스프레이 공격
+
+2. 위험 수준 분류
+   • 사용자 위험: 계정 자체가 손상되었을 가능성
+   • 로그인 위험: 해당 로그인 시도가 의심스러울 가능성
+   • 위험 레벨: 낮음(0-30), 중간(31-65), 높음(66-100)
+
+3. 위험 기반 정책
+   • 조건부 액세스와 통합
+   • 위험 수준에 따라 자동 응답 (MFA, 차단, 비밀번호 변경)
+   • Self-service 위험 복구 (사용자가 MFA로 자가 복구)
 ```
 
-## 2. Identity Protection: ML 기반 위험 탐지 심화
+**작동 원리:**
+
+```
+사용자 로그인 시도
+    ↓
+[신호 수집] IP, 위치, 디바이스, 시간, 행동 패턴
+    ↓
+[ML 모델 분석] 40차원 특징 벡터 기반 위험 점수 계산
+    ↓
+[위험 평가] 낮음 / 중간 / 높음
+    ↓
+[자동 응답]
+├─ 낮음: 정상 로그인 허용
+├─ 중간: MFA 요구
+└─ 높음: 차단 + 관리자 알림
+```
+
+**왜 중요한가?**
+
+전통적인 룰 기반 보안은 새로운 공격 패턴에 취약합니다. Identity Protection은:
+- **실시간 위협 탐지**: 수백만 로그인 데이터 학습
+- **Microsoft 글로벌 위협 인텔리전스** 활용
+- **자동화된 응답**: 관리자 개입 없이 즉시 대응
+- **오탐 최소화**: 사용자 행동 프로파일링으로 정확도 향상
+
+> **실무 효과:**
+> - 자격 증명 탈취 공격 99% 자동 차단
+> - 관리자 수동 검토 시간 80% 감소
+> - 사용자 불편 최소화 (정상 사용자는 MFA만 요구)
+
+<br>
 
 ### 2.1 위험 점수 계산 알고리즘
 
@@ -478,7 +433,66 @@ Automated Investigation and Response (AIBR) 워크플로:
 | **중간 (31-65)** | • MFA 요구<br>• 토큰 수명 단축 | • MFA 성공<br>• 30분 정상 활동 |
 | **높음 (66-100)** | • 세션 즉시 종료<br>• 모든 토큰 무효화<br>• 계정 일시 차단 | • 비밀번호 재설정<br>• 관리자 승인<br>• MFA 재등록 |
 
-## 3. RBAC 심화: 대규모 권한 관리 설계 패턴
+## 3. 역할 기반 액세스 제어 (RBAC)
+
+**Entra ID RBAC란?**
+
+RBAC(Role-Based Access Control)는 사용자에게 **역할**을 할당하여 관리 권한을 제어하는 시스템입니다. "누가 무엇을 할 수 있는가"를 정의하여 최소 권한 원칙(Principle of Least Privilege)을 구현합니다.
+
+**핵심 구성 요소:**
+
+```
+RBAC = 보안 주체 + 역할 정의 + 범위
+
+1. 보안 주체 (Security Principal)
+   • 사용자: john@contoso.com
+   • 그룹: IT Admins
+   • 서비스 주체: 앱 등록
+   • 관리 ID: Azure VM의 시스템 할당 ID
+
+2. 역할 정의 (Role Definition)
+   기본 제공 역할 (60+ 개):
+   • Global Administrator: 모든 권한
+   • User Administrator: 사용자 관리
+   • Application Administrator: 앱 등록 관리
+   • Security Reader: 보안 정보 읽기
+   
+   사용자 지정 역할:
+   • 세밀한 권한 조합 (예: 그룹만 읽기)
+
+3. 범위 (Scope)
+   • 테넌트 전체 (/)
+   • 관리 단위 (AU)
+   • 특정 리소스 (앱, 그룹 등)
+```
+
+**RBAC vs 전통적인 권한 관리:**
+
+| 전통 방식 | Entra ID RBAC |
+|----------|---------------|
+| 사용자별 개별 권한 할당 | 역할 기반 그룹 할당 |
+| 권한 변경 시 모든 사용자 수정 | 역할 정의만 수정 |
+| 감사 복잡 | 역할 할당 로그로 추적 |
+| 퇴사 시 권한 누락 위험 | 그룹 제거로 일괄 회수 |
+
+**왜 중요한가?**
+
+부적절한 권한 관리는 보안 사고의 주요 원인입니다:
+- **과도한 권한**: 일반 사용자가 Global Admin 권한 → 내부자 위협
+- **권한 누적**: 부서 이동 시 이전 권한 미회수 → 권한 확대
+- **감사 부재**: 누가 언제 무엇을 했는지 추적 불가
+
+RBAC는 이를 해결합니다:
+- **최소 권한**: 필요한 만큼만 부여
+- **분리된 관리**: 지역/부서별 권한 위임
+- **감사 가능**: 모든 역할 할당 로그 기록
+
+> **실무 예시:**
+> - HR 팀: User Administrator 역할 (HR 부서 사용자만)
+> - 헬프데스크: Password Administrator 역할 (비밀번호 재설정만)
+> - 보안팀: Security Administrator 역할 (조건부 액세스 정책 관리)
+
+<br>
 
 ### 3.1 관리 단위 (Administrative Units) 활용
 
@@ -599,7 +613,96 @@ AU: "Remote Workers"
 }
 ```
 
-## 4. PIM 심화: 승인 워크플로와 감사
+## 4. Privileged Identity Management (PIM)
+
+**PIM이란?**
+
+PIM(Privileged Identity Management)은 **Just-In-Time(JIT) 관리자 권한 관리 서비스**로, 높은 권한을 가진 역할을 "필요한 시간에만" 활성화하여 보안 위험을 최소화합니다.
+
+**핵심 개념:**
+
+```
+전통적 방식:              PIM 방식:
+사용자 → 영구 Admin 권한   사용자 → 적격(Eligible) 역할
+         24/7 노출                  ↓
+         공격 위험              필요 시 활성화 요청
+                                    ↓
+                                MFA + 승인 + 근거
+                                    ↓
+                                시간 제한 활성화 (1-8시간)
+                                    ↓
+                                자동 만료 → 적격 상태로 복귀
+```
+
+**역할 할당 유형:**
+
+1. **적격 할당 (Eligible)**
+   - 권한 없음 (평상시)
+   - 활성화 시에만 권한 부여
+   - MFA, 승인, 근거 입력 필요
+   - 대부분의 관리자 역할에 권장
+
+2. **활성 할당 (Active)**
+   - 즉시 권한 사용 가능
+   - 시간 제한 설정 가능
+   - Break Glass 계정용
+
+**PIM 워크플로:**
+
+```
+1. 역할 활성화 요청
+   사용자가 "Global Admin" 역할 활성화 요청
+   • 활성화 기간: 4시간
+   • 근거: "긴급 서비스 복구 작업"
+   ↓
+2. 정책 검증
+   • MFA 요구됨? → Authenticator 앱 승인
+   • 승인 필요? → 상사에게 승인 요청 전송
+   • 최대 기간 초과? → 거부
+   ↓
+3. 승인 프로세스 (옵션)
+   • 승인자: 상사, 보안팀, CISO
+   • 타임아웃: 8시간 (자동 거부)
+   • 에스컬레이션: 다음 승인자에게 전달
+   ↓
+4. 역할 활성화
+   • 4시간 동안 Global Admin 권한 부여
+   • 모든 활동 감사 로그 기록
+   ↓
+5. 자동 만료
+   • 4시간 후 권한 자동 제거
+   • 적격 상태로 복귀
+```
+
+**보안 이점:**
+
+| 지표 | 영구 권한 | PIM 적용 |
+|------|-----------|----------|
+| 권한 노출 시간 | 24시간 × 365일 = 8,760시간/년 | 주 1회 × 4시간 = 208시간/년 |
+| 노출 감소율 | - | **97.6% 감소** |
+| 무단 사용 위험 | 높음 (자격 증명 탈취 시 즉시 악용) | 낮음 (MFA + 승인 필요) |
+| 감사 추적 | 제한적 | 모든 활성화 로그 기록 |
+
+**왜 필요한가?**
+
+관리자 권한은 조직의 가장 중요한 공격 표적입니다:
+- **자격 증명 탈취**: 피싱으로 Global Admin 계정 탈취 → 전체 테넌트 장악
+- **내부자 위협**: 퇴사한 직원의 영구 권한 미회수 → 데이터 유출
+- **권한 남용**: 정당한 이유 없는 권한 사용 → 감사 실패
+
+PIM은 이를 방어합니다:
+- **Zero Standing Privilege**: 평상시 권한 없음
+- **승인 기반 제어**: 권한 사용 시 이유와 승인 필요
+- **시간 제한**: 최소 필요 시간만 활성화
+- **완전한 감사**: 누가, 언제, 왜, 얼마나 권한을 사용했는지 기록
+
+> **실무 적용:**
+> - Global Administrator: 모두 적격 할당, 승인 필수
+> - User Administrator: 적격 할당, MFA만 요구
+> - Security Reader: 활성 할당 (읽기 전용은 위험 낮음)
+> - Break Glass 계정: 활성 할당 (긴급 상황용)
+
+<br>
 
 ### 4.1 복잡한 승인 체인 설계
 
