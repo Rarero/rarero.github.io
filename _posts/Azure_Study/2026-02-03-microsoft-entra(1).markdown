@@ -149,9 +149,13 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 **주요 구성 요소**
 
 **1) Entra External ID for B2B (Business-to-Business)**
-- 외부 조직의 사용자를 자사 디렉터리로 초대
-- 파트너가 자신의 조직 계정으로 로그인하여 리소스 접근
-- Azure AD, Microsoft 계정, Google, Facebook 등 지원
+
+기업 간 협업을 위한 ID 페더레이션 솔루션입니다. SAML 2.0, OIDC, OAuth 2.0 프로토콜을 사용하여 외부 조직과 안전하게 연동합니다.
+
+- **게스트 사용자 초대**: 외부 조직의 사용자를 자사 Entra ID 디렉터리로 초대
+- **ID 페더레이션**: 파트너가 자신의 조직 계정으로 로그인하여 리소스 접근
+- **다양한 ID 제공자 지원**: Azure AD, Microsoft 계정, Google, Facebook, SAML/OIDC 기반 기업 ID 시스템
+- **조건부 액세스 적용**: 외부 사용자에게도 MFA 및 디바이스 정책 적용 가능
 
 **사용 사례**
 ```
@@ -164,10 +168,13 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 ```
 
 **2) Entra External ID for customers (CIAM - Customer Identity Access Management)**
-- 소비자 대상 애플리케이션의 고객 계정 관리
-- 소셜 로그인(Google, Facebook, Apple) 지원
-- 사용자 정의 브랜딩 및 가입 흐름
-- Self-service 비밀번호 재설정
+
+소비자 대상 애플리케이션을 위한 고객 ID 관리 솔루션입니다. 내부적으로 OAuth 2.0 및 OIDC 프로토콜을 사용하여 인증을 처리합니다.
+
+- **소셜 로그인**: Google, Facebook, Apple 등의 ID 제공자와 OIDC 연동
+- **사용자 정의 브랜딩**: 로그인/가입 화면을 브랜드에 맞게 커스터마이징
+- **유연한 가입 흐름**: 이메일 인증, 전화번호 인증 등 다양한 가입 방식 지원
+- **비밀번호 관리**: 고객이 직접 비밀번호를 재설정할 수 있는 셀프서비스 흐름 제공
 
 **사용 사례**
 ```
