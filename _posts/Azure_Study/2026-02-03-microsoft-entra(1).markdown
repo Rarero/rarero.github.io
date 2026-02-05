@@ -93,6 +93,8 @@ Microsoft Entra (제품군 전체 브랜드)
     ┗━━ Microsoft Entra Permissions Management (멀티 클라우드 권한 관리)
 ```
 
+---
+
 ### 2.1 Microsoft Entra ID
 
 Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵심이 되는 서비스**로, 모든 ID 및 액세스 관리의 기반을 제공합니다. 클라우드 기반의 ID 및 액세스 관리 서비스로서 다른 모든 Entra 서비스들이 이 위에서 작동합니다.
@@ -117,6 +119,8 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 >
 > 참고: [Microsoft Learn, "What is Microsoft Entra ID?"](https://learn.microsoft.com/ko-kr/entra/fundamentals/whatis)
 
+---
+
 ### 2.2 Microsoft Entra Domain Services
 
 관리형 도메인 서비스로, 온프레미스 Active Directory Domain Services(AD DS)의 클라우드 버전입니다. LDAP, Kerberos, NTLM 등 전통적인 도메인 인증 프로토콜을 지원합니다.
@@ -139,6 +143,8 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 > 상세한 내용은 다음 포스트 [**Microsoft Entra (2): Microsoft Entra ID와 Domain Services 심층 분석**]({% post_url Azure_Study/2026-02-05-microsoft-entra(2) %})에서 다룹니다.
 >
 > 참고: [Microsoft Learn, "What is Microsoft Entra Domain Services?"](https://learn.microsoft.com/ko-kr/entra/identity/domain-services/overview)
+
+---
 
 ### 2.3 Microsoft Entra External ID
 
@@ -188,7 +194,7 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 
 > 참고: [Microsoft Learn, "What is Microsoft Entra External ID?"](https://learn.microsoft.com/ko-kr/entra/external-id/external-identities-overview)
 
-<br>
+---
 
 ### 2.4 Microsoft Entra Verified ID
 
@@ -268,6 +274,8 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 
 > 참고: [Microsoft Learn, "Introduction to Microsoft Entra Verified ID"](https://learn.microsoft.com/ko-kr/entra/verified-id/decentralized-identifier-overview)
 
+---
+
 ### 2.5 Microsoft Entra Permissions Management
 
 **개요**
@@ -324,6 +332,8 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 
 > 참고: [Microsoft Learn, "What is Microsoft Entra Permissions Management?"](https://learn.microsoft.com/ko-kr/entra/permissions-management/overview)
 
+---
+
 ### 2.6 Microsoft Entra Global Secure Access
 
 Microsoft Entra의 최신 확장 영역으로, ID 보안을 넘어 **네트워크 액세스 보안(Security Service Edge, SSE)**까지 포괄합니다. 제로 트러스트 네트워크 액세스(ZTNA)를 구현하여 VPN 없이도 안전한 리소스 접근을 제공합니다.
@@ -369,6 +379,8 @@ Microsoft Entra는 **제로 트러스트(Zero Trust)** 보안 모델을 기반�
 - 마이크로 세그멘테이션 및 네트워크 격리
 - 이상 행위 탐지 및 자동 대응
 
+---
+
 ### 3.2 Entra에서 제로 트러스트 구현
 
 Entra는 다음과 같은 방식으로 제로 트러스트 원칙을 실제 구현합니다:
@@ -411,6 +423,8 @@ THEN MFA 요구 + 읽기 전용 모드로 제한
 | 디지털 증명서 발급/검증 | **Entra Verified ID** | W3C VC, DID |
 | 멀티 클라우드 권한 관리 | **Entra Permissions Management** | - |
 | VPN 대체 및 제로 트러스트 네트워크 | **Entra Global Secure Access** | ZTNA |
+
+---
 
 ### 4.2 하이브리드 시나리오
 
