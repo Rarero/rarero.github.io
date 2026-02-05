@@ -81,67 +81,34 @@ ID Protection은 두 가지 주요 위험을 탐지합니다:
 
 각 로그인 세션에서 실시간으로 평가되며, 해당 로그인이 손상되었을 가능성을 나타냅니다.
 
-```
-실시간 탐지 예시:
-
-1. 익명 IP 주소 사용
-   • TOR 브라우저 사용 탐지
-   • VPN/프록시 서비스 탐지
-   → 위험 수준: 중간
-
-2. 불가능한 여행 (Impossible Travel)
-   • 2시간 전: 서울에서 로그인
-   • 현재: 뉴욕에서 로그인 시도
-   → 물리적으로 불가능한 이동 패턴 탐지
-   → 위험 수준: 높음
-
-3. 비정상 토큰 (Anomalous Token)
-   • 토큰 클레임 이상 징후
-   • 비정상적인 토큰 사용 패턴
-   → 위험 수준: 높음
+> **실시간 탐지 예시:**
+> - **익명 IP**: TOR 브라우저, VPN 사용 탐지 → 위험 중간
+> - **불가능한 여행**: 서울→뉴욕 2시간 이동 → 위험 높음
+> - **비정상 토큰**: 토큰 클레임 이상 징후 → 위험 높음
 
 **2) 사용자 위험 (User Risk)**
 
 사용자 계정이 손상되었을 가능성을 누적 평가합니다.
 
-오프라인 분석 예시:
-
-1. 유출된 자격 증명 (Leaked Credentials)
-   • 다크웹에서 사용자 계정 정보 발견
-   • 공개 침해 데이터베이스에서 탐지
-   → 위험 수준: 높음
-
-2. 악성 IP 주소
-   • 알려진 봇넷/C&C 서버에서 로그인
-   → 위험 수준: 중간
+> **오프라인 분석 예시:**
+> - **유출된 자격 증명**: 다크웹/침해 DB 발견 → 위험 높음
+> - **악성 IP**: 봇넷/C&C 서버 로그인 → 위험 중간
 
 **위험 기반 조건부 액세스 통합**
 
 ID Protection의 위험 탐지는 조건부 액세스와 자동으로 통합됩니다.
 
-위험 기반 정책 예시:
+> **정책 예시:**
+> 
+> **정책 1: High Risk Remediation**
+> - 조건: 로그인 위험 ≥ 높음
+> - 조치: MFA + 안전한 비밀번호 재설정
+> 
+> **정책 2: User Risk Auto-Remediation**
+> - 조건: 사용자 위험 ≥ 중간
+> - 조치: 비밀번호 변경 + MFA 재등록
 
-정책 1: "High Risk Remediation"
-  조건(IF):
-    • 로그인 위험 >= 높음
-  
-  조치(THEN):
-    • MFA 요구
-    • 안전한 비밀번호 재설정 필수
-
-정책 2: "User Risk Auto-Remediation"
-  조건(IF):
-    • 사용자 위험 >= 중간
-  
-  조치(THEN):
-    • 비밀번호 변경 강제
-    • MFA 재등록 요구
-
-자동 수정 흐름:
-
-1. 위험 탐지 → 조건부 액세스 트리거
-2. 사용자가 MFA 완료 → 위험 자동 감소
-3. 안전한 비밀번호 재설정 → 사용자 위험 해제
+**자동 수정 흐름:** 위험 탐지 → 조건부 액세스 트리거 → MFA 완료 → 위험 감소 → 비밀번호 재설정 → 위험 해제
 
 **조사 및 대응 워크플로**
 
@@ -205,19 +172,11 @@ RBAC 접근 검증 흐름:
 
 **범위의 세부 제어**
 
-시나리오: 애플리케이션 관리 권한 위임
-
-역할 할당 1 (전역):
-  • 보안 주체: Alice
-  • 역할: Application Administrator
-  • 범위: 테넌트 전체
-  → Alice는 모든 앱 등록 관리 가능
-
-역할 할당 2 (제한):
-  • 보안 주체: Bob
-  • 역할: Application Administrator
-  • 범위: "Contoso HR App" (특정 앱)
-  → Bob은 HR App만 관리 가능
+> **시나리오: 애플리케이션 관리 권한 위임**
+> 
+> **Alice (전역):** Application Administrator → 테넌트 전체 → 모든 앱 관리
+> 
+> **Bob (제한):** Application Administrator → "HR App"만 → HR App만 관리
 
 > 참고: [Microsoft Learn, "Microsoft Entra ID의 역할 기반 액세스 제어 개요"](https://learn.microsoft.com/ko-kr/entra/identity/role-based-access-control/custom-overview)
 
@@ -229,73 +188,27 @@ RBAC 접근 검증 흐름:
 
 **PIM의 핵심 개념**
 
-역할 할당 유형:
+**역할 할당 유형:**
 
-1. 적격 (Eligible) 할당
-   • 사용자: John
-   • 역할: Global Administrator
-   • 유형: 적격
-   • 기간: 영구
-   
-   특징:
-   - 즉시 권한 없음
-   - 활성화 시에만 권한 부여
-   - MFA, 승인, 근거 필요
+**1. 적격 (Eligible):** 즉시 권한 없음 → 활성화 시에만 부여 → MFA/승인/근거 필요
 
-2. 활성 (Active) 할당
-   • 사용자: EmergencyAdmin
-   • 역할: Global Administrator
-   • 유형: 활성
-   • 기간: 시간 범위 (7일)
-   
-   특징:
-   - 즉시 권한 사용 가능
-   - 시간 제한 설정 권장
-   - 긴급 액세스용
+**2. 활성 (Active):** 즉시 권한 사용 → 시간 제한 권장 → 긴급 액세스용
 
 **PIM 활성화 워크플로**
 
-역할 활성화 프로세스:
-
-1. 사용자가 Azure Portal에서 역할 활성화 요청
-   • 역할: User Administrator
-   • 기간: 4시간
-   • 근거: "긴급 사용자 계정 잠금 해제 필요"
-
-2. PIM이 정책 확인
-   • MFA 필요: ✓
-   • 승인 필요: ✓
-   • 최대 기간: 8시간
-
-3. 사용자가 MFA 완료
-   → Microsoft Authenticator 앱 승인
-
-4. 지정된 승인자에게 알림
-   • 요청자: John
-   • 역할: User Administrator
-   • 근거: 긴급 계정 잠금 해제
-   → [승인] [거부] 선택
-
-5. 승인 후 역할 활성화
-   → 4시간 동안 User Administrator 권한 부여
-
-6. 활성화 기간 만료 후 자동 비활성화
-   → 다시 "적격" 상태로 복귀
+1. **활성화 요청** → 역할/기간/근거 입력
+2. **정책 확인** → MFA, 승인, 최대 기간 검증
+3. **MFA 완료** → Authenticator 앱 승인
+4. **승인자 검토** → [승인]/[거부] 선택
+5. **역할 활성화** → 지정 시간 동안 권한 부여
+6. **자동 만료** → 적격 상태로 복귀
 
 **PIM의 보안 이점**
 
-PIM 적용 전:
-  • 관리자: 5명
-  • 영구 Global Admin: 5명
-  • 총 노출 시간: 365일 × 24시간 = 43,800시간
-
-PIM 적용 후:
-  • 관리자: 5명
-  • 적격 Global Admin: 5명
-  • 평균 활성화: 주 1회 × 4시간
-  • 총 노출 시간: 52주 × 4시간 = 208시간
-  
-  → 노출 시간 감소: 99.5%
+> **적용 효과 (관리자 5명 기준):**
+> - **적용 전:** 영구 권한 → 43,800시간/년 노출
+> - **적용 후:** 주 1회 4시간 활성화 → 208시간/년 노출
+> - **결과:** 노출 시간 99.5% 감소
 
 > 참고: [Microsoft Learn, "Microsoft Entra Privileged Identity Management란?"](https://learn.microsoft.com/ko-kr/entra/id-governance/privileged-identity-management/pim-configure)
   
@@ -402,123 +315,49 @@ Entra ID 세션 계층:
 
 **관리 ID 유형**
 
-```
-1. 시스템 할당 관리 ID (System-assigned)
+**1. 시스템 할당 (System-assigned)**
+- 리소스와 1:1 자동 연동, 리소스 삭제 시 ID도 자동 삭제
+- 장점: 수명 주기 자동 관리, 설정 간단
+- 단점: 리소스당 하나만 할당
 
-구조:
-  Azure 리소스 (예: VM - myvm)
-  └─ 관리 ID: 자동 생성 (수명 주기 연동)
-     • 리소스와 1:1 관계
-     • 리소스 삭제 시 ID도 자동 삭제
-     • Azure Portal에서 토글로 활성화
-
-사용 사례:
-  • VM이 Key Vault에서 비밀 읽기
-  • App Service가 SQL Database 접근
-  • Function이 Storage Account 접근
-
-장점: 수명 주기 자동 관리, 설정 간단
-단점: 리소스당 하나만 할당 가능
-
-
-2. 사용자 할당 관리 ID (User-assigned)
-
-구조:
-  독립 Azure 리소스
-  ├─ 관리 ID: my-shared-identity
-  │  • 독립적 수명 주기
-  │  • 여러 리소스에 공유 가능
-  │
-  ├─ VM1 → my-shared-identity 할당
-  ├─ VM2 → my-shared-identity 할당
-  └─ App Service → my-shared-identity 할당
-
-사용 사례:
-  • 여러 VM이 동일한 Key Vault 접근 권한 필요
-  • 개발/스테이징/프로덕션 환경에서 동일 ID 재사용
-
-장점: 권한 관리 중앙화, 재사용 가능
-단점: 수동 수명 주기 관리 필요
-```
+**2. 사용자 할당 (User-assigned)**
+- 독립 리소스로 여러 리소스에 공유 가능
+- 장점: 권한 관리 중앙화, 재사용 가능
+- 단점: 수동 수명 주기 관리 필요
 
 **관리 ID 작동 원리**
 
-```
-시나리오: VM이 Key Vault에서 비밀 읽기
+> **시나리오: VM이 Key Vault에서 비밀 읽기**
+> 
+> 1. **ID 활성화** → VM에 관리 ID 할당 → Entra ID에 서비스 주체 자동 생성
+> 2. **권한 부여** → Key Vault에서 VM의 관리 ID에 "Secrets Get" 권한 부여
+> 3. **코드 작성** → ManagedIdentityCredential 사용 (자격 증명 불필요)
+> ```python
+> from azure.identity import ManagedIdentityCredential
+> from azure.keyvault.secrets import SecretClient
+> 
+> credential = ManagedIdentityCredential()
+> client = SecretClient(vault_url="https://myvault...", credential=credential)
+> secret = client.get_secret("db-pwd")
+> ```
+> 4. **토큰 발급** → VM이 IMDS를 통해 토큰 자동 획득
+> 5. **리소스 접근** → 토큰으로 Key Vault 접근
 
-1. VM에 시스템 할당 관리 ID 활성화
-   └→ Azure가 자동으로 Entra ID에 서비스 주체 생성
+**Workload Identity Federation**
 
-2. Key Vault 권한 부여
-   └→ Key Vault Access Policy 또는 RBAC 설정
-      "VM의 관리 ID에 'Secrets Get' 권한 부여"
+외부 워크로드(GitHub Actions, Kubernetes)가 비밀 없이 Azure에 접근할 수 있게 합니다.
 
-3. VM 내부 코드 (자격 증명 불필요)
-
-   Python 예시:
-   ```python
-   from azure.identity import ManagedIdentityCredential
-   from azure.keyvault.secrets import SecretClient
-   
-   credential = ManagedIdentityCredential()
-   client = SecretClient(
-       vault_url="https://myvault...",
-       credential=credential
-   )
-   
-   secret = client.get_secret("db-pwd")
-   ```
-
-4. Azure Instance Metadata Service (IMDS)
-   VM 내부 → HTTP GET http://169.254.169.254/...
-   → IMDS가 Entra ID에 토큰 요청
-   → Access Token 반환 (VM 관리 ID로 발급)
-
-5. Key Vault 접근
-   Authorization: Bearer <access_token>
-   → Key Vault가 토큰 검증
-   → 비밀 반환
-```
-
-**Workload Identity Federation (고급)**
-
-외부 워크로드(GitHub Actions, Kubernetes, Terraform Cloud)가 비밀 없이 Azure에 접근할 수 있게 합니다.
-
-예시: GitHub Actions에서 Azure 배포
-
-기존 방식 (비권장):
-  • GitHub Secrets에 저장:
-    - AZURE_CLIENT_ID
-    - AZURE_CLIENT_SECRET ← 보안 위험
-    - AZURE_TENANT_ID
-
-새 방식 (Workload Identity):
-  1. Entra ID에 App Registration
-  
-  2. Federated Credential 설정:
-     • issuer: https://token.actions.githubusercontent.com
-     • subject: repo:myorg/myrepo:...
-  
-  3. GitHub Actions 워크플로:
-     • OIDC 토큰 자동 발급
-     • Entra ID가 신뢰하여 교환
-     • Azure Access Token 발급
-  
-  결과: Secret 관리 불필요
+> **GitHub Actions 예시:**
+> 
+> **기존:** GitHub Secrets에 CLIENT_SECRET 저장 → 보안 위험
+> 
+> **개선:** Federated Credential 설정 → OIDC 토큰 교환 → Secret 관리 불필요
 
 **보안 이점**
 
-관리 ID 적용 전:
-  • 코드에 자격 증명 하드코딩
-  • Key Vault에 저장해도 접근 필요
-  • 비밀번호 만료 시 수동 갱신
-  • 자격 증명 유출 위험
-
-관리 ID 적용 후:
-  ✓ 자격 증명 저장/관리 불필요
-  ✓ Azure가 자동으로 토큰 발급/갱신
-  ✓ 토큰 유출 시에도 제한적 권한
-  ✓ RBAC로 세밀한 권한 제어 가능
+> **적용 전:** 자격 증명 하드코딩 → 수동 갱신 → 유출 위험
+> 
+> **적용 후:** 자격 증명 불필요 → 자동 갱신 → RBAC 세밀 제어
 
 > 참고: [Microsoft Learn, "Azure 리소스에 대한 관리 ID"](https://learn.microsoft.com/ko-kr/entra/identity/managed-identities-azure-resources/overview)
 
@@ -543,13 +382,7 @@ Entra ID 세션 계층:
 
 많은 기존 애플리케이션은 **LDAP**, **Kerberos**, **NTLM** 같은 전통적인 인증 프로토콜에 의존합니다. 하지만 Entra ID는 이러한 프로토콜을 지원하지 않습니다.
 
-문제 시나리오:
-
-- 10년 된 Java 엔터프라이즈 앱
-- LDAP를 통해 사용자 디렉터리 조회
-- Kerberos를 통해 인증 수행
-
-→ Entra ID로는 직접 통합 불가!
+> **문제 시나리오:** 10년 된 Java 앱 → LDAP 디렉터리 조회 + Kerberos 인증 → Entra ID 직접 통합 불가
 
 **해결책: Entra Domain Services**
 

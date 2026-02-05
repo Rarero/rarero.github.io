@@ -234,7 +234,6 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 - 웹 도메인(did:web) 또는 분산 원장에서 DID Document 조회 가능
 - 발급자의 서명과 공개키를 대조하여 자격 증명의 진위 검증
 
-
 ![did system](/images/26-02-03-microsoft-entra(1)-did_system.png)
 
 **동작 방식**
