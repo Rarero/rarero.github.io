@@ -59,50 +59,42 @@ Entra ID는 **OAuth 2.0** 및 **OpenID Connect** 표준 기반의 최신 인증 
 
 #### 1.2.1 테넌트(Tenant) 구조
 
-Entra ID의 기본 단위는 **테넌트(Tenant)**입니다. 테넌트는 조직을 나타내는 Entra ID의 전용 인스턴스로, 조직의 모든 사용자, 그룹, 애플리케이션, 정책을 포함하는 논리적 컨테이너입니다.
+Entra ID의 기본 단위는 **테넌트(Tenant)**입니다. 테넌트는 조직을 나타내는 Entra ID의 전용 인스턴스로, **디렉터리(Directory)**라고도 불립니다.
+
+**테넌트의 주요 특징**
+
+1. **전용 인스턴스**: 각 조직은 고유한 테넌트를 보유 (예: `contoso.onmicrosoft.com`)
+2. **논리적 컨테이너**: 조직의 모든 ID 및 액세스 리소스를 포함
+3. **자동 생성**: Microsoft 365, Azure, Dynamics CRM Online 구독 시 자동으로 Entra 테넌트 생성
+4. **사용자 지정 도메인**: 기본 도메인 외에 조직의 도메인 추가 가능 (예: `contoso.com`)
+
+**테넌트에 포함되는 리소스**
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│           Entra ID 테넌트: contoso.onmicrosoft.com      │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  Users (사용자)                                          │
-│  ├─ john@contoso.com                                   │
-│  ├─ jane@contoso.com                                   │
-│  └─ admin@contoso.com                                  │
-│                                                         │
-│  Groups (그룹)                                           │
-│  ├─ Finance Team                                       │
-│  ├─ Engineering Team                                   │
-│  └─ Admins                                             │
-│                                                         │
-│  Applications (앱 등록)                                  │
-│  ├─ Internal HR App                                    │
-│  ├─ Customer Portal                                    │
-│  └─ Mobile App                                         │
-│                                                         │
-│  Service Principals (서비스 주체)                        │
-│  ├─ Managed Identity for VM                           │
-│  └─ GitHub Actions Service Principal                  │
-│                                                         │
-│  Policies (정책)                                         │
-│  ├─ Conditional Access Policies                       │
-│  ├─ MFA Policies                                       │
-│  └─ Password Policies                                  │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
+Entra ID 테넌트 (contoso.onmicrosoft.com)
+│
+├─ 사용자 (Users)
+│  └─ 클라우드 전용 / 동기화된 / 게스트 사용자
+│
+├─ 그룹 (Groups)
+│  └─ 보안 그룹 / Microsoft 365 그룹 / 동적 그룹
+│
+├─ 애플리케이션 (Applications)
+│  ├─ 앱 등록 (App Registrations)
+│  └─ 서비스 주체 (Service Principals)
+│
+├─ 디바이스 (Devices)
+│  └─ Azure AD Join / 하이브리드 조인 디바이스
+│
+└─ 정책 및 보안 (Policies & Security)
+   ├─ 조건부 액세스 정책
+   ├─ MFA 정책
+   └─ 비밀번호 정책
 ```
 
-**멀티 테넌트 시나리오**
+> 참고: 위 구조는 개념적 이해를 돕기 위한 것이며, 실제 Entra ID 아키텍처는 Microsoft Graph API를 통해 접근하는 플랫 네임스페이스 구조입니다.
 
-하나의 조직이 여러 테넌트를 운영할 수도 있습니다. 각 테넌트는 **완전히 독립적**이며, 사용자, 정책, 앱이 분리됩니다.
-
-```
-Contoso Corporation의 테넌트 전략:
-├─ Production 테넌트: contoso.onmicrosoft.com
-├─ Development 테넌트: contoso-dev.onmicrosoft.com
-└─ Partner 테넌트: contoso-partners.onmicrosoft.com
-```
+> 참고: [Microsoft Learn, "What is a tenant in Microsoft Entra ID?"](https://learn.microsoft.com/ko-kr/entra/fundamentals/whatis#terminology)
 
 <br>
 
@@ -112,43 +104,19 @@ Contoso Corporation의 테넌트 전략:
 
 **사용자 유형**
 
-1. **클라우드 전용 사용자 (Cloud-Only Users)**
-   - Entra ID에서 직접 생성된 사용자
-   - 예: `john@contoso.onmicrosoft.com`
+Entra ID는 세 가지 유형의 사용자를 지원합니다:
 
-2. **동기화된 사용자 (Synced Users)**
-   - 온프레미스 AD에서 Entra ID Connect를 통해 동기화된 사용자
-   - 온프레미스 AD가 **권한 있는 원본(Source of Authority)**
+1. **클라우드 전용 사용자**: Entra ID에서 직접 생성 (예: `john@contoso.onmicrosoft.com`)
+2. **동기화된 사용자**: 온프레미스 AD에서 Entra ID Connect를 통해 동기화 (온프레미스 AD가 권한 있는 원본)
+3. **게스트 사용자**: 외부 조직 또는 개인 계정 (B2B 협업용, 예: `partner@fabrikam.com`)
 
-3. **게스트 사용자 (Guest Users)**
-   - 외부 조직 또는 개인 계정 사용자
-   - B2B 협업에 사용
-   - 예: `partner@fabrikam.com` (External)
+**그룹 관리**
 
-**그룹 유형**
+그룹은 리소스 접근 권한을 효율적으로 관리하는 핵심 메커니즘입니다:
 
-1. **보안 그룹 (Security Groups)**
-   - 리소스 접근 권한 관리
-   - 예: "Finance Team" 그룹에 재무 앱 접근 권한 부여
-
-2. **Microsoft 365 그룹**
-   - 협업 도구 (Teams, SharePoint, Outlook) 통합
-   - 자동으로 공유 사서함, 문서 라이브러리 생성
-
-**동적 그룹 (Dynamic Groups)**
-
-사용자 속성에 따라 **자동으로 멤버십 관리**:
-
-```
-규칙 예시:
-
-IF user.department == "Engineering"
-   AND user.country == "South Korea"
-THEN 자동으로 "Korea Engineering" 그룹에 추가
-
-쿼리 문법:
-(user.department -eq "Engineering") -and (user.country -eq "South Korea")
-```
+- **보안 그룹**: 리소스 접근 권한 관리 (예: "Finance Team"에 재무 앱 접근 권한 부여)
+- **Microsoft 365 그룹**: 협업 도구(Teams, SharePoint, Outlook) 통합 및 공유 리소스 자동 생성
+- **동적 그룹**: 사용자 속성 기반 자동 멤버십 관리 (예: `user.department -eq "Engineering"`)
 
 #### 1.3.2 애플리케이션 등록 및 서비스 주체
 
