@@ -546,72 +546,43 @@ AU: "Remote Workers"
 - IT Admin이 새로운 원격 근무자 권한 자동 관리
 ```
 
-### 3.2 커스텀 역할 설계 베스트 프랙티스
+### 3.2 커스텀 역할 설계
 
-**최소 권한 역할 분리 예시:**
+**최소 권한 원칙 구현:**
+
+기본 제공 역할이 너무 광범위한 경우, **커스텀 역할**로 세분화합니다.
 
 ```
-문제: Application Administrator는 너무 광범위한 권한 보유
-- 모든 앱 등록 관리
-- 서비스 주체 삭제 가능
-- 엔터프라이즈 앱 동의 권한
+문제: Application Administrator는 너무 많은 권한 보유
+- 앱 등록 생성/수정/삭제
+- 서비스 주체 관리
+- 엔터프라이즈 앱 동의
 
-해결: 커스텀 역할 세분화
+해결: 세분화된 커스텀 역할 생성
 
-역할 1: "App Registration Creator"
+예시: "App Registration Creator"
 허용 권한:
-  microsoft.directory/applications/create
-  microsoft.directory/applications/basic/update
-  microsoft.directory/applications/credentials/update
+  • microsoft.directory/applications/create
+  • microsoft.directory/applications/basic/update
+  • microsoft.directory/applications/credentials/update
 
 차단 권한:
-  microsoft.directory/applications/delete
-  microsoft.directory/servicePrincipals/*
+  • microsoft.directory/applications/delete
+  • microsoft.directory/servicePrincipals/*
 
-사용 사례: 개발팀이 앱 등록 생성만 가능
-
-역할 2: "App Consent Manager"
-허용 권한:
-  microsoft.directory/servicePrincipals/appRoleAssignedTo/update
-  microsoft.directory/servicePrincipals/permissions.Grant
-
-차단 권한:
-  microsoft.directory/applications/*
-
-사용 사례: 보안팀이 API 권한 승인만 담당
-
-역할 3: "App Credential Auditor"
-허용 권한:
-  microsoft.directory/applications/credentials/read
-  microsoft.directory/servicePrincipals/credentials/read
-
-차단 권한:
-  microsoft.directory/applications/credentials/update
-
-사용 사례: 감사팀이 앱 시크릿 만료 모니터링
+사용 사례: 개발팀이 앱 등록을 생성하고 자격 증명을 관리할 수 있지만,
+           삭제나 서비스 주체 변경은 보안팀에서만 가능
 ```
 
-**JSON 템플릿 예시:**
+**커스텀 역할 생성 방법:**
 
-```json
-{
-  "displayName": "App Registration Creator",
-  "description": "Can create app registrations but cannot delete",
-  "rolePermissions": [
-    {
-      "allowedResourceActions": [
-        "microsoft.directory/applications/create",
-        "microsoft.directory/applications/basic/update",
-        "microsoft.directory/applications/credentials/update"
-      ],
-      "condition": null
-    }
-  ],
-  "isBuiltIn": false,
-  "isEnabled": true,
-  "templateId": "custom-app-creator-001"
-}
-```
+1. Entra ID 포털 → 역할 및 관리자
+2. "모든 역할" → "새 커스텀 역할"
+3. 기본 제공 역할을 복제하거나 처음부터 생성
+4. 필요한 권한만 선택적으로 추가
+5. JSON 템플릿 또는 PowerShell/Graph API로 자동화 가능
+
+> **핵심 포인트:** 커스텀 역할은 "필요한 권한만" 부여하는 최소 권한 원칙의 핵심입니다.
 
 ## 4. Privileged Identity Management (PIM)
 
@@ -750,89 +721,108 @@ $settings.ApprovalSettings = @{
 }
 ```
 
-### 4.2 PIM 감사 로그 분석
+### 4.2 감사 및 모니터링
 
-**감사 로그 스키마:**
+**PIM 감사 로그 구조:**
+
+PIM은 모든 역할 활성화 활동을 **상세하게 기록**합니다.
 
 ```
-로그 예시 (JSON):
-{
-  "activityDateTime": "2026-02-05T10:30:00Z",
-  "activityDisplayName": "Add member to role completed (PIM activation)",
-  "initiatedBy": {
-    "user": {
-      "id": "user-guid",
-      "userPrincipalName": "john@contoso.com"
-    }
-  },
-  "targetResources": [
-    {
-      "type": "Role",
-      "displayName": "Global Administrator",
-      "modifiedProperties": [
-        {
-          "displayName": "Role.ActivationDuration",
-          "newValue": "PT4H"  // 4시간
-        }
-      ]
-    }
-  ],
-  "additionalDetails": [
-    {
-      "key": "Justification",
-      "value": "Emergency user account unlock"
-    },
-    {
-      "key": "RequestType",
-      "value": "Activation"
-    },
-    {
-      "key": "AssignmentState",
-      "value": "Active"
-    },
-    {
-      "key": "Approver",
-      "value": "manager@contoso.com"
-    }
-  ]
-}
+로그 항목:
+• 사용자: 누가 요청했는가
+• 역할: 어떤 권한을 활성화했는가
+• 기간: 얼마 동안 활성화했는가
+• 근거: 왜 활성화했는가
+• 승인자: 누가 승인했는가
+• 타임스탬프: 언제 활성화/만료됐는가
 ```
 
-**KQL 쿼리 예시 (Log Analytics):**
+**Log Analytics를 활용한 모니터링:**
+
+KQL(Kusto Query Language)로 의심 활동을 탐지할 수 있습니다.
 
 ```kusto
-// 승인 없이 활성화된 역할 탐지
-AuditLogs
-| where TimeGenerated > ago(7d)
-| where OperationName == "Add member to role completed (PIM activation)"
-| extend Justification = tostring(AdditionalDetails[0].value)
-| extend Approver = tostring(AdditionalDetails[3].value)
-| where Approver == ""  // 승인자 없음
-| project TimeGenerated, InitiatedBy, TargetResources, Justification
-| order by TimeGenerated desc
-
-// 비정상 시간대 활성화
+// 비정상 PIM 활동 탐지
 AuditLogs
 | where TimeGenerated > ago(30d)
 | where OperationName contains "PIM activation"
 | extend Hour = hourofday(TimeGenerated)
+| extend Justification = tostring(AdditionalDetails[0].value)
+| extend Approver = tostring(AdditionalDetails[3].value)
 | where Hour < 7 or Hour > 20  // 업무 시간 외
+   or Approver == ""  // 승인 없이 활성화
+   or Justification == ""  // 근거 미입력
 | summarize Count=count() by InitiatedBy, bin(TimeGenerated, 1d)
 | where Count > 3  // 비정상 빈도
-
-// 평균 활성화 시간 분석
-AuditLogs
-| where OperationName == "Add member to role completed (PIM activation)"
-| extend Duration = tostring(AdditionalDetails[0].value)
-| extend DurationMinutes = toint(replace(@"PT(\d+)H", @"\1", Duration)) * 60
-| summarize AvgDuration=avg(DurationMinutes), MaxDuration=max(DurationMinutes) 
-    by Role=tostring(TargetResources[0].displayName)
-| order by AvgDuration desc
+| order by TimeGenerated desc
 ```
 
-## 5. 토큰 메커니즘 심화: 검증과 보안
+**모니터링 베스트 프랙티스:**
 
-### 5.1 JWT 서명 알고리즘과 키 롤링
+- **일일 검토**: 주요 역할 활성화 내역 확인
+- **알림 설정**: 비정상 활동 시 Azure Monitor 알림
+- **정기 감사**: 월별 PIM 사용 패턴 분석
+- **근거 품질 검증**: 의미 있는 근거가 입력되었는지 샘플링 검토
+
+## 5. 토큰 메커니즘: JWT 검증과 보안
+
+**토큰 기반 인증이란?**
+
+Entra ID는 **JWT(JSON Web Token)** 형식으로 사용자 인증 정보를 전달합니다. 토큰은 클라이언트가 API를 호출할 때 권한을 증명하는 "디지털 배지"입니다.
+
+**JWT 구조:**
+
+```
+JWT = Header . Payload . Signature
+
+1. Header (토큰 메타데이터)
+   {
+     "typ": "JWT",
+     "alg": "RS256",  // RSA 서명 알고리즘
+     "kid": "key-id-2024-02"  // 키 식별자
+   }
+
+2. Payload (사용자 정보/권한)
+   {
+     "aud": "api://myapp",  // 대상 API
+     "iss": "https://sts.windows.net/tenant-id/",  // 발급자
+     "sub": "user-object-id",  // 사용자 ID
+     "exp": 1234571490,  // 만료 시간
+     "roles": ["User.Read.All"]  // 역할/권한
+   }
+
+3. Signature (위조 방지 서명)
+   RSASSA-PKCS1-v1_5(
+     SHA256(base64(header) + "." + base64(payload)),
+     private_key  // Entra ID의 비공개키
+   )
+```
+
+**토큰 검증 프로세스:**
+
+```
+클라이언트가 API에 토큰 제출
+    ↓
+API 서버가 토큰 검증:
+1. Header의 'kid'로 공개키 조회
+   → https://login.microsoftonline.com/common/discovery/keys
+2. 서명 검증 (위조 확인)
+3. 만료 시간 확인 (exp 클레임)
+4. 발급자 확인 (iss 클레임)
+5. 대상 API 확인 (aud 클레임)
+    ↓
+검증 성공 → API 요청 처리
+```
+
+**왜 중요한가?**
+
+- **상태 비저장 (Stateless)**: 서버가 세션을 저장하지 않아도 됨 → 확장성 향상
+- **탈중앙화**: API 서버가 직접 검증 가능 → Entra ID 호출 불필요
+- **표준 기반**: OAuth 2.0/OIDC 표준 준수
+
+<br>
+
+### 5.1 키 롤링과 보안
 
 **토큰 서명 프로세스:**
 
@@ -954,9 +944,58 @@ Entra ID 키 관리:
    (앞서 CAE 섹션 참조)
 ```
 
-## 6. 관리 ID 심화: IMDS 프로토콜과 보안
+## 6. 관리 ID (Managed Identity)
 
-### 6.1 IMDS 엔드포인트 상세
+**관리 ID란?**
+
+관리 ID는 Azure 리소스가 다른 Azure 서비스에 인증할 때 "비밀번호 없이" 인증하는 기능입니다. Azure가 자동으로 ID를 생성/관리하므로 자격 증명을 코드에 하드코딩하거나 저장할 필요가 없습니다.
+
+**기존 방식의 문제:**
+
+```
+전통적 인증:
+VM → Key Vault 접근 시
+  1. Client ID/Secret을 코드에 하드코딩
+  2. 또는 환경변수/설정 파일에 저장
+  3. Secret 만료 시 수동 갱신 필요
+
+문제점:
+• Secret 유출 위험 (코드 노출, 로그 누수)
+• 수동 순환 부담 (90일마다 갱신)
+• 관리 복잡도 증가
+```
+
+**관리 ID 해결책:**
+
+```
+VM → Key Vault 접궼 시
+  1. VM에 관리 ID 활성화
+  2. Key Vault에 VM ID에 권한 부여
+  3. 코드에서 ManagedIdentityCredential 사용
+     → 자동으로 토큰 획듹
+
+장점:
+• Secret 비저장 → 유출 위험 제거
+• 자동 순환 → 관리 부담 없음
+• Azure RBAC로 세밀한 권한 제어
+```
+
+**관리 ID 유형:**
+
+| 유형 | 설명 | 사용 사례 |
+|------|------|----------|
+| **시스템 할당** | 리소스와 1:1 연결<br>리소스 삭제 시 ID 자동 삭제 | VM 하나가 Key Vault 하나 접근 |
+| **사용자 할당** | 독립적 리소스<br>여러 리소스에 공유 가능 | VM 10개가 동일 Key Vault 접궼 |
+
+> **실무 활용:**
+> - VM → Key Vault, Storage, SQL Database
+> - Function App → Cosmos DB, Service Bus
+> - AKS Pod → Azure Container Registry
+> - GitHub Actions → Azure 배포 (Workload Identity)
+
+<br>
+
+### 6.1 IMDS 토큰 획듹 메커니즘
 
 **Azure Instance Metadata Service (IMDS) 구조:**
 
@@ -1049,86 +1088,46 @@ login.microsoftonline.com → 10.0.2.10 (Private)
 일반 퍼블릭 엔드포인트 차단
 ```
 
-**IMDS 요청 속도 제한:**
+**IMDS (Instance Metadata Service)란?**
+
+Azure VM은 **169.254.169.254** 주소를 통해 관리 ID 토큰을 획듹합니다. 이 주소는 VM 내부에서만 접근 가능한 로컬 주소로, 외부에서는 접근할 수 없습니다.
 
 ```
-제한 사항:
-- 초당 최대 5회 토큰 요청
-- 초과 시 HTTP 429 (Too Many Requests)
+토큰 획듹 흐름:
 
-대응 전략:
-1. 토큰 캐싱
-   - 만료 시간 추적
-   - 만료 5분 전에만 갱신
+1. VM 내 애플리케이션이 IMDS에 요청
+   GET http://169.254.169.254/metadata/identity/oauth2/token
+   ?resource=https://vault.azure.net
+   헤더: Metadata: true
 
-2. 지수 백오프
-   재시도 간격: 1초 → 2초 → 4초 → 8초
+2. IMDS가 VM의 관리 ID 확인
+   • 시스템 할당: VM 속성에서 자동 확인
+   • 사용자 할당: client_id 파라미터로 지정
 
-3. 토큰 공유 (멀티 스레드 환경)
-   - 싱글톤 패턴으로 토큰 관리자 구현
-   - 모든 스레드가 동일한 토큰 인스턴스 사용
+3. IMDS가 Entra ID에 토큰 요청
+   • VM의 서비스 주체로 인증
+   • resource(대상 API)에 맞는 토큰 발급
 
-Python 구현 예시:
-```python
-import time
-import threading
-from datetime import datetime, timedelta
+4. Entra ID가 토큰 발급
+   {
+     "access_token": "eyJ0eXAi...",
+     "expires_in": "3599",
+     "expires_on": "1234567890"
+   }
 
-class ManagedIdentityToken:
-    _instance = None
-    _lock = threading.Lock()
-    
-    def __new__(cls):
-        if not cls._instance:
-            with cls._lock:
-                if not cls._instance:
-                    cls._instance = super().__new__(cls)
-                    cls._instance._token = None
-                    cls._instance._expires_on = None
-        return cls._instance
-    
-    def get_token(self, resource):
-        now = datetime.utcnow()
-        
-        # 토큰이 없거나 5분 내 만료 시 갱신
-        if not self._token or \
-           (self._expires_on - now) < timedelta(minutes=5):
-            with self._lock:
-                # Double-checked locking
-                if not self._token or \
-                   (self._expires_on - now) < timedelta(minutes=5):
-                    self._token = self._fetch_token(resource)
-        
-        return self._token
-    
-    def _fetch_token(self, resource):
-        max_retries = 5
-        for attempt in range(max_retries):
-            try:
-                response = requests.get(
-                    "http://169.254.169.254/metadata/identity/oauth2/token",
-                    params={"resource": resource, "api-version": "2018-02-01"},
-                    headers={"Metadata": "true"},
-                    timeout=2
-                )
-                
-                if response.status_code == 429:
-                    wait_time = 2 ** attempt  # 지수 백오프
-                    time.sleep(wait_time)
-                    continue
-                
-                response.raise_for_status()
-                data = response.json()
-                self._expires_on = datetime.fromtimestamp(int(data["expires_on"]))
-                return data["access_token"]
-                
-            except requests.exceptions.Timeout:
-                if attempt == max_retries - 1:
-                    raise
-                time.sleep(2 ** attempt)
-        
-        raise Exception("Failed to acquire token after retries")
+5. 애플리케이션이 토큰 사용
+   • Key Vault API 호출 시 Authorization 헤더에 토큰 포함
+   • 토큰 만료 시 자동 갱신
 ```
+
+**IMDS 보안 고려사항:**
+
+- **속도 제한**: 초당 5회 요청 제한 → 토큰 캐싱 필수
+- **로컬 전용**: 169.254.169.254는 VM 내부에서만 접근 가능
+- **토큰 보호**: 토큰을 로그나 파일에 저장하지 말 것 (메모리에만)
+- **만료 관리**: 만료 5분 전에 갱신 로직 구현
+
+> **핵심:** 관리 ID는 Secret 없이 안전하게 Azure 리소스에 접근하는 최선의 방법입니다.
 
 ## 7. Domain Services 심화: 복제와 성능
 
