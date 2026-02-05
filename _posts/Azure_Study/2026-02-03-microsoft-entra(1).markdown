@@ -186,25 +186,47 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 4. 맞춤형 마케팅 및 개인화된 쇼핑 경험 제공
 ```
 
-
-
 > 참고: [Microsoft Learn, "What is Microsoft Entra External ID?"](https://learn.microsoft.com/ko-kr/entra/external-id/external-identities-overview)
 
+<br>
 
 ### 2.4 Microsoft Entra Verified ID
 
-**탈중앙화 ID(Decentralized Identity)** 기반의 검증 가능한 자격 증명 서비스입니다. W3C 표준인 **Verifiable Credentials**와 **Decentralized Identifiers (DIDs)** 를 구현합니다.
+디지털 자격 증명을 발급, 관리, 검증할 수 있는 **탈중앙화 ID(Decentralized Identity)** 서비스입니다. **W3C**<sup>3</sup> 표준인 **Verifiable Credentials(검증 가능한 자격 증명)** 와 **DID (Decentralized Identifiers, 탈중앙화 식별자)** 를 기반으로 합니다.
+
+> <sup>3</sup> **W3C (World Wide Web Consortium)**: 웹 기술 표준을 개발하고 제정하는 국제 컨소시엄입니다. HTML, CSS, XML 등 웹의 근간을 이루는 기술 표준을 제정하며, Verifiable Credentials와 DID도 W3C에서 개발한 공식 표준입니다.
+
+**배경: 기존 ID 시스템의 문제점**
+
+기존의 중앙화된 ID 시스템에서는:
+- 기업/기관이 사용자 데이터를 중앙 서버에 저장하고 관리
+- 데이터 유출 시 대규모 피해 발생 (예: 해킹으로 수백만 명 개인정보 유출)
+- 사용자가 자신의 정보를 직접 통제할 수 없음
+- 증명서 위조 여부 확인이 어려움
 
 **핵심 개념**
 
-**1) Self-Sovereign Identity (SSI)**
-- 사용자가 자신의 ID 데이터를 직접 소유하고 제어
-- 중앙 집중식 ID 저장소 없이 검증 가능한 증명서 발급
+**1) 사용자 소유 및 제어 (Self-Ownership and User Control)**
+- 사용자가 자신의 ID 데이터를 직접 소유하고 통제
+- 중앙 서버 없이 개인이 디지털 지갑에 증명서를 보관
+- 필요한 정보만 선택적으로 공개 가능
 
-**2) 검증 가능한 자격 증명(Verifiable Credentials)**
-- 디지털 형태의 증명서 (예: 학위 증명서, 고용 확인서, 면허증)
-- 암호화 방식으로 위조 방지
-- 사용자가 선택적으로 공유 가능
+**2) 검증 가능한 자격 증명 (Verifiable Credentials, VC)**
+- 암호화 서명이 포함된 디지털 증명서 (학위, 면허, 자격증 등)
+- 발급자의 디지털 서명으로 위변조 방지
+- **OIDC4VC (OpenID Connect for Verifiable Credentials)** 프로토콜을 통해 시스템 간 호환성 보장
+
+**3) 탈중앙화 식별자 (Decentralized Identifiers, DID)**
+- 중앙 기관 없이 생성 가능한 고유 ID (예: did:web:example.com)
+- 공개키 기반으로 신원 확인
+- 블록체인뿐만 아니라 **웹 도메인(did:web)** 기반 신뢰 구축 지원
+- Microsoft Entra는 보안과 관리 효율을 위해 **did:web** 방식 사용
+
+**4) 신뢰 시스템 (Trust System)**
+- 검증자가 발급자의 **DID Document**를 조회하여 공개키 확인
+- DID Document에는 공개키, 인증 방법, 서비스 엔드포인트 정보 포함
+- 웹 도메인(did:web) 또는 분산 원장에서 DID Document 조회 가능
+- 발급자의 서명과 공개키를 대조하여 자격 증명의 진위 검증
 
 **동작 방식**
 ```
@@ -213,16 +235,24 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 1. 발급자(Issuer): 대학교
    - 졸업생에게 디지털 학위 증명서 발급
    - 증명서에 암호화 서명 추가
+   - DID Document를 웹 도메인(did:web)에 게시
 
 2. 소유자(Holder): 졸업생
-   - 디지털 지갑에 학위 증명서 저장
-   - 필요 시에만 선택적으로 공유
+   - Microsoft Authenticator 앱의 디지털 지갑에 학위 증명서 저장
+   - 필요 시에만 OIDC4VC 프로토콜로 선택적 공유
 
-3. 검증자(Verifier): 채용 기업
-   - 지원자가 제출한 학위 증명서의 진위 확인
-   - 대학의 서명을 검증하여 위조 여부 판별
+3. 신뢰 시스템(Trust System)
+   - 대학의 DID Document에 공개키와 서비스 엔드포인트 등록
+   - 누구나 DID를 통해 대학의 공개키 조회 가능
+
+4. 검증자(Verifier): 채용 기업
+   - 지원자가 Microsoft Authenticator로 제출한 학위 증명서 수신
+   - 대학의 DID Document를 조회하여 공개키 확보
+   - 공개키로 서명을 검증하여 위조 여부 판별
    - 졸업생의 개인정보는 최소한만 수집
 ```
+
+![did system](/images/26-02-03-microsoft-entra(1)-did_system.png)
 
 **적용 대상**
 - 학력/자격증 검증
