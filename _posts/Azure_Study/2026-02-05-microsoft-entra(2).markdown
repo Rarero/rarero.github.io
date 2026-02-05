@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Microsoft Entra (2): Entra ID와 Domain Services 심층 분석"
+title: "Microsoft Entra (2): Microsoft Entra ID와 Domain Services 심층 분석"
 date: 2026-02-05 09:00:00 +0900
 tags: [Study, Azure, Microsoft Entra, Entra ID, Domain Services, Authentication]
 categories: Azure_Study
@@ -8,34 +8,42 @@ categories: Azure_Study
 
 지난 포스트 [**Microsoft Entra (1): 서비스 개요와 ID 및 액세스 관리 생태계**]({% post_url Azure_Study/2026-02-03-microsoft-entra(1) %})에서는 Microsoft Entra 제품군의 전체 구조를 살펴봤습니다.
 
-이번 포스트에서는 Microsoft Entra 생태계의 **핵심 기반**인 **Entra ID**(구 Azure AD)와 레거시 앱 지원을 위한 **Entra Domain Services**의 내부 동작 원리를 깊이 있게 분석합니다.
+이번 포스트에서는 Microsoft Entra 생태계의 **핵심 기반**인 **Entra ID**(구 Azure AD)와 레거시 애플리케이션 지원을 위한 **Entra Domain Services**를 심층적으로 분석합니다.
 
 <br>
 
 ## 1. Microsoft Entra ID 심층 분석
 
-### 1.1 Entra ID의 정체성
+### 1.1 Entra ID란 무엇인가?
 
 **클라우드 네이티브 ID 플랫폼**
 
-Entra ID는 온프레미스 Active Directory(AD)의 클라우드 버전이 **아닙니다**. 완전히 새롭게 설계된 **클라우드 네이티브 인증 및 권한 부여 플랫폼**입니다.
+Microsoft Entra ID는 온프레미스 Active Directory(AD)의 클라우드 버전이 **아닙니다**. 완전히 새롭게 설계된 **클라우드 네이티브 IAM<sup>1</sup> 플랫폼**으로, 최신 인증 프로토콜과 제로 트러스트 보안을 기반으로 합니다.
 
-**핵심 차이점: 온프레미스 AD vs Entra ID**
+> <sup>1</sup> **IAM (Identity and Access Management)**: 사용자의 신원을 확인하고(Authentication), 리소스에 대한 접근 권한을 관리하는(Authorization) 시스템입니다. 조직 내 모든 ID(사용자, 디바이스, 애플리케이션)의 전체 수명 주기를 관리합니다.
+
+**온프레미스 AD vs Entra ID: 근본적인 차이**
 
 | 구분 | 온프레미스 AD | Entra ID |
 |------|-------------|----------|
-| **아키텍처** | 계층적 디렉터리 (OU, 도메인 트리) | 플랫 네임스페이스 (테넌트 기반) |
-| **프로토콜** | LDAP, Kerberos, NTLM | OAuth 2.0, OpenID Connect, SAML |
-| **쿼리 방식** | LDAP 쿼리 | Microsoft Graph API (REST) |
+| **아키텍처** | 계층적 디렉터리<sup>2</sup> (OU, 도메인 트리) | 플랫 네임스페이스 (테넌트 기반) |
+| **프로토콜** | LDAP, Kerberos, NTLM | OAuth 2.0, OIDC<sup>3</sup>, SAML |
+| **쿼리 방식** | LDAP 쿼리 | Microsoft Graph API<sup>4</sup> (REST) |
 | **관리 도구** | Active Directory Users and Computers | Azure Portal, PowerShell, Graph API |
 | **그룹 정책** | GPO (Group Policy Object) | Intune, 조건부 액세스 정책 |
 | **도메인 가입** | 지원 | 지원 안 함 (단, Azure AD Join 존재) |
 | **인증 대상** | 주로 Windows 도메인 가입 머신 | 모든 플랫폼 (Windows, macOS, iOS, Android) |
 | **확장성** | 도메인 컨트롤러 수평 확장 필요 | 자동 확장 (Microsoft 관리) |
 
-**핵심 개념**
+> <sup>2</sup> **계층적 디렉터리**: 조직 단위(OU), 도메인, 포리스트로 구성된 트리 구조입니다. 예: `CN=User,OU=Sales,OU=Korea,DC=contoso,DC=com`
+>
+> <sup>3</sup> **OIDC (OpenID Connect)**: OAuth 2.0 위에 구축된 인증 레이어로, 사용자 신원 확인과 기본 프로필 정보 제공을 표준화한 프로토콜입니다.
+>
+> <sup>4</sup> **Microsoft Graph API**: Microsoft 클라우드 서비스(Entra ID, Microsoft 365, Azure)의 데이터에 접근하는 통합 REST API입니다. `https://graph.microsoft.com` 엔드포인트로 사용자, 그룹, 이메일, 파일 등을 조회/관리할 수 있습니다.
 
-Entra ID는 **OAuth 2.0** 및 **OpenID Connect** 표준 기반의 최신 인증 플랫폼입니다. 따라서 웹 앱, 모바일 앱, API 등 다양한 현대적 애플리케이션과 자연스럽게 통합됩니다.
+**인증 패러다임의 변화**
+
+Entra ID는 **OAuth 2.0** 및 **OpenID Connect** 표준 기반의 최신 인증 플랫폼입니다. 이는 웹 앱, 모바일 앱, API 등 현대적 애플리케이션과의 자연스러운 통합을 가능하게 합니다.
 
 ```
 전통적인 인증 (온프레미스 AD):
@@ -45,11 +53,13 @@ Entra ID는 **OAuth 2.0** 및 **OpenID Connect** 표준 기반의 최신 인증 
 사용자 → 웹 브라우저/앱 → OAuth 토큰 → SaaS/API 접근
 ```
 
+> 참고: [Microsoft Learn, "What is Microsoft Entra ID?"](https://learn.microsoft.com/ko-kr/entra/fundamentals/whatis)
+
 ### 1.2 Entra ID 아키텍처
 
-**테넌트(Tenant) 구조**
+#### 1.2.1 테넌트(Tenant) 구조
 
-Entra ID의 기본 단위는 **테넌트(Tenant)** 입니다. 테넌트는 조직을 나타내는 Entra ID의 전용 인스턴스입니다.
+Entra ID의 기본 단위는 **테넌트(Tenant)**입니다. 테넌트는 조직을 나타내는 Entra ID의 전용 인스턴스로, 조직의 모든 사용자, 그룹, 애플리케이션, 정책을 포함하는 논리적 컨테이너입니다.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -85,16 +95,16 @@ Entra ID의 기본 단위는 **테넌트(Tenant)** 입니다. 테넌트는 조�
 
 **멀티 테넌트 시나리오**
 
-하나의 조직이 여러 테넌트를 운영할 수도 있습니다:
+하나의 조직이 여러 테넌트를 운영할 수도 있습니다. 각 테넌트는 **완전히 독립적**이며, 사용자, 정책, 앱이 분리됩니다.
 
 ```
-Contoso Corporation:
+Contoso Corporation의 테넌트 전략:
 ├─ Production 테넌트: contoso.onmicrosoft.com
 ├─ Development 테넌트: contoso-dev.onmicrosoft.com
 └─ Partner 테넌트: contoso-partners.onmicrosoft.com
 ```
 
-각 테넌트는 **완전히 독립적**이며, 사용자, 정책, 앱이 분리됩니다.
+<br>
 
 ### 1.3 Entra ID의 핵심 구성 요소
 

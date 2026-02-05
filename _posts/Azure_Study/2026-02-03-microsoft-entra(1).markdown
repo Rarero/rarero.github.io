@@ -234,7 +234,36 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
 - 웹 도메인(did:web) 또는 분산 원장에서 DID Document 조회 가능
 - 발급자의 서명과 공개키를 대조하여 자격 증명의 진위 검증
 
+
+![did system](/images/26-02-03-microsoft-entra(1)-did_system.png)
+
 **동작 방식**
+
+Verified ID 시스템은 다음 5가지 핵심 구성 요소로 작동합니다:
+
+**1) W3C DID (탈중앙화 식별자)**
+- 조직이나 정부와 독립적으로 생성, 소유, 제어 가능한 전역 고유 식별자
+- 공개키, 인증 방법, 서비스 엔드포인트를 포함하는 JSON 형식의 DID Document와 연결
+
+**2) 신뢰 시스템 (Trust System)**
+- DID Document를 검증할 수 있도록 DID를 기록하는 기반 네트워크
+- Microsoft Entra는 **did:web** 방식 사용 (웹 도메인의 기존 신뢰를 활용)
+
+**3) DID 사용자 에이전트 (Microsoft Authenticator)**
+- 사용자가 탈중앙화 ID와 자격 증명을 관리하는 디지털 지갑 앱
+- DID 생성, 자격 증명 발급/제시, 암호화된 백업 관리 기능 제공
+
+**4) Microsoft Resolver**
+- did:web 메서드로 DID를 조회하고 DID Document를 반환하는 API
+- DID와 연결된 공개키 및 서비스 엔드포인트 정보 제공
+
+**5) Microsoft Entra Verified ID 서비스**
+- 자격 증명 발급 및 검증을 위한 REST API
+- ID 소유자가 클레임을 생성, 제시, 검증할 수 있도록 지원
+- 시스템 사용자 간 신뢰 기반 형성
+
+**실제 사용 시나리오**
+
 ```
 [학위 증명 시나리오]
 
@@ -257,8 +286,6 @@ Microsoft Entra ID는 Microsoft Entra 제품군의 **'뿌리'이자 가장 핵�
    - 공개키로 서명을 검증하여 위조 여부 판별
    - 졸업생의 개인정보는 최소한만 수집
 ```
-
-![did system](/images/26-02-03-microsoft-entra(1)-did_system.png)
 
 **적용 대상**
 - 학력/자격증 검증
