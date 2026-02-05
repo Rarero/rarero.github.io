@@ -14,389 +14,649 @@ categories: Azure_Study
 
 ## 1. Microsoft Entra ID 심층 분석
 
-### 1.1 Entra ID란 무엇인가?
+Entra ID는 단순한 인증 서비스가 아닙니다. **제로 트러스트 정책 엔진**으로서 매일 **78조 개의 신호를 분석**하여 위험을 탐지하고, AI 기반 위험 평가와 조건부 액세스 정책을 통해 조직의 리소스를 보호합니다.
 
-**클라우드 네이티브 ID 플랫폼**
+이 섹션에서는 Entra ID의 **핵심 보안 메커니즘**과 **정책 평가 엔진**의 작동 원리를 심층 분석합니다.
 
-Microsoft Entra ID는 온프레미스 Active Directory(AD)의 클라우드 버전이 **아닙니다**. 완전히 새롭게 설계된 **클라우드 네이티브 IAM<sup>1</sup> 플랫폼**으로, 최신 인증 프로토콜과 제로 트러스트 보안을 기반으로 합니다.
+### 1.1 조건부 액세스: 제로 트러스트 정책 엔진
 
-> <sup>1</sup> **IAM (Identity and Access Management)**: 사용자의 신원을 확인하고(Authentication), 리소스에 대한 접근 권한을 관리하는(Authorization) 시스템입니다. 조직 내 모든 ID(사용자, 디바이스, 애플리케이션)의 전체 수명 주기를 관리합니다.
+**조건부 액세스의 본질**
 
-**온프레미스 AD vs Entra ID: 근본적인 차이**
-
-| 구분 | 온프레미스 AD | Entra ID |
-|------|-------------|----------|
-| **아키텍처** | 계층적 디렉터리<sup>2</sup> (OU, 도메인 트리) | 플랫 네임스페이스 (테넌트 기반) |
-| **프로토콜** | LDAP, Kerberos, NTLM | OAuth 2.0, OIDC<sup>3</sup>, SAML |
-| **쿼리 방식** | LDAP 쿼리 | Microsoft Graph API<sup>4</sup> (REST) |
-| **관리 도구** | Active Directory Users and Computers | Azure Portal, PowerShell, Graph API |
-| **그룹 정책** | GPO (Group Policy Object) | Intune, 조건부 액세스 정책 |
-| **도메인 가입** | 지원 | 지원 안 함 (단, Azure AD Join 존재) |
-| **인증 대상** | 주로 Windows 도메인 가입 머신 | 모든 플랫폼 (Windows, macOS, iOS, Android) |
-| **확장성** | 도메인 컨트롤러 수평 확장 필요 | 자동 확장 (Microsoft 관리) |
-
-> <sup>2</sup> **계층적 디렉터리**: 조직 단위(OU), 도메인, 포리스트로 구성된 트리 구조입니다. 예: `CN=User,OU=Sales,OU=Korea,DC=contoso,DC=com`
->
-> <sup>3</sup> **OIDC (OpenID Connect)**: OAuth 2.0 위에 구축된 인증 레이어로, 사용자 신원 확인과 기본 프로필 정보 제공을 표준화한 프로토콜입니다.
->
-> <sup>4</sup> **Microsoft Graph API**: Microsoft 클라우드 서비스(Entra ID, Microsoft 365, Azure)의 데이터에 접근하는 통합 REST API입니다. `https://graph.microsoft.com` 엔드포인트로 사용자, 그룹, 이메일, 파일 등을 조회/관리할 수 있습니다.
-
-**인증 패러다임의 변화**
-
-Entra ID는 **OAuth 2.0** 및 **OpenID Connect** 표준 기반의 최신 인증 플랫폼입니다. 이는 웹 앱, 모바일 앱, API 등 현대적 애플리케이션과의 자연스러운 통합을 가능하게 합니다.
+조건부 액세스는 Entra ID의 **제로 트러스트 정책 엔진**입니다. 사용자, 위치, 디바이스, 애플리케이션, 위험 신호 등 다양한 원본의 신호를 실시간으로 수집하여 액세스 결정을 내립니다.
 
 ```
-전통적인 인증 (온프레미스 AD):
-사용자 → Windows 로그인 → Kerberos 티켓 → 파일 서버 접근
+조건부 액세스 작동 흐름:
 
-현대적 인증 (Entra ID):
-사용자 → 웹 브라우저/앱 → OAuth 토큰 → SaaS/API 접근
+┌─────────────────────────────────────────────────┐
+│          신호 수집 (Signal Collection)            │
+└─────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────┐
+│  • 사용자 ID & 그룹 멤버십                          │
+│  • IP 위치 정보 (국가/지역)                         │
+│  • 디바이스 플랫폼 & 상태 (규정 준수 여부)              │
+│  • 대상 애플리케이션                                │
+│  • 로그인 위험 수준 (Identity Protection 연동)       │
+│  • 사용자 위험 수준 (손상된 자격 증명 탐지)              │
+└─────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────┐
+│          정책 평가 (Policy Evaluation)            │
+└─────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────┐
+│  1단계: 세션 세부 정보 수집                           │
+│    • 네트워크 위치 확인                              │
+│    • 디바이스 ID 확인                              │
+│    • 보고서 전용 모드 정책 포함 평가                   │
+│                                                 │
+│  2단계: 정책 적용                                   │
+│    • 충족되지 않은 요구 사항 식별                      │
+│    • 차단 정책 우선 처리                            │
+│    • 순차적 제어 요구 (MFA → 준수 디바이스 등)          │
+└─────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────┐
+│          액세스 제어 적용 (Enforcement)             │
+└─────────────────────────────────────────────────┘
+                      │
+                      ▼
+       ┌──────────────┴──────────────┐
+       │                             │
+       ▼                             ▼
+  ┌─────────┐                   ┌─────────┐
+  │  허용    │                   │  차단    │
+  └─────────┘                   └─────────┘
+       │
+       ▼
+  [ 세션 제어 적용 ]
 ```
 
-> 참고: [Microsoft Learn, "What is Microsoft Entra ID?"](https://learn.microsoft.com/ko-kr/entra/fundamentals/whatis)
+**정책 평가의 핵심 원칙**
 
-### 1.2 Entra ID 아키텍처
+1. **2단계 평가 프로세스**
+   - 1단계: 모든 정책(보고서 전용 포함)에 대해 세션 세부 정보 수집
+   - 2단계: 활성화된 정책만 적용하여 실제 액세스 제어 수행
 
-#### 1.2.1 테넌트(Tenant) 구조
+2. **AND 논리 결합**
+   - 하나의 사용자에게 여러 정책 적용 시 **모든 정책 충족 필수**
+   - 예: 정책 A(MFA 필요) + 정책 B(규정 준수 디바이스 필요) = MFA **AND** 규정 준수 디바이스 모두 필요
 
-Entra ID의 기본 단위는 **테넌트(Tenant)**입니다. 테넌트는 조직을 나타내는 Entra ID의 전용 인스턴스로, **디렉터리(Directory)**라고도 불립니다.
+3. **가장 제한적인 정책 우선**
+   - 여러 정책 중 하나라도 "차단"이면 즉시 차단
+   - 예: 정책 A(허용) + 정책 B(차단) = 차단
 
-**테넌트의 주요 특징**
+> 참고: [Microsoft Learn, "조건부 액세스란?"](https://learn.microsoft.com/ko-kr/entra/identity/conditional-access/overview)
 
-1. **전용 인스턴스**: 각 조직은 고유한 테넌트를 보유 (예: `contoso.onmicrosoft.com`)
-2. **논리적 컨테이너**: 조직의 모든 ID 및 액세스 리소스를 포함
-3. **자동 생성**: Microsoft 365, Azure, Dynamics CRM Online 구독 시 자동으로 Entra 테넌트 생성
-4. **사용자 지정 도메인**: 기본 도메인 외에 조직의 도메인 추가 가능 (예: `contoso.com`)
+### 1.2 Microsoft Entra ID Protection: AI 기반 위험 탐지
 
-**테넌트에 포함되는 리소스**
+**Microsoft의 글로벌 위협 인텔리전스**
 
-```
-Entra ID 테넌트 (contoso.onmicrosoft.com)
-│
-├─ 사용자 (Users)
-│  └─ 클라우드 전용 / 동기화된 / 게스트 사용자
-│
-├─ 그룹 (Groups)
-│  └─ 보안 그룹 / Microsoft 365 그룹 / 동적 그룹
-│
-├─ 애플리케이션 (Applications)
-│  ├─ 앱 등록 (App Registrations)
-│  └─ 서비스 주체 (Service Principals)
-│
-├─ 디바이스 (Devices)
-│  └─ Azure AD Join / 하이브리드 조인 디바이스
-│
-└─ 정책 및 보안 (Policies & Security)
-   ├─ 조건부 액세스 정책
-   ├─ MFA 정책
-   └─ 비밀번호 정책
-```
+ID Protection은 하루 **78조 개의 보안 신호**를 분석하여 위험한 동작을 실시간으로 탐지합니다. 이 신호는 Active Directory, Microsoft 계정, Xbox 게임 등에서 수집되며, 기계 학습 모델을 통해 지속적으로 개선됩니다.
 
-> 참고: 위 구조는 개념적 이해를 돕기 위한 것이며, 실제 Entra ID 아키텍처는 Microsoft Graph API를 통해 접근하는 플랫 네임스페이스 구조입니다.
+**위험 탐지 유형**
 
-> 참고: [Microsoft Learn, "What is a tenant in Microsoft Entra ID?"](https://learn.microsoft.com/ko-kr/entra/fundamentals/whatis#terminology)
+ID Protection은 두 가지 주요 위험을 탐지합니다:
 
-<br>
+**1) 로그인 위험 (Sign-in Risk)**
 
-### 1.3 Entra ID의 핵심 구성 요소
-
-#### 1.3.1 사용자 및 그룹
-
-**사용자 유형**
-
-Entra ID는 세 가지 유형의 사용자를 지원합니다:
-
-1. **클라우드 전용 사용자**: Entra ID에서 직접 생성 (예: `john@contoso.onmicrosoft.com`)
-2. **동기화된 사용자**: 온프레미스 AD에서 Entra ID Connect를 통해 동기화 (온프레미스 AD가 권한 있는 원본)
-3. **게스트 사용자**: 외부 조직 또는 개인 계정 (B2B 협업용, 예: `partner@fabrikam.com`)
-
-**그룹 관리**
-
-그룹은 리소스 접근 권한을 효율적으로 관리하는 핵심 메커니즘입니다:
-
-- **보안 그룹**: 리소스 접근 권한 관리 (예: "Finance Team"에 재무 앱 접근 권한 부여)
-- **Microsoft 365 그룹**: 협업 도구(Teams, SharePoint, Outlook) 통합 및 공유 리소스 자동 생성
-- **동적 그룹**: 사용자 속성 기반 자동 멤버십 관리 (예: `user.department -eq "Engineering"`)
-
-#### 1.3.2 애플리케이션 등록 및 서비스 주체
-
-**앱 등록 (App Registration)**
-
-Entra ID와 통합하려는 애플리케이션을 등록하는 과정입니다.
+각 로그인 세션에서 실시간으로 평가되며, 해당 로그인이 손상되었을 가능성을 나타냅니다.
 
 ```
-앱 등록 프로세스:
+실시간 탐지 예시:
 
-1. Azure Portal → Entra ID → App registrations → New registration
-2. 앱 이름, 지원되는 계정 유형, 리디렉션 URI 설정
-3. Client ID 및 Client Secret 생성
-4. API 권한 설정 (예: Microsoft Graph API 읽기 권한)
+┌──────────────────────────────────────────┐
+│  익명 IP 주소 사용                        │
+│  • TOR 브라우저 사용 탐지                 │
+│  • VPN/프록시 서비스 탐지                │
+│  → 위험 수준: 중간                        │
+└──────────────────────────────────────────┘
+
+┌──────────────────────────────────────────┐
+│  불가능한 여행 (Impossible Travel)        │
+│  • 2시간 전: 서울에서 로그인              │
+│  • 현재: 뉴욕에서 로그인 시도             │
+│  → 물리적으로 불가능한 이동 패턴 탐지    │
+│  → 위험 수준: 높음                        │
+└──────────────────────────────────────────┘
+
+┌──────────────────────────────────────────┐
+│  비정상 토큰 (Anomalous Token)            │
+│  • 토큰 클레임 이상 징후                  │
+│  • 비정상적인 토큰 사용 패턴              │
+│  → 위험 수준: 높음                        │
+└──────────────────────────────────────────┘
 ```
 
-**앱 등록 정보**
-- **Application (Client) ID**: 앱의 고유 식별자 (GUID)
-- **Client Secret**: 앱이 Entra ID에 인증할 때 사용하는 비밀 키
-- **Redirect URI**: OAuth 인증 후 사용자를 리디렉션할 URL
-- **API Permissions**: 앱이 요청할 수 있는 권한 목록
+**2) 사용자 위험 (User Risk)**
 
-**서비스 주체 (Service Principal)**
-
-앱 등록의 **로컬 인스턴스**입니다. 앱 등록은 전역 정의이고, 서비스 주체는 특정 테넌트 내에서 앱이 실제로 실행되는 ID입니다.
+사용자 계정이 손상되었을 가능성을 누적 평가합니다.
 
 ```
-관계:
+오프라인 분석 예시:
 
-App Registration (전역):
-├─ Application ID: 12345678-1234-1234-1234-123456789abc
-└─ Name: "Contoso HR App"
+┌──────────────────────────────────────────┐
+│  유출된 자격 증명 (Leaked Credentials)    │
+│  • 다크웹에서 사용자 계정 정보 발견       │
+│  • 공개 침해 데이터베이스에서 탐지        │
+│  → 위험 수준: 높음                        │
+└──────────────────────────────────────────┘
 
-Service Principal (Tenant A):
-└─ 실제 권한 및 역할 할당
-
-Service Principal (Tenant B):
-└─ 실제 권한 및 역할 할당 (독립적)
+┌──────────────────────────────────────────┐
+│  악성 IP 주소                             │
+│  • 알려진 봇넷/C&C 서버에서 로그인        │
+│  → 위험 수준: 중간                        │
+└──────────────────────────────────────────┘
 ```
 
-**관리 ID (Managed Identity)**
+**위험 기반 조건부 액세스 통합**
 
-Azure 리소스(VM, App Service, Function 등)에 자동으로 할당되는 ID로, 자격 증명 관리 없이 다른 Azure 서비스에 인증할 수 있습니다.
+ID Protection의 위험 탐지는 조건부 액세스와 자동으로 통합됩니다:
+
+```
+위험 기반 정책 예시:
+
+정책: "High Risk Remediation"
+┌─────────────────────────────────┐
+│ IF:                             │
+│   • 로그인 위험 >= 높음         │
+│ THEN:                           │
+│   • MFA 요구                    │
+│   • 안전한 비밀번호 재설정 필수 │
+└─────────────────────────────────┘
+
+정책: "User Risk Auto-Remediation"
+┌─────────────────────────────────┐
+│ IF:                             │
+│   • 사용자 위험 >= 중간         │
+│ THEN:                           │
+│   • 비밀번호 변경 강제          │
+│   • MFA 재등록 요구             │
+└─────────────────────────────────┘
+
+자동 수정 흐름:
+
+1. 위험 탐지 → 조건부 액세스 트리거
+2. 사용자가 MFA 완료 → 위험 자동 감소
+3. 안전한 비밀번호 재설정 → 사용자 위험 해제
+```
+
+**조사 및 대응 워크플로**
+
+```
+조사 프로세스:
+
+┌─────────────────────┐
+│  위험 탐지 발생     │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  관리자 알림        │
+│  • 이메일 통지      │
+│  • Azure Portal     │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  보고서 검토        │
+│  • 위험한 로그인    │
+│  • 위험한 사용자    │
+│  • 위험 탐지 세부   │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  수동 조치          │
+│  • 위험 해제        │
+│  • 안전 확인        │
+│  • 손상 확인        │
+└─────────────────────┘
+```
+
+> 참고: [Microsoft Learn, "Microsoft Entra ID Protection이란?"](https://learn.microsoft.com/ko-kr/entra/id-protection/overview-identity-protection)
+
+### 1.3 역할 기반 액세스 제어 (RBAC)
+
+**RBAC의 작동 원리**
+
+Entra ID의 RBAC는 **최소 권한 원칙**에 따라 관리자 권한을 세밀하게 제어합니다.
+
+```
+RBAC 접근 검증 흐름:
+
+1. 사용자가 Microsoft Graph API 호출
+   ↓
+2. Entra ID가 토큰의 wids 클레임 평가
+   또는 역할 할당 데이터베이스 조회
+   ↓
+3. 요청된 작업이 역할 권한에 포함되는지 확인
+   ↓
+4. 액세스 허용 또는 거부
+```
+
+**역할 할당의 3대 요소**
+
+```
+역할 할당 = 보안 주체 + 역할 정의 + 범위
+
+┌───────────────────────────────────────┐
+│  보안 주체 (Security Principal)       │
+│  • 사용자: john@contoso.com           │
+│  • 그룹: Finance Team (역할 할당 가능)│
+│  • 서비스 주체: 앱 ID                │
+└───────────────────────────────────────┘
+           +
+┌───────────────────────────────────────┐
+│  역할 정의 (Role Definition)          │
+│  • 기본 제공: User Administrator      │
+│  • 사용자 지정: Custom App Admin      │
+│  • 권한 집합: Create/Read/Update      │
+└───────────────────────────────────────┘
+           +
+┌───────────────────────────────────────┐
+│  범위 (Scope)                         │
+│  • 테넌트 전체 (/)                    │
+│  • 관리 단위 (AU)                     │
+│  • 특정 애플리케이션                  │
+└───────────────────────────────────────┘
+```
+
+**범위의 세부 제어**
+
+```
+시나리오: 애플리케이션 관리 권한 위임
+
+역할 할당 1 (전역):
+├─ 보안 주체: Alice
+├─ 역할: Application Administrator
+└─ 범위: 테넌트 전체
+   → Alice는 모든 앱 등록 관리 가능
+
+역할 할당 2 (제한):
+├─ 보안 주체: Bob
+├─ 역할: Application Administrator
+└─ 범위: "Contoso HR App" (특정 앱)
+   → Bob은 HR App만 관리 가능
+```
+
+> 참고: [Microsoft Learn, "Microsoft Entra ID의 역할 기반 액세스 제어 개요"](https://learn.microsoft.com/ko-kr/entra/identity/role-based-access-control/custom-overview)
+
+### 1.4 Privileged Identity Management (PIM)
+
+**Just-In-Time 액세스의 필요성**
+
+영구적인 관리자 권한은 보안 위험을 증가시킵니다. PIM은 **필요한 시간에만** 권한을 활성화하여 공격 표면을 최소화합니다.
+
+**PIM의 핵심 개념**
+
+```
+역할 할당 유형:
+
+1. 적격 (Eligible) 할당
+   ┌────────────────────────────────┐
+   │  사용자: John                  │
+   │  역할: Global Administrator    │
+   │  유형: 적격                    │
+   │  기간: 영구                    │
+   └────────────────────────────────┘
+   
+   특징:
+   • 즉시 권한 없음
+   • 활성화 시에만 권한 부여
+   • MFA, 승인, 근거 필요
+
+2. 활성 (Active) 할당
+   ┌────────────────────────────────┐
+   │  사용자: EmergencyAdmin        │
+   │  역할: Global Administrator    │
+   │  유형: 활성                    │
+   │  기간: 시간 범위 (7일)         │
+   └────────────────────────────────┘
+   
+   특징:
+   • 즉시 권한 사용 가능
+   • 시간 제한 설정 권장
+   • 긴급 액세스용
+```
+
+**PIM 활성화 워크플로**
+
+```
+역할 활성화 프로세스:
+
+1. 사용자가 Azure Portal에서 역할 활성화 요청
+   ┌────────────────────────────────┐
+   │  활성화 요청                   │
+   │  • 역할: User Administrator    │
+   │  • 기간: 4시간                 │
+   │  • 근거: "긴급 사용자 계정     │
+   │          잠금 해제 필요"       │
+   └────────────────────────────────┘
+
+2. PIM이 정책 확인
+   ┌────────────────────────────────┐
+   │  • MFA 필요: ✓                 │
+   │  • 승인 필요: ✓                │
+   │  • 최대 기간: 8시간            │
+   └────────────────────────────────┘
+
+3. 사용자가 MFA 완료
+   └→ Microsoft Authenticator 앱 승인
+
+4. 지정된 승인자에게 알림
+   ┌────────────────────────────────┐
+   │  승인 요청                     │
+   │  요청자: John                  │
+   │  역할: User Administrator      │
+   │  근거: 긴급 계정 잠금 해제     │
+   │                                │
+   │  [승인] [거부]                 │
+   └────────────────────────────────┘
+
+5. 승인 후 역할 활성화
+   └→ 4시간 동안 User Administrator 권한 부여
+
+6. 활성화 기간 만료 후 자동 비활성화
+   └→ 다시 "적격" 상태로 복귀
+```
+
+**PIM의 보안 이점**
+
+```
+PIM 적용 전:
+┌─────────────────────────────────┐
+│  관리자: 5명                     │
+│  영구 Global Admin: 5명          │
+│  총 노출 시간: 365일 × 24시간    │
+│  = 43,800시간                    │
+└─────────────────────────────────┘
+
+PIM 적용 후:
+┌─────────────────────────────────┐
+│  관리자: 5명                     │
+│  적격 Global Admin: 5명          │
+│  평균 활성화: 주 1회 × 4시간    │
+│  총 노출 시간: 52주 × 4시간      │
+│  = 208시간                       │
+│                                  │
+│  노출 시간 감소: 99.5%           │
+└─────────────────────────────────┘
+```
+
+> 참고: [Microsoft Learn, "Microsoft Entra Privileged Identity Management란?"](https://learn.microsoft.com/ko-kr/entra/id-governance/privileged-identity-management/pim-configure)
+
+### 1.5 인증 메커니즘 심층 분석
+
+**토큰의 삼위일체: ID Token, Access Token, Refresh Token**
+
+Entra ID의 OAuth 2.0/OIDC 인증은 세 가지 유형의 토큰을 사용합니다. 각 토큰은 명확히 구분된 역할을 가집니다.
+
+```
+토큰 유형별 역할:
+
+┌─────────────────────────────────────────────┐
+│  1. ID Token (JWT)                          │
+│     "사용자가 누구인가?"                     │
+├─────────────────────────────────────────────┤
+│  • 목적: 사용자 신원 증명                   │
+│  • 용도: 클라이언트 앱이 사용자 프로필 확인 │
+│  • 포함 정보:                               │
+│    - 이름, 이메일, 프로필 사진 URL          │
+│    - sub (사용자 고유 ID)                   │
+│    - iss (발급자: Entra ID)                 │
+│    - aud (대상: 클라이언트 앱 ID)           │
+│  • 대상: 클라이언트 애플리케이션            │
+│  • 유효 기간: 1시간                         │
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│  2. Access Token (JWT)                      │
+│     "이 리소스에 접근할 권한이 있는가?"     │
+├─────────────────────────────────────────────┤
+│  • 목적: API 호출 권한 증명                 │
+│  • 용도: Microsoft Graph, Azure API 호출    │
+│  • 포함 정보:                               │
+│    - scp (Scope: User.Read, Mail.Send 등)  │
+│    - roles (역할 기반 권한)                 │
+│    - aud (대상 API)                         │
+│  • 사용 방법:                               │
+│    Authorization: Bearer <access_token>     │
+│  • 대상: 리소스 서버 (API)                  │
+│  • 유효 기간: 60~90분                       │
+│  • 저장: 메모리 (권장)                      │
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│  3. Refresh Token (Opaque)                  │
+│     "사용자 재로그인 없이 Access Token 갱신"│
+├─────────────────────────────────────────────┤
+│  • 목적: Access Token 자동 갱신             │
+│  • 특성:                                    │
+│    - 불투명 토큰 (JWT 아님)                 │
+│    - 단일 사용 (갱신 시 새 RT 재발급)       │
+│    - 조건부 액세스 재평가 트리거            │
+│  • 유효 기간: 최대 90일                     │
+│  • 저장: 안전한 저장소 (encrypted)          │
+│  • 보안:                                    │
+│    - Token Rotation (회전 방식)             │
+│    - 탈취 감지 시 즉시 무효화               │
+└─────────────────────────────────────────────┘
+```
+
+**토큰 발급 및 갱신 흐름**
+
+```
+1. 초기 인증 (Authorization Code Flow)
+   사용자 로그인 → Authorization Code
+   → ID Token + Access Token + Refresh Token
+
+2. Access Token으로 API 호출
+   GET https://graph.microsoft.com/v1.0/me
+   Authorization: Bearer <access_token>
+
+3. Access Token 만료 (90분 후)
+   Refresh Token으로 자동 갱신
+   → 새 Access Token + 새 Refresh Token 발급
+   → 조건부 액세스 정책 재평가
+
+5. Continuous Access Evaluation (CAE)
+   ┌────────────────────────────────┐
+   │  실시간 세션 취소 트리거:      │
+   │  • 사용자 계정 비활성화        │
+   │  • 비밀번호 재설정             │
+   │  • 위험 수준 변화              │
+   │  • 조건부 액세스 정책 변경     │
+   │                                │
+   │  → 즉시 토큰 무효화            │
+   └────────────────────────────────┘
+```
+
+**세션 관리 및 SSO**
+
+```
+Entra ID 세션 계층:
+
+┌─────────────────────────────────┐
+│  1. Primary Refresh Token (PRT) │
+│     • Windows 10/11 디바이스     │
+│     • 유효 기간: 14일            │
+│     • Kerberos 티켓 발급 가능   │
+└─────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────┐
+│  2. Web SSO Session             │
+│     • 브라우저 쿠키              │
+│     • 기본 유효 기간: 세션       │
+│     • 조건부 액세스 제어 가능   │
+└─────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────┐
+│  3. Application Access Token    │
+│     • 개별 앱별 토큰             │
+│     • 짧은 수명 (1시간)          │
+│     • API 호출 전용              │
+└─────────────────────────────────┘
+```
+
+> 참고: [Microsoft Learn, "Microsoft Entra 인증"](https://learn.microsoft.com/ko-kr/entra/identity/authentication/overview-authentication)
+
+### 1.6 관리 ID (Managed Identities): 암호 없는 인증
+
+**관리 ID의 필요성**
+
+전통적으로 애플리케이션이 Azure 리소스에 접근하려면 **자격 증명**(비밀번호, 인증서)을 저장하고 관리해야 했습니다. 이는 보안 위험과 운영 부담을 증가시킵니다.
+
+관리 ID는 Azure 리소스 자체에 ID를 부여하여 **자격 증명 없이** 다른 Azure 서비스에 인증할 수 있게 합니다.
+
+**관리 ID 유형**
+
+```
+1. 시스템 할당 관리 ID (System-assigned)
+
+특징:
+┌────────────────────────────────────────────┐
+│  Azure 리소스                              │
+│  ├─ VM: myvm                               │
+│  └─ 관리 ID: 자동 생성 (수명 주기 연동)   │
+│     • 리소스와 1:1 관계                    │
+│     • 리소스 삭제 시 ID도 자동 삭제        │
+│     • Azure Portal에서 토글로 활성화       │
+└────────────────────────────────────────────┘
+
+사용 사례:
+• VM이 Key Vault에서 비밀 읽기
+• App Service가 SQL Database 접근
+• Function이 Storage Account 접근
+
+장점: 수명 주기 자동 관리, 설정 간단
+단점: 리소스당 하나만 할당 가능
+
+
+2. 사용자 할당 관리 ID (User-assigned)
+
+특징:
+┌────────────────────────────────────────────┐
+│  독립 Azure 리소스                         │
+│  ├─ 관리 ID: my-shared-identity            │
+│  │   • 독립적 수명 주기                     │
+│  │   • 여러 리소스에 공유 가능              │
+│  │                                          │
+│  ├─ VM1 → my-shared-identity 할당          │
+│  ├─ VM2 → my-shared-identity 할당          │
+│  └─ App Service → my-shared-identity 할당  │
+└────────────────────────────────────────────┘
+
+사용 사례:
+• 여러 VM이 동일한 Key Vault 접근 권한 필요
+• 개발/스테이징/프로덕션 환경에서 동일 ID 재사용
+
+장점: 권한 관리 중앙화, 재사용 가능
+단점: 수동 수명 주기 관리 필요
+```
+
+**관리 ID 작동 원리**
 
 ```
 시나리오: VM이 Key Vault에서 비밀 읽기
 
-1. VM에 System-Assigned Managed Identity 활성화
-2. Key Vault에서 해당 관리 ID에 "Secret Reader" 역할 부여
-3. VM 내 코드는 자격 증명 없이 Key Vault API 호출
-4. Azure가 자동으로 인증 토큰 발급 및 갱신
+1. VM에 시스템 할당 관리 ID 활성화
+   └→ Azure가 자동으로 Entra ID에 서비스 주체 생성
+
+2. Key Vault 권한 부여
+   └→ Key Vault Access Policy 또는 RBAC 설정
+      "VM의 관리 ID에 'Secrets Get' 권한 부여"
+
+3. VM 내부 코드 (자격 증명 불필요)
+   ┌─────────────────────────────────────────┐
+   │  Python 예시:                           │
+   │                                         │
+   │  from azure.identity import             │
+   │      ManagedIdentityCredential          │
+   │  from azure.keyvault.secrets import     │
+   │      SecretClient                       │
+   │                                         │
+   │  credential = ManagedIdentityCredential()│
+   │  client = SecretClient(                 │
+   │      vault_url="https://myvault...",    │
+   │      credential=credential              │
+   │  )                                      │
+   │                                         │
+   │  secret = client.get_secret("db-pwd")   │
+   └─────────────────────────────────────────┘
+
+4. Azure Instance Metadata Service (IMDS)
+   VM 내부 → HTTP GET http://169.254.169.254/...
+   → IMDS가 Entra ID에 토큰 요청
+   → Access Token 반환 (VM 관리 ID로 발급)
+
+5. Key Vault 접근
+   Authorization: Bearer <access_token>
+   → Key Vault가 토큰 검증
+   → 비밀 반환
 ```
 
-**장점**
-- 코드에 자격 증명을 하드코딩하지 않음
-- 자동 토큰 갱신 (개발자 관리 불필요)
-- Azure 리소스 간 보안 통신
+**Workload Identity Federation (고급)**
 
-#### 1.3.3 인증 프로토콜 및 토큰
-
-**Entra ID가 지원하는 주요 프로토콜**
-
-1. **OAuth 2.0**: 권한 부여 프레임워크
-2. **OpenID Connect (OIDC)**: OAuth 2.0 위에 구축된 인증 레이어
-3. **SAML 2.0**: 엔터프라이즈 SSO를 위한 XML 기반 프로토콜
-
-**OAuth 2.0 인증 흐름**
-
-가장 일반적인 **Authorization Code Flow** 예시:
+외부 워크로드(GitHub Actions, Kubernetes, Terraform Cloud)가 비밀 없이 Azure에 접근할 수 있게 합니다.
 
 ```
-[사용자가 웹 앱에 로그인하는 과정]
+예시: GitHub Actions에서 Azure 배포
 
-1. 사용자가 웹 앱에 접근
-   → 앱: "로그인이 필요합니다"
+기존 방식 (비권장):
+┌────────────────────────────────────┐
+│  GitHub Secrets에 저장:            │
+│  • AZURE_CLIENT_ID                 │
+│  • AZURE_CLIENT_SECRET ← 보안 위험 │
+│  • AZURE_TENANT_ID                 │
+└────────────────────────────────────┘
 
-2. 앱이 사용자를 Entra ID 로그인 페이지로 리디렉션
-   → URL: https://login.microsoftonline.com/contoso.onmicrosoft.com/oauth2/v2.0/authorize
-   → 파라미터: client_id, redirect_uri, scope
-
-3. 사용자가 자격 증명 입력 (+ MFA 가능)
-   → Entra ID가 사용자 인증
-
-4. Entra ID가 Authorization Code를 발급하여 앱의 Redirect URI로 리디렉션
-   → https://myapp.com/callback?code=ABC123
-
-5. 앱이 Authorization Code를 사용하여 Entra ID에 Access Token 요청
-   → POST /token (client_id, client_secret, code 포함)
-
-6. Entra ID가 Access Token 및 Refresh Token 발급
-   → Access Token: API 호출에 사용 (유효 기간: 1시간)
-   → Refresh Token: Access Token 갱신에 사용 (유효 기간: 90일)
-
-7. 앱이 Access Token을 사용하여 보호된 API 호출
-   → Authorization: Bearer <access_token>
+새 방식 (Workload Identity):
+┌────────────────────────────────────┐
+│  1. Entra ID에 App Registration    │
+│  2. Federated Credential 설정:     │
+│     issuer: https://token.actions  │
+│             .githubusercontent.com  │
+│     subject: repo:myorg/myrepo:... │
+│                                    │
+│  3. GitHub Actions:                │
+│     - OIDC 토큰 자동 발급          │
+│     - Entra ID가 신뢰하여 교환     │
+│     - Azure Access Token 발급      │
+│                                    │
+│  결과: Secret 관리 불필요          │
+└────────────────────────────────────┘
 ```
 
-**토큰 구조**
-
-Entra ID의 Access Token은 **JWT (JSON Web Token)** 형식입니다.
+**보안 이점**
 
 ```
-JWT 구조:
+관리 ID 적용 전:
+┌────────────────────────────────────┐
+│  • 코드에 자격 증명 하드코딩       │
+│  • Key Vault에 저장해도 접근 필요  │
+│  • 비밀번호 만료 시 수동 갱신      │
+│  • 자격 증명 유출 위험             │
+└────────────────────────────────────┘
 
-Header.Payload.Signature
-
-예시 (디코딩된 Payload):
-{
-  "aud": "https://graph.microsoft.com",
-  "iss": "https://sts.windows.net/tenant-id/",
-  "iat": 1609459200,
-  "exp": 1609462800,
-  "sub": "user-object-id",
-  "name": "John Doe",
-  "upn": "john@contoso.com",
-  "roles": ["User.Read", "Mail.Send"]
-}
+관리 ID 적용 후:
+┌────────────────────────────────────┐
+│  ✓ 자격 증명 저장/관리 불필요       │
+│  ✓ Azure가 자동으로 토큰 발급/갱신  │
+│  ✓ 토큰 유출 시에도 제한적 권한     │
+│  ✓ RBAC로 세밀한 권한 제어 가능     │
+└────────────────────────────────────┘
 ```
 
-**주요 클레임 (Claims)**
-- **aud (audience)**: 토큰의 대상 (어떤 API를 호출할 수 있는지)
-- **iss (issuer)**: 토큰 발급자 (Entra ID)
-- **exp (expiration)**: 토큰 만료 시간
-- **sub (subject)**: 사용자 고유 식별자
-- **roles**: 사용자에게 부여된 역할 또는 권한
+> 참고: [Microsoft Learn, "Azure 리소스에 대한 관리 ID"](https://learn.microsoft.com/ko-kr/entra/identity/managed-identities-azure-resources/overview)
 
-#### 1.3.4 조건부 액세스 (Conditional Access)
-
-**개념**
-
-조건부 액세스는 **IF-THEN-ELSE** 논리를 사용하여 접근을 제어하는 정책 엔진입니다.
-
-```
-정책 구조:
-
-IF [조건(Conditions)]
-THEN [액세스 제어(Access Controls)]
-```
-
-**조건 (Conditions)**
-
-1. **사용자/그룹**: 특정 사용자, 그룹, 역할
-2. **클라우드 앱**: 대상 애플리케이션 (예: Microsoft 365, Salesforce)
-3. **위치**: IP 주소 범위 또는 국가
-4. **디바이스 플랫폼**: Windows, iOS, Android 등
-5. **디바이스 상태**: 관리형 디바이스, 규정 준수 디바이스
-6. **로그인 위험**: AI 기반 위험 수준 (낮음, 중간, 높음)
-7. **사용자 위험**: 손상된 자격 증명 탐지
-
-**액세스 제어 (Access Controls)**
-
-**허용(Grant)**
-- MFA 요구
-- 규정 준수 디바이스 필요
-- Hybrid Azure AD Joined 디바이스 필요
-- 승인된 클라이언트 앱 필요
-- 앱 보호 정책 필요
-
-**차단(Block)**
-- 완전히 액세스 차단
-
-**세션 제어(Session)**
-- 제한된 세션 (예: 다운로드 금지, 복사/붙여넣기 금지)
-- 로그인 빈도 제한 (예: 8시간마다 재인증)
-
-**조건부 액세스 정책 예시**
-
-**예시 1: 관리자 보호**
-```
-정책 이름: "Require MFA for Admins"
-
-IF:
-  - 사용자가 "Global Administrator" 역할을 가짐
-  - 모든 클라우드 앱 접근 시
-
-THEN:
-  - MFA 요구
-  - 승인된 디바이스에서만 접근 허용
-```
-
-**예시 2: 외부 접근 제한**
-```
-정책 이름: "Block External Access to Finance App"
-
-IF:
-  - 클라우드 앱이 "SAP Finance"
-  - 위치가 "회사 IP 범위" 외부
-
-THEN:
-  - 액세스 차단
-```
-
-**예시 3: 위험 기반 접근 제어**
-```
-정책 이름: "High Risk Sign-in Protection"
-
-IF:
-  - 로그인 위험이 "높음"
-  - 모든 사용자
-
-THEN:
-  - MFA 요구
-  - 비밀번호 변경 강제
-```
-
-**평가 프로세스**
-
-조건부 액세스 정책은 **모든 정책이 평가**되며, 가장 제한적인 정책이 적용됩니다.
-
-```
-평가 순서:
-
-1. 사용자 로그인 시도
-2. 모든 조건부 액세스 정책 평가
-3. 조건 일치하는 정책 식별
-4. 모든 일치 정책의 제어 사항 결합
-5. 가장 제한적인 제어 적용 (예: 하나라도 "차단"이면 차단)
-```
-
-#### 1.3.5 MFA (Multi-Factor Authentication)
-
-**인증 요소 3가지 범주**
-
-1. **Something You Know (지식 요소)**: 비밀번호, PIN
-2. **Something You Have (소유 요소)**: 스마트폰, 하드웨어 토큰
-3. **Something You Are (생체 요소)**: 지문, 얼굴 인식
-
-**Entra ID MFA 방법**
-
-- **Microsoft Authenticator 앱** (푸시 알림 또는 TOTP 코드)
-- **SMS 문자 메시지** (6자리 코드)
-- **음성 통화** (자동 음성 안내)
-- **OATH 하드웨어 토큰** (물리적 토큰 디바이스)
-- **FIDO2 보안 키** (USB 또는 NFC 하드웨어 키)
-
-**MFA 활성화 방법**
-
-1. **사용자별 MFA**: 개별 사용자에게 수동으로 활성화
-2. **조건부 액세스 정책**: 특정 조건에서 MFA 요구 (권장)
-3. **보안 기본값(Security Defaults)**: 모든 사용자에게 자동으로 MFA 활성화 (신규 테넌트 기본값)
-
-**MFA 흐름 예시**
-
-```
-1. 사용자가 비밀번호 입력
-2. Entra ID가 조건부 액세스 정책 평가 → MFA 필요 판단
-3. 사용자에게 MFA 프롬프트 표시
-   → "Microsoft Authenticator 앱에서 알림을 승인하세요"
-4. 사용자가 스마트폰에서 "승인" 버튼 클릭
-5. Entra ID가 인증 완료 후 토큰 발급
-```
-
-#### 1.3.6 Single Sign-On (SSO)
-
-**SSO의 작동 원리**
-
-사용자가 한 번 로그인하면, Entra ID가 **세션 토큰**을 발급하여 브라우저 쿠키에 저장합니다. 이후 다른 앱 접근 시, Entra ID가 세션을 확인하여 재로그인 없이 액세스를 허용합니다.
-
-```
-SSO 시나리오:
-
-1. 사용자가 Outlook.com에 로그인
-   → Entra ID 세션 생성
-
-2. 동일 브라우저에서 SharePoint 접근
-   → Entra ID가 기존 세션 확인
-   → 재로그인 없이 자동 로그인
-
-3. Power BI 접근
-   → 동일 세션 사용
-   → 즉시 접근
-```
-
-**SSO 지원 프로토콜**
-
-1. **SAML 2.0**: 엔터프라이즈 SaaS 앱 (Salesforce, Workday 등)
-2. **OpenID Connect**: 최신 웹/모바일 앱
-3. **Password-based SSO**: SAML/OIDC 미지원 레거시 앱
-
-**SAML SSO 흐름**
+<br>
 
 ```
 1. 사용자가 Salesforce 접근
