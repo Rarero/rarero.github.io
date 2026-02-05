@@ -16,8 +16,15 @@ layout: home
   <article class="c-post">
     <div class="c-post-content">
       <h2 class="c-post-title">
-        <a href="{{post.url | prepend: site.baseurl}}">{{post.title}}</a>
+        <a href="{{post.url | prepend: site.baseurl}}">
+          <span class="c-post-category">[{{ post.categories | first }}]</span>
+          {{post.title}}
+          <span class="c-post-date">({{ post.date | date: "%Y.%m.%d" }})</span>
+        </a>
       </h2>
+      <p class="c-post-excerpt">
+        {{ post.excerpt | strip_html | truncatewords: 30 }}
+      </p>
     </div>
   </article> <!-- /.c-post -->
   {% endfor %}
