@@ -19,7 +19,9 @@ layout: home
         <a href="{{post.url | prepend: site.baseurl}}">
           <span class="c-post-category">[{{ post.categories | first }}]</span>
           {{post.title}}
+          {% unless post.categories contains 'k8s' %}
           <span class="c-post-date">({{ post.date | date: "%Y.%m.%d" }})</span>
+          {% endunless %}
         </a>
       </h2>
       <p class="c-post-excerpt">
