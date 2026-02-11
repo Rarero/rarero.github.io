@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "[aks] Azure Kubernetes Service 학습 로드맵 ②"
-date: 2026-01-03 10:00:00 +0900
+date: 2025-01-03 10:00:00 +0900
 tags: [AKS, Azure, Kubernetes, Managed Service, Azure Monitor, AGIC]
 categories: k8s
 ---

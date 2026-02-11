@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "[k8s-phase0] Week 1. Docker & Container 기초 ⓪-①"
-date: 2026-01-04 09:00:00 +0900
+date: 2025-01-04 09:00:00 +0900
 tags: [Docker, Container, Image, Dockerfile, Volume, Network]
 categories: k8s
 ---

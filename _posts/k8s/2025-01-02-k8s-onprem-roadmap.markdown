@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "[k8s-onprem] On-Premise Kubernetes 학습 로드맵 ①"
-date: 2026-01-02 09:00:00 +0900
+date: 2025-01-02 09:00:00 +0900
 tags: [Kubernetes, On-Premise, Container, Docker, Kubeadm, CNI, Storage]
 categories: k8s
 ---

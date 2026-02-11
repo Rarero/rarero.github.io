@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "[k8s-phase0] Week 2. Container 격리 기술 심화 ⓪-②"
-date: 2026-01-05 09:00:00 +0900
+date: 2025-01-05 09:00:00 +0900
 tags: [Container, Namespace, Cgroups, containerd, CRI-O, OCI, Runtime]
 categories: k8s
 ---
