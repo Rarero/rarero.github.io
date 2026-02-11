@@ -815,7 +815,7 @@ docker run --rm alpine:3.19 echo "Image restored successfully!"
 
 ## 다음 주 예고
 
-[Week 2]({% post_url k8s/2025-01-07-k8s-week02-linux-container-isolation %})에서는 Docker 컨테이너가 실제로 어떻게 프로세스를 격리하는지 **Linux 커널 레벨**에서 심층 분석합니다. Namespace, Cgroups, OverlayFS를 직접 다뤄보고, containerd와 runc를 체험합니다.
+[Week 2]({% post_url k8s/2025-01-03-k8s-week02-linux-container-isolation %})에서는 Docker 컨테이너가 실제로 어떻게 프로세스를 격리하는지 **Linux 커널 레벨**에서 심층 분석합니다. Namespace, Cgroups, OverlayFS를 직접 다뤄보고, containerd와 runc를 체험합니다.
 
 <br>
 

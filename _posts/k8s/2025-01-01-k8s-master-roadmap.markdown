@@ -155,7 +155,7 @@ Service Mesh                         ───▶  Appendix
 - docker inspect로 컨테이너 내부 구조 분석
 - docker save/load로 이미지 파일 전달 실습
 
-[Week 1 상세 학습 보기]({% post_url k8s/2025-01-06-k8s-week01-container-docker %})
+[Week 1 상세 학습 보기]({% post_url k8s/2025-01-02-k8s-week01-container-docker %})
 
 <br>
 
@@ -208,7 +208,7 @@ Docker 컨테이너가 실제로 어떻게 프로세스를 격리하고 리소�
 - Docker 컨테이너의 Namespace/Cgroups 경로 직접 확인 (/proc/PID/ns, /sys/fs/cgroup)
 - runc로 Docker 없이 컨테이너 실행
 
-[Week 2 상세 학습 보기]({% post_url k8s/2025-01-07-k8s-week02-linux-container-isolation %})
+[Week 2 상세 학습 보기]({% post_url k8s/2025-01-03-k8s-week02-linux-container-isolation %})
 
 <br>
 
@@ -1059,8 +1059,8 @@ CKA 시험 합격을 위한 최종 점검과 실전 모의고사를 진행합니
 
 | Week | 주제 | 핵심 학습 내용 | 핵심 실습 | 포스트 |
 |------|------|--------------|----------|--------|
-| 1 | Container와 Docker의 이해 | Bare Metal→VM→Container 진화, Docker 설치(Desktop/Engine), Docker 아키텍처(Client→Daemon→Registry), 컨테이너 라이프사이클(run/stop/rm/logs/exec), 이미지vs컨테이너, docker run 내부 동작, save/load 이식성 | Docker 설치, Nginx 컨테이너 포트 매핑, inspect 분석, save/load 실습 | [Week 1]({% post_url k8s/2025-01-06-k8s-week01-container-docker %}) |
-| 2 | Container 격리 기술 - Linux Kernel 심화 | Namespace 7종(PID/NET/MNT/UTS/IPC/USER/CGROUP)+실습, Cgroups v1/v2(CPU/Memory 제한)+실습, OverlayFS 레이어 구조, Container Runtime 계층(Docker→containerd→runc), OCI 표준, containerd vs CRI-O | unshare로 Namespace 생성, Cgroups로 리소스 제한, runc 직접 실행 | [Week 2]({% post_url k8s/2025-01-07-k8s-week02-linux-container-isolation %}) |
+| 1 | Container와 Docker의 이해 | Bare Metal→VM→Container 진화, Docker 설치(Desktop/Engine), Docker 아키텍처(Client→Daemon→Registry), 컨테이너 라이프사이클(run/stop/rm/logs/exec), 이미지vs컨테이너, docker run 내부 동작, save/load 이식성 | Docker 설치, Nginx 컨테이너 포트 매핑, inspect 분석, save/load 실습 | [Week 1]({% post_url k8s/2025-01-02-k8s-week01-container-docker %}) |
+| 2 | Container 격리 기술 - Linux Kernel 심화 | Namespace 7종(PID/NET/MNT/UTS/IPC/USER/CGROUP)+실습, Cgroups v1/v2(CPU/Memory 제한)+실습, OverlayFS 레이어 구조, Container Runtime 계층(Docker→containerd→runc), OCI 표준, containerd vs CRI-O | unshare로 Namespace 생성, Cgroups로 리소스 제한, runc 직접 실행 | [Week 2]({% post_url k8s/2025-01-03-k8s-week02-linux-container-isolation %}) |
 | 3 | 이미지 빌드 & 데이터 관리 | Dockerfile 전체 명령어, CMD vs ENTRYPOINT, 레이어 캐싱 최적화, Multi-stage Build, Alpine/Distroless 경량화, Volume/Bind Mount/tmpfs, 3rd Party 이미지, Registry(DockerHub/ACR/GHCR), Tagging 전략 | Multi-stage Build로 90% 크기 감소, Volume 영속화, ACR 푸시 | 작성 예정 |
 | 4 | Compose, 네트워크, 보안 & K8s 입문 | Docker 네트워킹(bridge/host/overlay), Compose(services/volumes/networks/healthcheck), 보안(Trivy/rootless/read-only), K8s 아키텍처(Control Plane+Node 컴포넌트), Desired State, K8s 대안 비교 | Compose 3-tier 앱, Trivy 스캔, K8s 컴포넌트 분석 | 작성 예정 |
 
@@ -1240,8 +1240,8 @@ Week 4: Compose/K8s   →   Week 8: 네트워킹      →   Week 15: 보안     
 
 준비되셨나요? 아래 링크에서 학습을 시작하세요:
 
-1. [Week 1: Container와 Docker의 이해]({% post_url k8s/2025-01-06-k8s-week01-container-docker %}) - **여기서 시작**
-2. [Week 2: Linux 격리 기술 심화]({% post_url k8s/2025-01-07-k8s-week02-linux-container-isolation %})
+1. [Week 1: Container와 Docker의 이해]({% post_url k8s/2025-01-02-k8s-week01-container-docker %}) - **여기서 시작**
+2. [Week 2: Linux 격리 기술 심화]({% post_url k8s/2025-01-03-k8s-week02-linux-container-isolation %})
 3. Week 3~22: 작성 예정
 
 <br>
