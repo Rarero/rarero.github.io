@@ -2,11 +2,11 @@
 layout: post
 title: "[k8s] Kubernetes 학습 전체 로드맵"
 date: 2025-01-01 08:00:00 +0900
-tags: [Docker, Kubernetes, Roadmap, Learning Path, On-Premise, AKS, CKA, Container, Linux]
+tags: [Docker, Kubernetes, Roadmap, Learning Path, On-Premise, AKS, EKS, GKE, CKA, Container, Linux, Multi-Cloud]
 categories: k8s
 ---
 
-이 문서는 **Kubernetes 전문가**가 되기 위한 전체 학습 로드맵을 제시합니다. Linux 컨테이너 격리 기술의 동작 원리부터 Docker 실전 활용, On-Premise 클러스터 구축, Azure Kubernetes Service(AKS) 운영, 그리고 CKA 자격증 취득까지 체계적인 학습 경로를 안내합니다.
+이 문서는 **Kubernetes 전문가**가 되기 위한 전체 학습 로드맵을 제시합니다. Linux 컨테이너 격리 기술의 동작 원리부터 Docker 실전 활용, On-Premise 클러스터 구축, Azure Kubernetes Service(AKS) 운영, 타 클라우드 Kubernetes(EKS, GKE) 비교, 그리고 CKA 자격증 취득까지 체계적인 학습 경로를 안내합니다.
 
 > **참고**: 이 로드맵은 [roadmap.sh/docker](https://roadmap.sh/docker) (57개 항목)와 [roadmap.sh/kubernetes](https://roadmap.sh/kubernetes) (67개 항목)의 학습 체계를 참고하여 재구성하였습니다.
 
@@ -16,40 +16,46 @@ categories: k8s
 
 **Phase 0: Docker & Container 기초 (4주)**
 - Week 1: Container와 Docker의 이해 (Container 등장 배경, Docker 설치, 아키텍처, 기본 명령어, 라이프사이클)
-- Week 2: Container 핵심 격리 기술 - Linux Kernel 심화 (Namespace 7종, Cgroups v1/v2, OverlayFS, Container Runtime 계층, OCI 표준)
+- Week 2: Container 핵심 격리 기술 - Linux Kernel 심화 (Linux Namespace 7종: PID/Network/Mount/UTS/IPC/User/Cgroup, Cgroups v1/v2, OverlayFS, Container Runtime 계층, OCI 표준)
 - Week 3: Docker 이미지 빌드, 데이터 관리 & 레지스트리 (Dockerfile, 레이어 캐싱, Multi-stage Build, Volume/Bind Mount, Registry, Tagging)
-- Week 4: Docker Compose, 네트워크, 보안 & Kubernetes 입문 (Compose, bridge/host/overlay, Trivy, K8s 아키텍처 개요)
+- Week 4: Docker Compose, 네트워크, 보안 & Kubernetes 입문 (Compose, bridge/host/overlay, 이미지 취약점 스캔: Trivy/Docker Scout/Snyk, K8s 아키텍처 개요)
 
-**Phase 1: On-Premise Kubernetes (7주)**
-- Week 5: 클러스터 구축 & kubectl 마스터 (Kubeadm 3-Node 구축, CNI 설치, Minikube/Kind, kubectl 상세, kubeconfig)
-- Week 6: Pod & Workload 리소스 심화 (Pod 라이프사이클, Probe, 멀티컨테이너 패턴, Deployment, StatefulSet, DaemonSet, Job/CronJob)
-- Week 7: 구성 관리 & 리소스 제어 (ConfigMap, Secret, Resource Requests/Limits, QoS 클래스, LimitRange, ResourceQuota)
-- Week 8: 서비스 & 네트워킹 심화 (Service 5종, Ingress Controller, TLS, Pod-to-Pod 통신, CNI 비교, kube-proxy, CoreDNS, NetworkPolicy)
-- Week 9: 스토리지, 볼륨 & 상태 관리 (emptyDir, hostPath, PV/PVC, StorageClass, CSI Driver, 스냅샷, StatefulSet+PVC)
-- Week 10: 스케줄링 & 오토스케일링 (kube-scheduler, Taints/Tolerations, Affinity, Topology Spread, PDB, HPA, VPA, Cluster Autoscaler)
-- Week 11: Helm, 배포 전략 & GitOps 기초 (Helm Chart 구조/템플릿, Rolling Update, Canary, Blue-Green, ArgoCD, Flux)
+**Phase 1: On-Premise Kubernetes (8주)**
+- Week 5: Kubernetes 아키텍처 & 핵심 컴포넌트의 이해 (Kubernetes 등장 배경 & 역사, Control Plane: kube-apiserver, etcd, kube-scheduler, kube-controller-manager / Node: kubelet, kube-proxy, Container Runtime / 애드온: CoreDNS, Metrics Server / 오브젝트 모델)
+- Week 6: 클러스터 구축 & kubectl 마스터 (Kubeadm 3-Node 구축, CNI 설치, Minikube/Kind, kubectl 상세, kubeconfig)
+- Week 7: Pod & Workload 리소스 심화 (Pod 라이프사이클, Probe, 멀티컨테이너 패턴, Deployment, StatefulSet, DaemonSet, Job/CronJob)
+- Week 8: 구성 관리 & 리소스 제어 (ConfigMap, Secret, Resource Requests/Limits, QoS 클래스, LimitRange, ResourceQuota)
+- Week 9: 서비스 & 네트워킹 심화 (Service 5종, Ingress Controller, TLS, Pod-to-Pod 통신, CNI 비교, kube-proxy, CoreDNS, NetworkPolicy)
+- Week 10: 스토리지, 볼륨 & 상태 관리 (emptyDir, hostPath, PV/PVC, StorageClass, CSI Driver, 스냅샷, StatefulSet+PVC)
+- Week 11: 스케줄링, 오토스케일링 & 노드 운영 관리 (kube-scheduler, Taints/Tolerations, Affinity, Topology Spread, PDB, HPA, VPA, Cluster Autoscaler, cordon/drain/uncordon)
+- Week 12: Helm, 배포 전략 & GitOps 기초 (Helm Chart 구조/템플릿, Rolling Update, Canary, Blue-Green, ArgoCD, Flux)
 
-**Phase 2: Azure Kubernetes Service (5주)**
-- Week 12: AKS 기초 & Azure 네트워킹 통합 (클러스터 생성, 노드 풀, Azure CNI/Kubenet/CNI Overlay, AGIC, Private AKS)
-- Week 13: 스토리지, 스케일링 & 비용 최적화 (Azure Disk/File CSI, Key Vault CSI, KEDA, Spot VM, Cost Management)
-- Week 14: 모니터링 & 로깅 (Container Insights, KQL, Managed Prometheus, Grafana, Alert Rules, Application Insights, OpenTelemetry)
-- Week 15: 보안 강화 (Workload Identity, Azure RBAC for AKS, Defender for Containers, Azure Policy, Pod Security Standards)
-- Week 16: CI/CD & GitOps (Azure DevOps Pipeline, GitHub Actions, ACR Build Tasks, Helm/Kustomize CD, Flux/ArgoCD, 시크릿 관리)
+**Phase 2: Azure Kubernetes Service (6주)**
+- Week 13: AKS 기초 & Azure 네트워킹 통합 (클러스터 생성, 노드 풀, Azure CNI/Kubenet/CNI Overlay, AGIC, Private AKS, 네트워크 정책 엔진: Azure NPM/Calico/Cilium)
+- Week 14: 스토리지, 스케일링 & 비용 최적화 (Azure Disk/File CSI, Key Vault CSI, KEDA(이벤트 기반 오토스케일링), NAP(자동 노드 프로비저닝), Spot VM, Kubecost(비용 분석), AKS Automatic)
+- Week 15: 모니터링 & 로깅 (Container Insights, KQL, Managed Prometheus, Grafana, Alert Rules, Application Insights, OpenTelemetry)
+- Week 16: 보안 강화 (Workload Identity, Azure RBAC for AKS, Defender for Containers, Azure Policy, Pod Security Standards, Image Cleaner)
+- Week 17: CI/CD & GitOps (Azure DevOps Pipeline, GitHub Actions, ACR Build Tasks, Helm/Kustomize CD, Flux/ArgoCD, 시크릿 관리)
+- Week 18: Azure Kubernetes 에코시스템 서비스 (Fleet Manager, Kubernetes Center, Operator Nexus, Azure Arc-enabled K8s)
 
-**Phase 3: CKA 시험 준비 (6주)**
-- Week 17: 클러스터 유지보수 & etcd (etcd 백업/복구, 클러스터 업그레이드, 인증서 갱신, Static Pod)
-- Week 18: 보안 & RBAC (Custom Role/ClusterRole, ServiceAccount, NetworkPolicy 멀티 네임스페이스 격리, kubeconfig 인증)
-- Week 19: 장애 대응 (kubelet 복구, OOMKill 분석, Node NotReady, CrashLoopBackOff, kubectl debug/exec/logs)
-- Week 20: 로그 수집 아키텍처 (Fluent-bit DaemonSet, Loki, 중앙 집중 로깅 파이프라인)
-- Week 21: Prometheus & Grafana (Prometheus Operator, PromQL, Recording/Alerting Rules, 대시보드 구성)
-- Week 22: CKA 실전 시뮬레이션 (killer.sh 모의고사, 시간 관리, 빈출 유형, 약점 보완)
+**Phase 3: 타 클라우드 Kubernetes 맛보기 (2주)**
+- Week 19: Amazon EKS 핵심 & AKS 비교 (EKS 아키텍처, eksctl, IAM/IRSA, VPC CNI, Managed Node Groups/Fargate, ALB Ingress, EBS/EFS CSI)
+- Week 20: Google GKE 핵심 & 멀티 클라우드 전략 (GKE 아키텍처, Autopilot vs Standard, VPC-native, Workload Identity Federation, Gateway API, 3대 클라우드 K8s 종합 비교)
+
+**Phase 4: CKA 시험 준비 (6주)**
+- Week 21: 클러스터 유지보수 & etcd (etcd 백업/복구, 클러스터 업그레이드, 인증서 갱신, Static Pod)
+- Week 22: 보안 & RBAC (Custom Role/ClusterRole, ServiceAccount, NetworkPolicy 멀티 네임스페이스 격리, kubeconfig 인증)
+- Week 23: 장애 대응 (kubelet 복구, OOMKill 분석, Node NotReady, CrashLoopBackOff, kubectl debug/exec/logs)
+- Week 24: 로그 수집 아키텍처 (Fluent-bit DaemonSet, Loki, 중앙 집중 로깅 파이프라인)
+- Week 25: Prometheus & Grafana (Prometheus Operator, PromQL, Recording/Alerting Rules, 대시보드 구성)
+- Week 26: CKA 실전 시뮬레이션 (killer.sh 모의고사, 시간 관리, 빈출 유형, 약점 보완)
 
 **Appendix: 고급 주제 (선택)**
 - Custom Resource Definitions (CRDs) & Operators
 - Service Mesh (Istio, Linkerd)
 - Multi-cluster & Federation
 
-총 학습 기간: **약 22주 (5.5개월)** + α
+총 학습 기간: **약 26주 (6.5개월)** + α
 
 <br>
 
@@ -75,18 +81,22 @@ Docker & OCI 표준                    ───▶  Phase 0 Week 2
 
 roadmap.sh/kubernetes (67개 항목)           이 로드맵 커버리지
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━          ━━━━━━━━━━━━━━━━━━
-K8s 소개 & 설정                      ───▶  Phase 0 Week 4
-클러스터 구축 & 로컬 환경            ───▶  Phase 1 Week 5
-Workload (Pod, Deployment 등)        ───▶  Phase 1 Week 6
-구성 관리 (ConfigMap, Secret)        ───▶  Phase 1 Week 7
-리소스 관리 (Requests, Quotas)       ───▶  Phase 1 Week 7
-서비스 & 네트워킹                    ───▶  Phase 1 Week 8
-보안 (RBAC, NetworkPolicy, PodSec)   ───▶  Phase 1 Week 8 / Phase 2 Week 15
-모니터링 (Logs, Metrics, Traces)     ───▶  Phase 2 Week 14
-오토스케일링 (HPA, VPA, Cluster)     ───▶  Phase 1 Week 10
-스케줄링 (Taints, Topology, 우선순위)───▶  Phase 1 Week 10
-스토리지 (CSI Driver, Stateful)      ───▶  Phase 1 Week 9
-배포 패턴 (Helm, Canary, GitOps)     ───▶  Phase 1 Week 11
+K8s 소개 & 설정                      ───▶  Phase 0 Week 4 / Phase 1 Week 5 ★
+K8s 등장 배경 & 역사               ───▶  Phase 1 Week 5 ★ 신규
+K8s 핵심 컴포넌트 심화               ───▶  Phase 1 Week 5 ★ 신규
+클러스터 구축 & 로컬 환경            ───▶  Phase 1 Week 6
+Workload (Pod, Deployment 등)        ───▶  Phase 1 Week 7
+구성 관리 (ConfigMap, Secret)        ───▶  Phase 1 Week 8
+리소스 관리 (Requests, Quotas)       ───▶  Phase 1 Week 8
+서비스 & 네트워킹                    ───▶  Phase 1 Week 9
+보안 (RBAC, NetworkPolicy, PodSec)   ───▶  Phase 1 Week 9 / Phase 2 Week 16
+모니터링 (Logs, Metrics, Traces)     ───▶  Phase 2 Week 15
+오토스케일링 (HPA, VPA, Cluster)     ───▶  Phase 1 Week 11
+스케줄링 (Taints, Topology, 우선순위)───▶  Phase 1 Week 11
+스토리지 (CSI Driver, Stateful)      ───▶  Phase 1 Week 10
+배포 패턴 (Helm, Canary, GitOps)     ───▶  Phase 1 Week 12
+멀티 클라우드 K8s (EKS, GKE)         ───▶  Phase 3 Week 19-20 ★ 신규
+Azure K8s 에코시스템              ───▶  Phase 2 Week 18 ★ 신규
 CRD & Operators                      ───▶  Appendix
 Service Mesh                         ───▶  Appendix
 ```
@@ -99,29 +109,31 @@ Service Mesh                         ───▶  Appendix
 
 1. **Linux 컨테이너 격리 기술**을 커널 레벨에서 이해하고 직접 시연할 수 있는 능력
 2. Docker 컨테이너를 자유자재로 빌드, 배포, 관리할 수 있는 능력
-3. Kubernetes 클러스터를 처음부터 끝까지 구축하고 운영할 수 있는 능력
+3. Kubernetes 핵심 컴포넌트의 동작 원리를 이해하고 클러스터를 구축·운영할 수 있는 능력
 4. 프로덕션 환경의 복잡한 장애를 신속하게 진단하고 해결하는 능력
-5. CKA (Certified Kubernetes Administrator) 자격증 취득
-6. Azure 환경에서 엔터프라이즈급 Kubernetes 인프라 설계
+5. Azure 환경에서 엔터프라이즈급 Kubernetes 인프라 설계
+6. 멀티 클라우드 Kubernetes(에서 AKS, EKS, GKE) 차이점을 이해하고 비교할 수 있는 능력
+7. CKA (Certified Kubernetes Administrator) 자격증 취득
 
 ### 핵심 역량 매트릭스
 
-| 역량 | Phase 0 | On-Premise | AKS | CKA | Appendix |
-|------|---------|-----------|-----|-----|----------|
-| Linux 격리 기술 | **5** | 2 | 1 | 2 | 2 |
-| Docker & 컨테이너 | **5** | 3 | 2 | 2 | 2 |
-| K8s 아키텍처 | 3 | **5** | 3 | 4 | 4 |
-| 클러스터 구축 | 2 | **5** | 3 | 4 | 3 |
-| 네트워킹 | 2 | **5** | 4 | 3 | 4 |
-| 스토리지 | 2 | 4 | **5** | 3 | 2 |
-| 구성 관리 | 1 | 4 | 4 | 3 | 2 |
-| 오토스케일링 | 1 | 4 | **5** | 3 | 2 |
-| 모니터링 & 관측성 | 1 | 3 | **5** | 4 | 3 |
-| 장애 대응 | 1 | 4 | 3 | **5** | 3 |
-| 보안 | 2 | 3 | **5** | 4 | 3 |
-| CI/CD & GitOps | 2 | 2 | **5** | 1 | 3 |
-| Helm & 배포 패턴 | 1 | 4 | 4 | 3 | 4 |
-| CRD/Operator/Mesh | - | 1 | 2 | 1 | **5** |
+| 역량 | Phase 0 | On-Premise | AKS | 타 클라우드 | CKA | Appendix |
+|------|---------|-----------|-----|---------|-----|----------|
+| Linux 격리 기술 | **5** | 2 | 1 | 1 | 2 | 2 |
+| Docker & 컨테이너 | **5** | 3 | 2 | 2 | 2 | 2 |
+| K8s 아키텍처 & 컴포넌트 | 3 | **5** | 3 | 3 | 4 | 4 |
+| 클러스터 구축 | 2 | **5** | 3 | 3 | 4 | 3 |
+| 네트워킹 | 2 | **5** | 4 | 3 | 3 | 4 |
+| 스토리지 | 2 | 4 | **5** | 2 | 3 | 2 |
+| 구성 관리 | 1 | 4 | 4 | 2 | 3 | 2 |
+| 오토스케일링 | 1 | 4 | **5** | 3 | 3 | 2 |
+| 모니터링 & 관측성 | 1 | 3 | **5** | 2 | 4 | 3 |
+| 장애 대응 | 1 | 4 | 3 | 2 | **5** | 3 |
+| 보안 | 2 | 3 | **5** | 3 | 4 | 3 |
+| CI/CD & GitOps | 2 | 2 | **5** | 2 | 1 | 3 |
+| Helm & 배포 패턴 | 1 | 4 | 4 | 2 | 3 | 4 |
+| 멀티 클라우드 K8s | - | - | 3 | **5** | - | 3 |
+| CRD/Operator/Mesh | - | 1 | 2 | 1 | 1 | **5** |
 
 (1~5: 해당 Phase에서의 학습 깊이. **5**가 가장 깊음)
 
@@ -288,13 +300,12 @@ Docker 컨테이너가 실제로 어떻게 프로세스를 격리하고 리소�
   - 컨테이너 내부 디버깅 (docker exec -it, docker logs -f, docker cp)
   - Docker 기반 CI 파이프라인 기초 (빌드 → 테스트 → 푸시)
   - 개발(dev) / 스테이징(staging) / 프로덕션(prod) 이미지 관리 전략
-- **Kubernetes 아키텍처 입문**:
+- **Kubernetes 아키텍처 입문** (Week 5에서 심화):
   - Docker만으로 부족한 이유 (멀티 호스트 관리, 자가 복구, 선언적 관리, 서비스 디스커버리)
-  - Control Plane 컴포넌트: kube-apiserver (API 게이트웨이), etcd (상태 저장소), kube-scheduler (Pod 배치), kube-controller-manager (desired state 유지)
-  - Node 컴포넌트: kubelet (Pod 관리), kube-proxy (네트워크 라우팅), container runtime (containerd)
+  - Control Plane 컴포넌트 개요: kube-apiserver, etcd, kube-scheduler, kube-controller-manager
+  - Node 컴포넌트 개요: kubelet, kube-proxy, container runtime (containerd)
   - 선언적(Declarative) vs 명령적(Imperative) 관리 방식
   - Desired State와 Reconciliation Loop 개념
-  - Kubernetes 대안 비교: Docker Swarm, HashiCorp Nomad, Apache Mesos
 
 **핵심 실습:**
 - Docker Compose로 웹앱 + DB + Redis 3-tier 아키텍처 실행
@@ -310,13 +321,70 @@ Docker 컨테이너가 실제로 어떻게 프로세스를 격리하고 리소�
 
 <br>
 
-### Phase 1: On-Premise Kubernetes (7주)
+### Phase 1: On-Premise Kubernetes (8주)
 
 대상: Docker를 이해한 사람, 클라우드 없이 Kubernetes를 직접 구축하고 운영하고 싶은 사람
 
 학습 내용:
 
-**Week 5 - 클러스터 구축 & kubectl 마스터**
+**Week 5 - Kubernetes 아키텍처 & 핵심 컴포넌트의 이해**
+
+Kubernetes 클러스터를 구성하는 모든 핵심 컴포넌트의 역할과 동작 원리를 깊이 이해합니다. Week 1에서 Docker와 Container를 이해했듯이, 클러스터를 직접 구축하기 전에 K8s가 어떻게 동작하는지 전체 그림을 먼저 파악합니다.
+
+- **Kubernetes 등장 배경 & 역사**:
+  - Google의 내부 컨테이너 오케스트레이션 시스템: **Borg (2003~)** → 10년간 수십만 서버에서 수백만 컨테이너 운영, Gmail/YouTube/Search 등 핵심 서비스 구동
+  - Borg의 진화: **Omega (2013)** → 공유 상태(Shared State) 기반 스케줄링으로 확장성 개선
+  - **2014년 6월**: Google이 Borg/Omega의 10년 운영 교훈을 바탕으로 Kubernetes를 오픈소스로 공개 (co-founders: Joe Beda, Brendan Burns, Craig McLuckie)
+  - 이름의 의미: 그리스어 **κυβερνήτης (Kubernetes)** = "조타수(helmsman)" → 컨테이너 함선을 이끄는 조타수 역할, 약어 K8s (K + 8글자 + s)
+  - **2015년 7월**: Kubernetes v1.0 릴리스, 동시에 **CNCF (Cloud Native Computing Foundation)** 설립 → Google이 K8s를 CNCF에 기증하여 벤더 중립적 거버넌스 확립
+  - **2017~2018년**: 컨테이너 오케스트레이션 전쟁 종결 → Docker Swarm, Apache Mesos 대비 압도적 채택률, AWS(EKS)/Azure(AKS)/GCP(GKE) 3대 클라우드 모두 관리형 K8s 서비스 출시
+  - **현재**: CNCF 중심의 거대한 **클라우드 네이티브 생태계** (200+ graduated/incubating 프로젝트), De facto 컨테이너 오케스트레이션 표준, Fortune 100 기업의 90% 이상이 K8s 사용
+  - Borg → Kubernetes로 이어진 핵심 설계 원칙: Pod 개념(Borg의 Alloc), Label/Selector(Borg의 Job Constraints), Desired State 선언적 관리, IP-per-Pod 네트워킹 모델
+- **왜 Kubernetes인가 (동기 심화)**:
+  - Docker만으로 부족한 이유: 멀티 호스트 오케스트레이션, 자가 복구, 선언적 관리, 서비스 디스커버리
+  - 컨테이너 오케스트레이션의 필요성 (수백~수천 컨테이너 관리)
+  - Kubernetes의 핵심 설계 철학: Desired State, Reconciliation Loop, 선언적 구성
+  - Kubernetes 대안 비교: Docker Swarm, HashiCorp Nomad, Apache Mesos
+- **Control Plane 핵심 컴포넌트 심화**:
+  - **kube-apiserver**: 클러스터의 유일한 진입점 (API 게이트웨이), RESTful API 제공, 인증(Authentication) → 인가(Authorization) → Admission Control 파이프라인, 모든 컴포넌트가 apiserver를 통해 통신
+  - **etcd**: 분산 키-값 저장소, Raft 합의 알고리즘으로 데이터 일관성 보장, 모든 클러스터 상태/설정 저장 (/registry 구조), etcd의 성능이 클러스터 전체 성능에 미치는 영향, 단일 장애점(SPOF) 방지를 위한 HA 구성
+  - **kube-scheduler**: Pod를 어떤 Node에 배치할지 결정, Filtering(후보 선별) → Scoring(최적 선택) 2단계 파이프라인, Scheduling Queue와 Cache 구조, 스케줄링 실패 시 동작 (Pending 상태)
+  - **kube-controller-manager**: Desired State를 유지하는 컨트롤러 모음, 주요 컨트롤러: Node Controller(노드 상태 감시), Replication Controller(Pod 복제본 유지), Endpoint Controller(Service-Pod 매핑), ServiceAccount Controller, Namespace Controller, Reconciliation Loop의 실제 동작 과정
+  - **cloud-controller-manager**: 클라우드 프로바이더 연동 컨트롤러 (LoadBalancer, Node, Route), On-Premise vs 클라우드 환경에서의 차이
+- **Node 핵심 컴포넌트 심화**:
+  - **kubelet**: 각 노드의 에이전트, Pod 스펙(PodSpec)을 받아 컨테이너 생성/관리, CRI(Container Runtime Interface)를 통한 런타임 호출, 노드 상태 보고 (NodeStatus), Static Pod 관리 (/etc/kubernetes/manifests)
+  - **kube-proxy**: Service 네트워크를 구현하는 네트워크 프록시, iptables 모드: 룰 기반 패킷 포워딩 (기본), IPVS 모드: L4 커널 로드밸런서 (대규모 Service에 적합), ClusterIP/NodePort 트래픽이 실제로 Pod에 도달하는 경로, Service → Endpoint → Pod 매핑 과정
+  - **Container Runtime**: containerd (Docker 출신, 범용), CRI-O (K8s 전용, Red Hat 주도), CRI 인터페이스를 통한 표준화
+- **핵심 애드온 컴포넌트**:
+  - **CoreDNS**: 클러스터 내부 DNS 서버, Service Discovery (<service>.<namespace>.svc.cluster.local), Pod DNS, Corefile 설정
+  - **Metrics Server**: 리소스 메트릭 수집 (CPU/Memory), HPA/VPA의 전제 조건, kubectl top node/pod 명령어
+  - **CNI (Container Network Interface)**: Pod 네트워크 구현, 주요 플러그인 소개 (Calico, Flannel, Cilium)
+- **Kubernetes 오브젝트 모델 이해**:
+  - Desired State vs Current State 개념
+  - spec (원하는 상태) vs status (현재 상태) 필드
+  - Label & Selector: 리소스 그룹핑과 선택의 핵심 메커니즘
+  - Annotation: 메타데이터 첨부 (Label과의 차이)
+  - Namespace: 논리적 클러스터 분리, 기본 Namespace (default, kube-system, kube-public, kube-node-lease)
+  - YAML 매니페스트 구조 (apiVersion, kind, metadata, spec)
+- **컴포넌트 간 통신 흐름 분석**:
+  - kubectl apply → apiserver → etcd 저장 → scheduler가 감지 → Node 할당 → kubelet이 컨테이너 생성
+  - Pod 생성의 전체 과정을 단계별로 추적 (Watch 메커니즘)
+  - 컴포넌트 장애 시 어떤 증상이 나타나는지 (etcd 다운, scheduler 다운, controller-manager 다운)
+
+**핵심 실습:**
+- Minikube/Kind로 클러스터 생성 후 모든 컴포넌트 Pod 확인 (kube-system Namespace)
+- kubectl get componentstatuses로 Control Plane 상태 확인
+- kubectl describe node로 kubelet 상태 및 리소스 확인
+- kube-apiserver에 직접 curl 요청 보내기 (인증서 기반)
+- etcd 데이터 조회 (etcdctl get /registry/...)
+- Pod 생성 후 kubectl get events로 스케줄링~실행까지 이벤트 추적
+- 각 컴포넌트를 의도적으로 중지시킨 후 증상 관찰
+
+<br>
+
+---
+
+**Week 6 - 클러스터 구축 & kubectl 마스터**
 
 Kubernetes 클러스터를 직접 구축하고, kubectl을 통해 클러스터와 대화하는 방법을 완전히 익힙니다. 클러스터가 부트스트랩되는 전체 과정을 단계별로 이해합니다.
 
@@ -363,7 +431,7 @@ Kubernetes 클러스터를 직접 구축하고, kubectl을 통해 클러스터�
 
 ---
 
-**Week 6 - Pod & Workload 리소스 심화**
+**Week 7 - Pod & Workload 리소스 심화**
 
 Kubernetes에서 실행되는 모든 워크로드의 기본 단위인 Pod을 깊이 이해하고, 다양한 워크로드 컨트롤러를 상황에 맞게 선택하여 활용합니다.
 
@@ -405,7 +473,7 @@ Kubernetes에서 실행되는 모든 워크로드의 기본 단위인 Pod을 깊
 
 ---
 
-**Week 7 - 구성 관리 & 리소스 제어**
+**Week 8 - 구성 관리 & 리소스 제어**
 
 애플리케이션 설정을 코드에서 분리하여 ConfigMap과 Secret으로 관리하고, Namespace 단위의 리소스 제어를 통해 멀티 테넌트 환경을 구성합니다.
 
@@ -448,7 +516,7 @@ Kubernetes에서 실행되는 모든 워크로드의 기본 단위인 Pod을 깊
 
 ---
 
-**Week 8 - 서비스 & 네트워킹 심화**
+**Week 9 - 서비스 & 네트워킹 심화**
 
 Kubernetes 내부의 서비스 디스커버리와 네트워킹 메커니즘을 이해합니다. Pod-to-Pod 통신부터 외부 노출까지 전체 네트워킹 스택을 학습합니다.
 
@@ -501,7 +569,7 @@ Kubernetes 내부의 서비스 디스커버리와 네트워킹 메커니즘을 �
 
 ---
 
-**Week 9 - 스토리지, 볼륨 & 상태 관리**
+**Week 10 - 스토리지, 볼륨 & 상태 관리**
 
 Kubernetes에서 상태를 가진 애플리케이션(Stateful Application)을 운영하기 위한 스토리지 아키텍처를 학습합니다. Volume, PV/PVC, CSI Driver까지 전체 스토리지 스택을 다룹니다.
 
@@ -548,7 +616,7 @@ Kubernetes에서 상태를 가진 애플리케이션(Stateful Application)을 �
 
 ---
 
-**Week 10 - 스케줄링 & 오토스케일링**
+**Week 11 - 스케줄링, 오토스케일링 & 노드 운영 관리**
 
 kube-scheduler의 동작 원리를 이해하고, 다양한 스케줄링 제약 조건을 활용하여 Pod 배치를 제어합니다. 부하 변화에 자동으로 대응하는 오토스케일링을 구성합니다.
 
@@ -579,6 +647,15 @@ kube-scheduler의 동작 원리를 이해하고, 다양한 스케줄링 제약 �
   - 자발적 중단 (노드 유지보수, 클러스터 업그레이드) vs 비자발적 중단 (하드웨어 장애)
   - minAvailable / maxUnavailable 설정
   - 안전한 노드 drain과의 관계
+- **노드 운영 관리 (Node Lifecycle)**:
+  - **kubectl cordon**: 노드를 SchedulingDisabled 상태로 전환 (기존 Pod 유지, 신규 Pod 스케줄링 차단)
+  - **kubectl uncordon**: 노드를 다시 스케줄링 가능 상태로 복원
+  - **kubectl drain**: 노드에서 안전하게 모든 Pod 퇴거 (cordon + Pod 퇴거를 한 번에 수행)
+  - drain 주요 옵션: --ignore-daemonsets (DaemonSet Pod 무시), --delete-emptydir-data (emptyDir 볼륨 데이터 삭제 허용), --force (ReplicaSet 등에 속하지 않는 Pod 강제 삭제), --grace-period (종료 유예 시간), --timeout (drain 타임아웃)
+  - drain과 PDB의 상호작용: PDB가 설정된 경우 minAvailable/maxUnavailable 조건을 만족할 때까지 대기
+  - **노드 유지보수 시나리오**: OS 패치/커널 업데이트 → cordon → drain → 유지보수 → uncordon, 클러스터 업그레이드 시 순차적 drain, 하드웨어 교체 시 강제 drain
+  - kubectl taint로 노드 격리 (NoSchedule/NoExecute) vs cordon 차이
+  - kubectl label nodes로 노드 역할 지정 및 관리
 - **Horizontal Pod Autoscaler (HPA)**:
   - CPU / Memory 기반 자동 스케일링
   - Custom Metrics 기반 (Prometheus Adapter 활용)
@@ -600,12 +677,14 @@ kube-scheduler의 동작 원리를 이해하고, 다양한 스케줄링 제약 �
 - Metrics Server 설치 후 HPA 구성 (CPU 70% 기준)
 - 부하 테스트 (hey/wrk)로 HPA 스케일아웃 관찰
 - PDB 설정 후 안전한 노드 drain 실습
+- cordon → drain → 유지보수 → uncordon 노드 유지보수 사이클 체험
+- drain 시 PDB 동작 관찰 (minAvailable 조건 미충족 시 대기)
 
 <br>
 
 ---
 
-**Week 11 - Helm, 배포 전략 & GitOps 기초**
+**Week 12 - Helm, 배포 전략 & GitOps 기초**
 
 Helm으로 Kubernetes 애플리케이션을 패키징하고, 다양한 배포 전략을 실전 적용합니다. GitOps의 원칙을 이해하고 ArgoCD/Flux를 체험합니다.
 
@@ -654,13 +733,13 @@ Helm으로 Kubernetes 애플리케이션을 패키징하고, 다양한 배포 �
 
 <br>
 
-### Phase 2: Azure Kubernetes Service (5주)
+### Phase 2: Azure Kubernetes Service (6주)
 
 대상: Azure 환경에서 Kubernetes를 운영하려는 사람
 
 학습 내용:
 
-**Week 12 - AKS 기초 & Azure 네트워킹 통합**
+**Week 13 - AKS 기초 & Azure 네트워킹 통합**
 
 Azure의 관리형 Kubernetes 서비스인 AKS를 이해하고, Azure 네트워킹과 통합하여 프로덕션급 클러스터를 구성합니다.
 
@@ -679,18 +758,27 @@ Azure의 관리형 Kubernetes 서비스인 AKS를 이해하고, Azure 네트워�
   - Private AKS 클러스터 (Private Endpoint로 API 서버 비공개)
   - Azure Private Link / Private Endpoint로 PaaS 서비스 접근
   - Azure DNS Zone 통합
+- **네트워크 정책 엔진 (Network Policy Engine)**:
+  - Kubernetes NetworkPolicy 리소스와 정책 엔진의 관계 (정책 정의 vs 정책 실행)
+  - **Azure NPM (Network Policy Manager)**: Azure 네이티브 정책 엔진, iptables 기반, AKS 클러스터 생성 시 `--network-policy azure` 옵션으로 활성화, L3/L4 정책 지원
+  - **Calico**: 강력한 오픈소스 정책 엔진, AKS에서 `--network-policy calico`로 활성화, BGP 라우팅 지원, GlobalNetworkPolicy 등 확장 정책, Azure CNI + Calico 조합 가능
+  - **Cilium**: eBPF 기반 고성능 네트워크 정책, L3/L4/L7(HTTP, gRPC) 정책 지원, AKS에서 Azure CNI Powered by Cilium으로 제공, Network Observability (Hubble) 내장
+  - 선택 기준: 기본 L3/L4 → Azure NPM, 고급 정책 + BGP → Calico, L7 정책 + eBPF 성능 + 관측성 → Cilium
+  - 네트워크 정책 기본 전략: Default Deny → 필요한 트래픽만 Allow (Zero Trust)
 
 **핵심 실습:**
 - Azure CLI로 AKS 클러스터 생성 (Azure CNI, 2 Node Pool)
 - kubectl로 AKS 연결 (az aks get-credentials)
 - Private AKS 클러스터 생성 및 Bastion을 통한 접근
 - AGIC 구성 후 웹앱 외부 노출
+- 네트워크 정책 엔진 활성화 (Azure NPM 또는 Calico)
+- Default Deny 정책 적용 후 특정 Namespace 간 트래픽만 허용하는 NetworkPolicy 작성
 
 <br>
 
 ---
 
-**Week 13 - 스토리지, 스케일링 & 비용 최적화**
+**Week 14 - 스토리지, 스케일링 & 비용 최적화**
 
 Azure 스토리지 서비스를 AKS와 통합하고, 이벤트 기반 스케일링과 비용 최적화 전략을 학습합니다.
 
@@ -702,26 +790,30 @@ Azure 스토리지 서비스를 AKS와 통합하고, 이벤트 기반 스케일�
 - **스케일링 전략**:
   - Cluster Autoscaler (AKS 설정: --enable-cluster-autoscaler, min/max count)
   - KEDA (Kubernetes Event-Driven Autoscaling): Azure Queue, Kafka, HTTP 이벤트 기반 스케일링
-  - AKS Node Autoprovisioning (NAP) / Karpenter
+  - **AKS Node Autoprovisioning (NAP)**: Karpenter 기술을 AKS에 통합한 Azure 관리형 자동 노드 프로비저닝 (Karpenter 자체는 AWS EKS 네이티브 오픈소스이며, Azure에서는 NAP을 통해서만 사용 가능), 워크로드 요구사항에 맞는 VM SKU 자동 선택, NodePool 수동 관리 부담 제거, NodeClass/NodeClaim 리소스 정의
+  - AKS Automatic: 완전 관리형 AKS 클러스터 (노드 관리/스케일링/보안 자동화), NAP 기본 활성화, Standard vs Automatic 선택 기준
 - **비용 최적화**:
   - Spot VM Node Pool (최대 90% 할인, 퇴거 정책)
   - Azure Reserved Instances & Savings Plans
-  - Azure Cost Management + Kubecost 연동
+  - **Kubecost**: AKS 비용 분석 도구, Namespace/Workload/Label별 비용 분석, Cost Allocation 및 Showback/Chargeback, Idle Resource 및 Overprovisioning 감지, Azure Cost Management와의 통합
   - 노드 풀 분리 전략 (워크로드별 VM 크기 최적화)
   - AKS Start/Stop 기능 (개발 환경 비용 절감)
+  - Azure Advisor 권장사항 활용
 
 **핵심 실습:**
 - Azure Disk/File CSI 구성
 - Key Vault Provider CSI 연동
 - Cluster Autoscaler 설정
 - KEDA로 Azure Queue 기반 이벤트 스케일링
+- NAP 활성화 및 자동 노드 프로비저닝 테스트
+- Kubecost 설치 및 비용 대시보드 구성
 - Spot VM Node Pool 생성
 
 <br>
 
 ---
 
-**Week 14 - 모니터링 & 로깅**
+**Week 15 - 모니터링 & 로깅**
 
 AKS의 관측성(Observability)을 확보합니다. Logs, Metrics, Traces 세 기둥을 중심으로 Azure Monitor 통합 모니터링을 구성합니다.
 
@@ -754,7 +846,7 @@ AKS의 관측성(Observability)을 확보합니다. Logs, Metrics, Traces 세 �
 
 ---
 
-**Week 15 - 보안 강화**
+**Week 16 - 보안 강화**
 
 AKS의 ID 관리, 런타임 보안, 네트워크 보안을 전방위로 강화합니다.
 
@@ -768,6 +860,7 @@ AKS의 ID 관리, 런타임 보안, 네트워크 보안을 전방위로 강화�
   - Azure Policy for AKS (Built-in 정책: 특권 컨테이너 금지, 허용 이미지 제한)
   - Pod Security Standards: Restricted / Baseline / Privileged
   - Image Integrity (이미지 서명 검증, Notary)
+  - **Image Cleaner (Eraser)**: 노드에서 미사용/취약 이미지 자동 정리, 보안 위험 감소 및 디스크 공간 확보
 - **네트워크 보안**:
   - Kubernetes NetworkPolicy + Calico/Cilium
   - Azure Firewall 연동 (Egress 제어)
@@ -779,13 +872,14 @@ AKS의 ID 관리, 런타임 보안, 네트워크 보안을 전방위로 강화�
 - Defender for Containers 활성화 및 위협 시뮬레이션
 - Azure Policy 적용 (특권 컨테이너 차단)
 - Pod Security Standards Restricted 적용
+- Image Cleaner 활성화 및 미사용 이미지 정리 확인
 - NetworkPolicy + Azure Firewall Egress 제어
 
 <br>
 
 ---
 
-**Week 16 - CI/CD & GitOps**
+**Week 17 - CI/CD & GitOps**
 
 AKS를 위한 완전한 CI/CD 파이프라인을 구축하고, GitOps를 통한 선언적 배포 자동화를 구현합니다.
 
@@ -814,6 +908,61 @@ AKS를 위한 완전한 CI/CD 파이프라인을 구축하고, GitOps를 통한 
 - Kustomize: base + dev/prod 오버레이 배포
 - Sealed Secrets으로 Git에 안전하게 시크릿 저장
 
+**Week 18 - Azure Kubernetes 에코시스템 서비스**
+
+AKS를 넘어 Azure가 제공하는 Kubernetes 관련 서비스 포트폴리오를 이해합니다. 멀티 클러스터 관리, 통합 운영, 특수 목적 Kubernetes 환경까지 Azure의 Kubernetes 전략 전체를 파악합니다.
+
+- **Azure Kubernetes 서비스 포트폴리오 개요**:
+  - Azure의 Kubernetes 전략: AKS를 중심으로 한 서비스 확장
+  - AKS (단일 클러스터) → Fleet Manager (멀티 클러스터) → Kubernetes Center (통합 관리) → Operator Nexus (특수 환경)
+  - 각 서비스의 포지셔닝과 사용 시나리오 구분
+  - 서비스 간 관계도 및 아키텍처 전체 그림
+- **Azure Kubernetes Fleet Manager**:
+  - Fleet Manager의 역할: 다수의 AKS 클러스터를 단일 제어 평면에서 관리
+  - Fleet 리소스 생성 (az fleet create) 및 Member 클러스터 등록
+  - **업데이트 오케스트레이션**: 여러 AKS 클러스터의 Kubernetes 버전 업그레이드를 순차적/병렬로 제어 (Update Run, Update Stage, Update Group)
+  - **워크로드 전파**: Fleet에서 Member 클러스터로 Kubernetes 리소스 배포 (ClusterResourcePlacement)
+  - **멀티 클러스터 서비스**: L4 멀티 클러스터 로드밸런싱, ServiceExport/ServiceImport를 통한 클러스터 간 서비스 디스커버리
+  - 시나리오: 리전별 AKS 클러스터 운영 (Korea Central + Japan East), 글로벌 배포, 점진적 업그레이드 (canary across clusters)
+  - Fleet Manager vs 기존 도구 비교: Azure Arc, Rancher, ArgoCD ApplicationSet
+- **Azure Kubernetes Center (Preview)**:
+  - Kubernetes Center의 역할: Azure 전체에서 운영되는 Kubernetes 클러스터를 통합 관리하는 대시보드
+  - 통합 뷰: AKS, Arc-enabled Kubernetes (On-Premise/타 클라우드 K8s), Fleet 리소스를 한 화면에서 관리
+  - 클러스터 인벤토리: 이름, 위치, 버전, 상태, 노드 수, 리소스 사용량을 한눈에 파악
+  - 통합 모니터링: Azure Monitor, Container Insights, Azure Policy 준수 현황 통합 조회
+  - 거버넌스 & 정책: Azure Policy for Kubernetes를 중앙에서 일괄 적용 및 모니터링
+  - 시나리오: 대규모 엔터프라이즈에서 수십 개 K8s 클러스터의 가시성 확보 및 표준화
+- **Azure Operator Nexus**:
+  - Operator Nexus의 역할: 통신사(Telco) 및 운영자를 위한 캐리어급 Kubernetes 플랫폼
+  - 네트워크 기능(NF) 실행 환경: 5G Core, vRAN, SD-WAN 등 통신 워크로드 전용
+  - 하이브리드 아키텍처: Azure 클라우드 + 고객 On-Premise(엣지 사이트) 연동
+  - Bare Metal 인프라 관리: 전용 하드웨어 위에 Kubernetes 클러스터 프로비저닝
+  - Azure Arc 통합: On-Premise Nexus 인스턴스를 Azure에서 관리
+  - Near Real-Time (NRT) 워크로드 지원: 초저지연 네트워크 기능에 필요한 SR-IOV, DPDK, CPU 피닝
+  - 시나리오: 통신사의 5G 코어 네트워크, 엣지 컴퓨팅, 네트워크 기능 가상화(NFV)
+  - 일반 AKS와의 차이: 범용 vs 캐리어급 특수 목적
+- **Azure Arc-enabled Kubernetes와의 연관**:
+  - Azure Arc: 비-Azure 환경(On-Premise, AWS, GCP) K8s 클러스터를 Azure에 연결
+  - Arc를 통한 통합 관리: Azure Policy, Defender for Cloud, GitOps(Flux) 확장
+  - Fleet Manager와 Arc의 조합: Arc 클러스터를 Fleet Member로 등록
+  - Kubernetes Center에서 Arc 클러스터도 통합 관리
+- **서비스 선택 가이드**:
+
+  | 시나리오 | 추천 서비스 |
+  |---------|-----------|
+  | 단일 AKS 클러스터 운영 | AKS |
+  | 멀티 리전 AKS 클러스터 업데이트/배포 | Fleet Manager |
+  | 전사 K8s 클러스터 가시성 확보 | Kubernetes Center |
+  | 하이브리드/멀티 클라우드 K8s 관리 | Azure Arc |
+  | 5G/통신 네트워크 기능 운영 | Operator Nexus |
+
+**핵심 실습:**
+- Fleet Manager로 2개 AKS 클러스터 등록 및 업데이트 오케스트레이션 구성
+- ClusterResourcePlacement로 Deployment를 여러 클러스터에 전파
+- Kubernetes Center에서 다수 클러스터 통합 대시보드 확인
+- Azure Arc로 로컬 Kind 클러스터를 Azure에 연결
+- 서비스 포트폴리오 아키텍처 다이어그램 직접 작성
+
 준비물:
 - Azure 구독 (무료 크레딧 가능)
 - Azure CLI 설치
@@ -821,13 +970,100 @@ AKS를 위한 완전한 CI/CD 파이프라인을 구축하고, GitOps를 통한 
 
 <br>
 
-### Phase 3: CKA 시험 준비 (6주)
+### Phase 3: 타 클라우드 Kubernetes 맛보기 (2주)
+
+대상: AKS를 학습한 사람, 멀티 클라우드 환경에서 Kubernetes 차이를 이해하고 싶은 사람
+
+학습 내용:
+
+**Week 19 - Amazon EKS 핵심 & AKS 비교**
+
+AWS의 관리형 Kubernetes 서비스인 EKS의 핵심 아키텍처를 이해하고, AKS와의 차이점을 비교합니다.
+
+- **EKS 아키텍처 이해**:
+  - EKS vs AKS: Control Plane 관리 방식 비교 (AWS 관리형 etcd, 멀티 AZ 분산)
+  - EKS 클러스터 생성: AWS Console, eksctl CLI, Terraform
+  - eksctl: EKS 전용 CLI 도구 (클러스터 생성/관리 간소화)
+- **IAM & 보안 모델**:
+  - AWS IAM 역할 기반 접근 제어 (vs Azure AD/RBAC)
+  - IRSA (IAM Roles for Service Accounts): Pod에서 AWS 리소스 접근 (vs AKS Workload Identity)
+  - EKS Pod Identity: IRSA의 차세대 간소화 버전
+  - aws-auth ConfigMap을 통한 IAM-K8s RBAC 매핑
+- **네트워킹**:
+  - AWS VPC CNI: Pod에 VPC IP 직접 할당 (vs Azure CNI)
+  - 보안 그룹(Security Group) 연동 (vs Azure NSG)
+  - ALB Ingress Controller / AWS Load Balancer Controller (vs AGIC)
+  - EKS Private Cluster 구성
+- **노드 관리**:
+  - Managed Node Groups: AWS 관리형 노드 (vs AKS Node Pool)
+  - Fargate: 서버리스 Pod 실행 (노드 관리 불필요, vs AKS Virtual Nodes)
+  - Karpenter: 자동 노드 프로비저닝 (AKS NAP의 원류)
+- **스토리지 & 모니터링**:
+  - EBS CSI Driver (블록 스토리지, vs Azure Disk)
+  - EFS CSI Driver (파일 스토리지, vs Azure Files)
+  - CloudWatch Container Insights (vs Azure Monitor Container Insights)
+- **AKS vs EKS 핵심 비교표**:
+  - CLI 도구, 네트워크 모델, IAM 통합, 서버리스 옵션, 비용 구조
+
+**핵심 실습:**
+- eksctl로 EKS 클러스터 생성 (Free Tier 활용)
+- IRSA 구성으로 Pod에서 S3 접근
+- ALB Ingress Controller로 웹앱 외부 노출
+- AKS와 동일한 앱을 EKS에 배포하여 차이점 체험
+
+<br>
+
+---
+
+**Week 20 - Google GKE 핵심 & 멀티 클라우드 전략**
+
+GCP의 관리형 Kubernetes 서비스인 GKE의 핵심 특징을 이해하고, 3대 클라우드 K8s를 종합 비교합니다.
+
+- **GKE 아키텍처 이해**:
+  - GKE vs AKS/EKS: Kubernetes 원조 (Google이 K8s 개발), 가장 빠른 최신 버전 지원
+  - GKE Autopilot vs Standard: Autopilot = 노드 관리 완전 자동화 (vs AKS Automatic), Pod 단위 과금
+  - gcloud CLI로 클러스터 생성 및 관리
+- **네트워킹 & 보안**:
+  - VPC-native 클러스터: Alias IP 기반 Pod 네트워킹 (vs Azure CNI, AWS VPC CNI)
+  - GKE Gateway API: 차세대 Ingress (Kubernetes Gateway API 구현체)
+  - Workload Identity Federation: Pod에서 GCP 리소스 접근 (vs AKS Workload Identity, EKS IRSA)
+  - Binary Authorization: 신뢰된 이미지만 배포 허용
+- **GKE 차별화 기능**:
+  - GKE Sandbox (gVisor): 강화된 컨테이너 격리
+  - Config Sync: GitOps 기본 내장 (vs AKS Flux Extension)
+  - Multi-cluster Services (MCS): 클러스터 간 서비스 디스커버리
+  - Release Channels: Rapid / Regular / Stable 업그레이드 채널
+- **3대 클라우드 K8s 종합 비교**:
+  - 아키텍처 비교표 (Control Plane, 네트워킹, IAM, 서버리스, 스토리지, 모니터링, GitOps)
+  - 비용 비교: Control Plane 비용 (AKS 무료 vs EKS $0.10/hr vs GKE $0.10/hr), 노드 비용 구조
+  - 강점 비교: AKS (Azure 생태계, 하이브리드), EKS (AWS 생태계, 가장 큰 시장 점유율), GKE (기술 선도, Autopilot)
+  - 언제 어떤 서비스를 선택할 것인가 (의사결정 기준)
+- **멀티 클라우드 전략 개요**:
+  - 멀티 클라우드 K8s의 장점과 과제
+  - 이식성 확보: Helm/Kustomize로 클라우드 독립적 배포
+  - 클라우드 추상화 도구: Crossplane, Cluster API
+  - 멀티 클러스터 관리: Rancher, Azure Arc, Anthos, EKS Anywhere
+
+**핵심 실습:**
+- gcloud로 GKE Autopilot 클러스터 생성 (Free Tier 활용)
+- Gateway API로 웹앱 라우팅 구성
+- AKS/EKS/GKE 동일 앱 배포 후 차이점 비교 정리
+- 3대 클라우드 K8s 비교표 직접 작성
+
+준비물:
+- AWS 계정 (Free Tier)
+- GCP 계정 (Free Tier)
+- 기존 AKS 학습 환경
+
+<br>
+
+### Phase 4: CKA 시험 준비 (6주)
 
 대상: Kubernetes 공식 자격증을 취득하려는 사람
 
 학습 내용:
 
-**Week 17 - 클러스터 유지보수 & etcd**
+**Week 21 - 클러스터 유지보수 & etcd**
 
 CKA 시험의 핵심 영역인 클러스터 관리와 etcd 백업/복구를 집중 훈련합니다.
 
@@ -860,7 +1096,7 @@ CKA 시험의 핵심 영역인 클러스터 관리와 etcd 백업/복구를 집�
 
 ---
 
-**Week 18 - 보안 & RBAC**
+**Week 22 - 보안 & RBAC**
 
 CKA 시험의 보안 관련 문제를 집중 대비합니다. RBAC과 NetworkPolicy를 실전 수준으로 다룹니다.
 
@@ -889,7 +1125,7 @@ CKA 시험의 보안 관련 문제를 집중 대비합니다. RBAC과 NetworkPol
 
 ---
 
-**Week 19 - 장애 대응 (Troubleshooting)**
+**Week 23 - 장애 대응 (Troubleshooting)**
 
 CKA 시험에서 가장 높은 비중을 차지하는 Troubleshooting 영역을 실전 시뮬레이션으로 훈련합니다.
 
@@ -929,7 +1165,7 @@ CKA 시험에서 가장 높은 비중을 차지하는 Troubleshooting 영역을 
 
 ---
 
-**Week 20 - 로그 수집 아키텍처**
+**Week 24 - 로그 수집 아키텍처**
 
 Kubernetes 클러스터의 중앙 집중 로깅 파이프라인을 구축합니다.
 
@@ -961,7 +1197,7 @@ Kubernetes 클러스터의 중앙 집중 로깅 파이프라인을 구축합니�
 
 ---
 
-**Week 21 - Prometheus & Grafana**
+**Week 25 - Prometheus & Grafana**
 
 Kubernetes 모니터링의 표준인 Prometheus와 Grafana를 설치하고 운영합니다. PromQL로 메트릭을 분석하고 알림을 구성합니다.
 
@@ -1001,7 +1237,7 @@ Kubernetes 모니터링의 표준인 Prometheus와 Grafana를 설치하고 운�
 
 ---
 
-**Week 22 - CKA 실전 시뮬레이션**
+**Week 26 - CKA 실전 시뮬레이션**
 
 CKA 시험 합격을 위한 최종 점검과 실전 모의고사를 진행합니다.
 
@@ -1062,49 +1298,61 @@ CKA 시험 합격을 위한 최종 점검과 실전 모의고사를 진행합니
 | 1 | Container와 Docker의 이해 | Bare Metal→VM→Container 진화, Docker 설치(Desktop/Engine), Docker 아키텍처(Client→Daemon→Registry), 컨테이너 라이프사이클(run/stop/rm/logs/exec), 이미지vs컨테이너, docker run 내부 동작, save/load 이식성 | Docker 설치, Nginx 컨테이너 포트 매핑, inspect 분석, save/load 실습 | [Week 1]({% post_url k8s/2025-01-02-k8s-week01-container-docker %}) |
 | 2 | Container 격리 기술 - Linux Kernel 심화 | Namespace 7종(PID/NET/MNT/UTS/IPC/USER/CGROUP)+실습, Cgroups v1/v2(CPU/Memory 제한)+실습, OverlayFS 레이어 구조, Container Runtime 계층(Docker→containerd→runc), OCI 표준, containerd vs CRI-O | unshare로 Namespace 생성, Cgroups로 리소스 제한, runc 직접 실행 | [Week 2]({% post_url k8s/2025-01-03-k8s-week02-linux-container-isolation %}) |
 | 3 | 이미지 빌드 & 데이터 관리 | Dockerfile 전체 명령어, CMD vs ENTRYPOINT, 레이어 캐싱 최적화, Multi-stage Build, Alpine/Distroless 경량화, Volume/Bind Mount/tmpfs, 3rd Party 이미지, Registry(DockerHub/ACR/GHCR), Tagging 전략 | Multi-stage Build로 90% 크기 감소, Volume 영속화, ACR 푸시 | 작성 예정 |
-| 4 | Compose, 네트워크, 보안 & K8s 입문 | Docker 네트워킹(bridge/host/overlay), Compose(services/volumes/networks/healthcheck), 보안(Trivy/rootless/read-only), K8s 아키텍처(Control Plane+Node 컴포넌트), Desired State, K8s 대안 비교 | Compose 3-tier 앱, Trivy 스캔, K8s 컴포넌트 분석 | 작성 예정 |
+| 4 | Compose, 네트워크, 보안 & K8s 입문 | Docker 네트워킹(bridge/host/overlay), Compose(services/volumes/networks/healthcheck), 보안(이미지 취약점 스캔: Trivy/Docker Scout/Snyk, rootless/read-only), K8s 아키텍처(Control Plane+Node 컴포넌트), Desired State, K8s 대안 비교 | Compose 3-tier 앱, Trivy 스캔, K8s 컴포넌트 분석 | 작성 예정 |
 
 </details>
 
 <details>
-<summary><strong>Phase 1: On-Premise Kubernetes (Week 5-11)</strong></summary>
+<summary><strong>Phase 1: On-Premise Kubernetes (Week 5-12)</strong></summary>
 
 | Week | 주제 | 핵심 학습 내용 | 핵심 실습 | 포스트 |
 |------|------|--------------|----------|--------|
-| 5 | 클러스터 구축 & kubectl | Kubeadm 3-Node 클러스터(swap/br_netfilter/containerd/CNI), kubeadm init 단계 분석, Minikube/Kind, kubectl 완전 정복(get/describe/apply/explain/jsonpath), kubeconfig 구조/컨텍스트 | Kubeadm 클러스터 구축, kubectl 명령어 전량 실습, 첫 앱 배포 | 작성 예정 |
-| 6 | Pod & Workload 리소스 | Pod 라이프사이클/Phase/재시작정책, 멀티컨테이너(Sidecar/Init/Ambassador/Adapter), Probe(Liveness/Readiness/Startup), ReplicaSet, Deployment(롤아웃/롤백), StatefulSet, DaemonSet, Job/CronJob | Pod YAML 작성, Sidecar 패턴, Probe 장애 시뮬, 롤링 업데이트 | 작성 예정 |
-| 7 | 구성 관리 & 리소스 제어 | ConfigMap(envFrom/볼륨/immutable), Secret(Opaque/TLS/docker-registry/etcd 암호화), Requests/Limits, QoS(Guaranteed/Burstable/BestEffort), LimitRange, ResourceQuota, Namespace 멀티테넌트 | ConfigMap으로 Nginx 설정 주입, OOM Kill 시뮬, Quota 설정 | 작성 예정 |
-| 8 | 서비스 & 네트워킹 | Service 5종(ClusterIP/NodePort/LB/ExternalName/Headless), Ingress(Nginx/Traefik/TLS/IngressClass), Pod-to-Pod 통신, CNI 비교(Calico/Flannel/Cilium), kube-proxy(iptables/IPVS), CoreDNS, NetworkPolicy | Service 4종 테스트, Ingress TLS, iptables 분석, NetworkPolicy 격리 | 작성 예정 |
-| 9 | 스토리지 & 상태 관리 | emptyDir/hostPath/projected, PV/PVC(Access Modes/Reclaim Policy/바인딩), StorageClass(동적 프로비저닝/volumeBindingMode), CSI Driver(NFS), 스냅샷/복원, Volume Expansion, StatefulSet+PVC | PV/PVC 구성, StorageClass 동적 프로비저닝, CSI 설치, 스냅샷 | 작성 예정 |
-| 10 | 스케줄링 & 오토스케일링 | kube-scheduler(Filtering/Scoring), Taints/Tolerations, Node/Pod Affinity, Topology Spread, Priority/Preemption, PDB, HPA(CPU/Custom), VPA, Cluster Autoscaler, Metrics Server | Taint+Toleration, Affinity 배치, HPA 부하 테스트, PDB+drain | 작성 예정 |
-| 11 | Helm & 배포 전략 & GitOps | Helm 아키텍처(Chart/Release/Repo), Chart 구조(values/templates/helpers), Go template, helm install/upgrade/rollback, Rolling Update, Canary, Blue-Green, GitOps 원칙, ArgoCD, Flux | 커스텀 Chart 작성, helm 라이프사이클, ArgoCD 자동 동기화 | 작성 예정 |
+| 5 | K8s 아키텍처 & 핵심 컴포넌트 | K8s 등장 배경(Borg/Omega→K8s/CNCF), K8s 필요성, Control Plane(apiserver/etcd/scheduler/controller-manager), Node(kubelet/kube-proxy/runtime), 애드온(CoreDNS/Metrics Server/CNI), 오브젝트 모델(Label/Annotation/Namespace), 컴포넌트 간 통신 흐름 | kube-system Pod 확인, etcd 데이터 조회, events 추적, 컴포넌트 중지 실험 | 작성 예정 |
+| 6 | 클러스터 구축 & kubectl | Kubeadm 3-Node 클러스터(swap/br_netfilter/containerd/CNI), kubeadm init 단계 분석, Minikube/Kind, kubectl 완전 정복(get/describe/apply/explain/jsonpath), kubeconfig 구조/컨텍스트 | Kubeadm 클러스터 구축, kubectl 명령어 전량 실습, 첫 앱 배포 | 작성 예정 |
+| 7 | Pod & Workload 리소스 | Pod 라이프사이클/Phase/재시작정책, 멀티컨테이너(Sidecar/Init/Ambassador/Adapter), Probe(Liveness/Readiness/Startup), ReplicaSet, Deployment(롤아웃/롤백), StatefulSet, DaemonSet, Job/CronJob | Pod YAML 작성, Sidecar 패턴, Probe 장애 시뮬, 롤링 업데이트 | 작성 예정 |
+| 8 | 구성 관리 & 리소스 제어 | ConfigMap(envFrom/볼륨/immutable), Secret(Opaque/TLS/docker-registry/etcd 암호화), Requests/Limits, QoS(Guaranteed/Burstable/BestEffort), LimitRange, ResourceQuota, Namespace 멀티테넌트 | ConfigMap으로 Nginx 설정 주입, OOM Kill 시뮬, Quota 설정 | 작성 예정 |
+| 9 | 서비스 & 네트워킹 | Service 5종(ClusterIP/NodePort/LB/ExternalName/Headless), Ingress(Nginx/Traefik/TLS/IngressClass), Pod-to-Pod 통신, CNI 비교(Calico/Flannel/Cilium), kube-proxy(iptables/IPVS), CoreDNS, NetworkPolicy | Service 4종 테스트, Ingress TLS, iptables 분석, NetworkPolicy 격리 | 작성 예정 |
+| 10 | 스토리지 & 상태 관리 | emptyDir/hostPath/projected, PV/PVC(Access Modes/Reclaim Policy/바인딩), StorageClass(동적 프로비저닝/volumeBindingMode), CSI Driver(NFS), 스냅샷/복원, Volume Expansion, StatefulSet+PVC | PV/PVC 구성, StorageClass 동적 프로비저닝, CSI 설치, 스냅샷 | 작성 예정 |
+| 11 | 스케줄링, 오토스케일링 & 노드 운영 | kube-scheduler(Filtering/Scoring), Taints/Tolerations, Node/Pod Affinity, Topology Spread, Priority/Preemption, PDB, HPA(CPU/Custom), VPA, Cluster Autoscaler, Metrics Server, cordon/drain/uncordon 노드 유지보수 | Taint+Toleration, Affinity 배치, HPA 부하 테스트, PDB+drain, cordon→drain→uncordon 사이클 | 작성 예정 |
+| 12 | Helm & 배포 전략 & GitOps | Helm 아키텍처(Chart/Release/Repo), Chart 구조(values/templates/helpers), Go template, helm install/upgrade/rollback, Rolling Update, Canary, Blue-Green, GitOps 원칙, ArgoCD, Flux | 커스텀 Chart 작성, helm 라이프사이클, ArgoCD 자동 동기화 | 작성 예정 |
 
 </details>
 
 <details>
-<summary><strong>Phase 2: Azure Kubernetes Service (Week 12-16)</strong></summary>
+<summary><strong>Phase 2: Azure Kubernetes Service (Week 13-18)</strong></summary>
 
 | Week | 주제 | 핵심 학습 내용 | 핵심 실습 | 포스트 |
 |------|------|--------------|----------|--------|
-| 12 | AKS 기초 & Azure 네트워킹 | AKS vs On-Prem(Control Plane SLA), Portal/CLI 클러스터 생성, 노드 풀(System/User), Azure AD 통합, Azure CNI/Kubenet/CNI Overlay, AGIC, Private AKS, VNet/Subnet 설계 | AKS 클러스터 생성, Private AKS, AGIC 설정 | 작성 예정 |
-| 13 | 스토리지 & 스케일링 & 비용 | Azure Disk/File CSI(Standard/Premium/Ultra), Key Vault CSI Provider, Cluster Autoscaler, KEDA(이벤트 기반), Spot VM, Reserved Instances, Cost Management/Kubecost, Start/Stop | CSI 구성, Key Vault 연동, KEDA, Spot Node Pool | 작성 예정 |
-| 14 | 모니터링 & 로깅 | Container Insights(KQL/Live Logs), Managed Prometheus+Grafana(PromQL/대시보드), Alert Rules/Action Group, Application Insights, OpenTelemetry | Container Insights, Prometheus+Grafana 대시보드, Alert 설정 | 작성 예정 |
-| 15 | 보안 강화 | Workload Identity, Managed Identity vs SP, Azure RBAC for AKS, Defender for Containers, Azure Policy, Pod Security Standards, Image Integrity, NetworkPolicy+Firewall | Workload Identity, Defender, Policy, Pod Security | 작성 예정 |
-| 16 | CI/CD & GitOps | Azure DevOps Pipeline, GitHub Actions, ACR Build Tasks, Helm/Kustomize CD, Flux Extension, ArgoCD(ApplicationSet), 환경 분리, Sealed Secrets/SOPS | GitHub Actions CI/CD, ArgoCD GitOps, Kustomize 배포 | 작성 예정 |
+| 13 | AKS 기초 & Azure 네트워킹 | AKS vs On-Prem(Control Plane SLA), Portal/CLI 클러스터 생성, 노드 풀(System/User), Azure AD 통합, Azure CNI/Kubenet/CNI Overlay, AGIC, Private AKS, VNet/Subnet 설계, 네트워크 정책 엔진(Azure NPM/Calico/Cilium) | AKS 클러스터 생성, Private AKS, AGIC 설정, NetworkPolicy 엔진 활성화 | 작성 예정 |
+| 14 | 스토리지 & 스케일링 & 비용 | Azure Disk/File CSI(Standard/Premium/Ultra), Key Vault CSI Provider, Cluster Autoscaler, KEDA(이벤트 기반 오토스케일링), NAP(자동 노드 프로비저닝), AKS Automatic, Spot VM, Kubecost(비용 분석), Start/Stop | CSI 구성, Key Vault 연동, KEDA, NAP 테스트, Kubecost 대시보드, Spot Node Pool | 작성 예정 |
+| 15 | 모니터링 & 로깅 | Container Insights(KQL/Live Logs), Managed Prometheus+Grafana(PromQL/대시보드), Alert Rules/Action Group, Application Insights, OpenTelemetry | Container Insights, Prometheus+Grafana 대시보드, Alert 설정 | 작성 예정 |
+| 16 | 보안 강화 | Workload Identity, Managed Identity vs SP, Azure RBAC for AKS, Defender for Containers, Azure Policy, Pod Security Standards, Image Integrity, Image Cleaner, NetworkPolicy+Firewall | Workload Identity, Defender, Policy, Pod Security, Image Cleaner | 작성 예정 |
+| 17 | CI/CD & GitOps | Azure DevOps Pipeline, GitHub Actions, ACR Build Tasks, Helm/Kustomize CD, Flux Extension, ArgoCD(ApplicationSet), 환경 분리, Sealed Secrets/SOPS | GitHub Actions CI/CD, ArgoCD GitOps, Kustomize 배포 | 작성 예정 |
+| 18 | Azure K8s 에코시스템 서비스 | Azure K8s 서비스 포트폴리오, Fleet Manager(멀티 클러스터 업데이트/워크로드 전파), Kubernetes Center(통합 대시보드), Operator Nexus(Telco/캐리어급), Azure Arc-enabled K8s, 서비스 선택 가이드 | Fleet Manager 클러스터 등록, 업데이트 오케스트레이션, Arc 로컬 클러스터 연결 | 작성 예정 |
 
 </details>
 
 <details>
-<summary><strong>Phase 3: CKA 시험 준비 (Week 17-22)</strong></summary>
+<summary><strong>Phase 3: 타 클라우드 Kubernetes 맛보기 (Week 19-20)</strong></summary>
 
 | Week | 주제 | 핵심 학습 내용 | 핵심 실습 | 포스트 |
 |------|------|--------------|----------|--------|
-| 17 | 클러스터 유지보수 & etcd | etcd 역할(Raft), etcdctl snapshot save/restore, 클러스터 업그레이드(kubeadm upgrade), kubelet/kubectl 업그레이드, 인증서 갱신(kubeadm certs), Static Pod | etcd 백업/복원, v1.29→v1.30 업그레이드 | 작성 예정 |
-| 18 | 보안 & RBAC | Role/ClusterRole, RoleBinding/ClusterRoleBinding, ServiceAccount Token, kubeconfig 수동 생성, X.509 인증서 기반 사용자, NetworkPolicy 멀티 네임스페이스 | 커스텀 RBAC, SA+Token, NetworkPolicy 격리 | 작성 예정 |
-| 19 | 장애 대응 | kubelet 복구(systemctl/journalctl), Node NotReady, CrashLoopBackOff/ImagePullBackOff, OOMKill, Pending(리소스/Taint/PVC), DNS 장애, API Server 복구, kubectl debug/crictl | kubelet 장애→복구, OOM 재현, API Server 복구 | 작성 예정 |
-| 20 | 로그 수집 아키텍처 | 로깅 패턴(DaemonSet/Sidecar/직접전송), Fluent-bit(Input/Filter/Output), Loki(라벨 인덱싱/LogQL), Fluent-bit+Loki+Grafana 통합 | Fluent-bit DaemonSet, Loki, Grafana 로그 대시보드 | 작성 예정 |
-| 21 | Prometheus & Grafana | Prometheus 아키텍처(Pull/SD/TSDB), Operator+kube-prometheus-stack, ServiceMonitor/PodMonitor, PromQL(rate/histogram_quantile), Recording/Alerting Rules, AlertManager, Grafana 대시보드 | Prometheus 설치, PromQL 쿼리, Alert 설정, 대시보드 | 작성 예정 |
-| 22 | CKA 실전 시뮬레이션 | 시험 구조(120분/17~20문제/66점), 빈출 유형(RBAC 20%/Troubleshooting 30%/etcd 10%), 시간 관리, alias/vim 설정, killer.sh 3회 풀이, 오답 분석 | killer.sh 모의고사 3회, 약점 집중 실습 | 작성 예정 |
+| 19 | Amazon EKS 핵심 & AKS 비교 | EKS 아키텍처, eksctl, IAM/IRSA/Pod Identity, VPC CNI, Managed Node Groups/Fargate, Karpenter, ALB Ingress, EBS/EFS CSI, CloudWatch, AKS vs EKS 비교표 | eksctl 클러스터 생성, IRSA 구성, ALB Ingress, AKS 비교 실습 | 작성 예정 |
+| 20 | Google GKE 핵심 & 멀티 클라우드 | GKE Autopilot vs Standard, VPC-native, Workload Identity Federation, Gateway API, GKE Sandbox, Config Sync, 3대 클라우드 종합 비교, 멀티 클라우드 전략(Crossplane/Cluster API/Rancher) | GKE Autopilot 생성, Gateway API, 3대 클라우드 비교표 작성 | 작성 예정 |
+
+</details>
+
+<details>
+<summary><strong>Phase 4: CKA 시험 준비 (Week 21-26)</strong></summary>
+
+| Week | 주제 | 핵심 학습 내용 | 핵심 실습 | 포스트 |
+|------|------|--------------|----------|--------|
+| 21 | 클러스터 유지보수 & etcd | etcd 역할(Raft), etcdctl snapshot save/restore, 클러스터 업그레이드(kubeadm upgrade), kubelet/kubectl 업그레이드, 인증서 갱신(kubeadm certs), Static Pod | etcd 백업/복원, v1.29→v1.30 업그레이드 | 작성 예정 |
+| 22 | 보안 & RBAC | Role/ClusterRole, RoleBinding/ClusterRoleBinding, ServiceAccount Token, kubeconfig 수동 생성, X.509 인증서 기반 사용자, NetworkPolicy 멀티 네임스페이스 | 커스텀 RBAC, SA+Token, NetworkPolicy 격리 | 작성 예정 |
+| 23 | 장애 대응 | kubelet 복구(systemctl/journalctl), Node NotReady, CrashLoopBackOff/ImagePullBackOff, OOMKill, Pending(리소스/Taint/PVC), DNS 장애, API Server 복구, kubectl debug/crictl | kubelet 장애→복구, OOM 재현, API Server 복구 | 작성 예정 |
+| 24 | 로그 수집 아키텍처 | 로깅 패턴(DaemonSet/Sidecar/직접전송), Fluent-bit(Input/Filter/Output), Loki(라벨 인덱싱/LogQL), Fluent-bit+Loki+Grafana 통합 | Fluent-bit DaemonSet, Loki, Grafana 로그 대시보드 | 작성 예정 |
+| 25 | Prometheus & Grafana | Prometheus 아키텍처(Pull/SD/TSDB), Operator+kube-prometheus-stack, ServiceMonitor/PodMonitor, PromQL(rate/histogram_quantile), Recording/Alerting Rules, AlertManager, Grafana 대시보드 | Prometheus 설치, PromQL 쿼리, Alert 설정, 대시보드 | 작성 예정 |
+| 26 | CKA 실전 시뮬레이션 | 시험 구조(120분/17~20문제/66점), 빈출 유형(RBAC 20%/Troubleshooting 30%/etcd 10%), 시간 관리, alias/vim 설정, killer.sh 3회 풀이, 오답 분석 | killer.sh 모의고사 3회, 약점 집중 실습 | 작성 예정 |
 
 </details>
 
@@ -1125,8 +1373,11 @@ CKA 시험 합격을 위한 최종 점검과 실전 모의고사를 진행합니
 - [ ] 컨테이너 보안 기초 (이미지 스캐닝, rootless)를 적용할 수 있다
 - [ ] Kubernetes Control Plane 컴포넌트의 역할을 설명할 수 있다
 
-### Phase 1: On-Premise Kubernetes (11주 완료 시)
+### Phase 1: On-Premise Kubernetes (12주 완료 시)
 
+- [ ] K8s 등장 배경(Borg/Omega→K8s)과 CNCF 생태계를 설명할 수 있다
+- [ ] K8s 핵심 컴포넌트(apiserver, etcd, scheduler, controller-manager, kubelet, kube-proxy)의 역할을 설명할 수 있다
+- [ ] 컴포넌트 장애 시 증상을 예측하고 진단할 수 있다
 - [ ] Kubeadm으로 클러스터 구축 및 노드 추가를 할 수 있다
 - [ ] Pod, Deployment, StatefulSet, Job의 차이를 설명하고 적절히 사용한다
 - [ ] Liveness/Readiness/Startup Probe를 올바르게 설정한다
@@ -1137,20 +1388,32 @@ CKA 시험 합격을 위한 최종 점검과 실전 모의고사를 진행합니
 - [ ] NetworkPolicy로 Pod 간 통신을 제어한다
 - [ ] PV/PVC와 CSI Driver로 스토리지를 구성한다
 - [ ] HPA를 설정하여 부하 기반 오토스케일링을 구현한다
+- [ ] cordon/drain/uncordon으로 안전한 노드 유지보수를 수행할 수 있다
 - [ ] Helm Chart로 애플리케이션을 패키징하고 배포한다
 - [ ] Rolling Update/Rollback을 수행할 수 있다
 
-### Phase 2: AKS (16주 완료 시)
+### Phase 2: AKS (18주 완료 시)
 
 - [ ] AKS 클러스터 생성 및 Azure AD 연동
 - [ ] Azure CNI / Kubenet / CNI Overlay 차이를 설명할 수 있다
+- [ ] 네트워크 정책 엔진(Azure NPM/Calico/Cilium)의 차이점과 선택 기준을 설명할 수 있다
 - [ ] AGIC로 Ingress 구성
 - [ ] Azure Monitor (Logs, Metrics, Traces)로 관측성 확보
 - [ ] Workload Identity로 Key Vault 접근
 - [ ] ArgoCD로 GitOps 파이프라인 구축
-- [ ] Cluster Autoscaler & Spot VM으로 비용 최적화
+- [ ] Cluster Autoscaler, NAP & Spot VM으로 비용 최적화
+- [ ] Kubecost로 비용 분석 및 최적화 제안
+- [ ] Fleet Manager로 멀티 클러스터 업데이트 오케스트레이션을 구성할 수 있다
+- [ ] Azure K8s 서비스 포트폴리오(AKS/Fleet Manager/K8s Center/Operator Nexus)를 구분하고 선택 기준을 설명할 수 있다
 
-### Phase 3: CKA (22주 완료 시)
+### Phase 3: 타 클라우드 K8s (20주 완료 시)
+
+- [ ] EKS 클러스터 생성 및 IRSA 구성을 할 수 있다
+- [ ] GKE Autopilot 클러스터를 생성할 수 있다
+- [ ] AKS / EKS / GKE의 핵심 차이점을 비교 설명할 수 있다
+- [ ] 멀티 클라우드 K8s 전략의 장단점을 이해한다
+
+### Phase 4: CKA (26주 완료 시)
 
 - [ ] etcd 스냅샷 백업 및 복원
 - [ ] 클러스터 업그레이드 (1.29 → 1.30)
@@ -1169,45 +1432,49 @@ CKA 시험 합격을 위한 최종 점검과 실전 모의고사를 진행합니
 | **Phase 0** | 1 | Container와 Docker의 이해 | Bare Metal→VM→Container, Docker 설치/아키텍처/명령어 |
 |  | 2 | Linux Kernel 격리 기술 | Namespace, Cgroups, OverlayFS, containerd/runc, OCI |
 |  | 3 | 이미지 빌드 & 데이터 관리 | Dockerfile, Multi-stage, Volume, Registry, Tagging |
-|  | 4 | Compose, 보안 & K8s 입문 | Compose, Security, K8s Architecture, Desired State |
-| **Phase 1** | 5 | 클러스터 구축 | Kubeadm, CNI, kubectl, kubeconfig |
-|  | 6 | Workload 리소스 | Pod, Probe, Deployment, StatefulSet, Job |
-|  | 7 | 구성 관리 & 리소스 | ConfigMap, Secret, QoS, LimitRange, Quota |
-|  | 8 | 서비스 & 네트워킹 | Service, Ingress, CNI, kube-proxy, NetworkPolicy |
-|  | 9 | 스토리지 & 상태 관리 | PV/PVC, StorageClass, CSI, Snapshot, StatefulSet |
-|  | 10 | 스케줄링 & 오토스케일링 | Scheduler, Taint, Affinity, HPA, VPA, CA |
-|  | 11 | Helm & 배포 & GitOps | Helm Chart, Rolling/Canary, ArgoCD, Flux |
-| **Phase 2** | 12 | AKS 기초 & 네트워킹 | AKS, Azure CNI, AGIC, Private AKS |
-|  | 13 | 스토리지 & 스케일링 & 비용 | Disk/File CSI, KEDA, Spot VM, Cost |
-|  | 14 | 모니터링 & 로깅 | Container Insights, Prometheus, Grafana, OTel |
-|  | 15 | 보안 강화 | Workload Identity, Defender, Policy, Pod Security |
-|  | 16 | CI/CD & GitOps | GitHub Actions, ArgoCD, Flux, Sealed Secrets |
-| **Phase 3** | 17 | 클러스터 유지보수 | etcd, 업그레이드, 인증서, Static Pod |
-|  | 18 | 보안 & RBAC | Role, RoleBinding, ServiceAccount, kubeconfig |
-|  | 19 | 장애 대응 | kubelet, OOM, CrashLoop, DNS, API Server |
-|  | 20 | 로그 수집 | Fluent-bit, Loki, LogQL, Grafana |
-|  | 21 | Prometheus & Grafana | Prometheus Operator, PromQL, Alerting, Dashboard |
-|  | 22 | CKA 실전 | killer.sh, 시간 관리, 빈출 유형, 시뮬레이션 |
+|  | 4 | Compose, 보안 & K8s 입문 | Compose, 이미지 취약점 스캔(Trivy/Docker Scout/Snyk), K8s Architecture, Desired State |
+| **Phase 1** | 5 | K8s 아키텍처 & 핵심 컴포넌트 | Borg/Omega→K8s 등장배경, apiserver, etcd, scheduler, controller-manager, kubelet, kube-proxy |
+|  | 6 | 클러스터 구축 | Kubeadm, CNI, kubectl, kubeconfig |
+|  | 7 | Workload 리소스 | Pod, Probe, Deployment, StatefulSet, Job |
+|  | 8 | 구성 관리 & 리소스 | ConfigMap, Secret, QoS, LimitRange, Quota |
+|  | 9 | 서비스 & 네트워킹 | Service, Ingress, CNI, kube-proxy, NetworkPolicy |
+|  | 10 | 스토리지 & 상태 관리 | PV/PVC, StorageClass, CSI, Snapshot, StatefulSet |
+|  | 11 | 스케줄링, 오토스케일링 & 노드 운영 | Scheduler, Taint, Affinity, HPA, VPA, CA, cordon/drain/uncordon |
+|  | 12 | Helm & 배포 & GitOps | Helm Chart, Rolling/Canary, ArgoCD, Flux |
+| **Phase 2** | 13 | AKS 기초 & 네트워킹 | AKS, Azure CNI, AGIC, Private AKS |
+|  | 14 | 스토리지 & 스케일링 & 비용 | Disk/File CSI, KEDA(이벤트 기반), NAP(자동 노드 프로비저닝), Kubecost(비용 분석), Spot VM |
+|  | 15 | 모니터링 & 로깅 | Container Insights, Prometheus, Grafana, OTel |
+|  | 16 | 보안 강화 | Workload Identity, Defender, Policy, Image Cleaner |
+|  | 17 | CI/CD & GitOps | GitHub Actions, ArgoCD, Flux, Sealed Secrets |
+|  | 18 | Azure K8s 에코시스템 | Fleet Manager, K8s Center, Operator Nexus, Azure Arc |
+| **Phase 3** | 19 | Amazon EKS 핵심 | EKS, eksctl, IRSA, VPC CNI, Fargate, Karpenter |
+|  | 20 | Google GKE & 멀티 클라우드 | GKE Autopilot, Gateway API, 3대 클라우드 비교, Crossplane |
+| **Phase 4** | 21 | 클러스터 유지보수 | etcd, 업그레이드, 인증서, Static Pod |
+|  | 22 | 보안 & RBAC | Role, RoleBinding, ServiceAccount, kubeconfig |
+|  | 23 | 장애 대응 | kubelet, OOM, CrashLoop, DNS, API Server |
+|  | 24 | 로그 수집 | Fluent-bit, Loki, LogQL, Grafana |
+|  | 25 | Prometheus & Grafana | Prometheus Operator, PromQL, Alerting, Dashboard |
+|  | 26 | CKA 실전 | killer.sh, 시간 관리, 빈출 유형, 시뮬레이션 |
 | **Appendix** | - | 고급 주제 | CRD, Operator, Service Mesh, Multi-cluster |
 
 ### Phase별 학습 흐름
 
 ```
-Phase 0 (4주)             Phase 1 (7주)              Phase 2 (5주)           Phase 3 (6주)
-Docker & Container        On-Premise K8s             AKS                    CKA
-━━━━━━━━━━━━━━━━━         ━━━━━━━━━━━━━━━━━          ━━━━━━━━━━━━━━━        ━━━━━━━━━━━━━━━
-Week 1: Docker 기초   →   Week 5: 클러스터 구축  →   Week 12: AKS 기초  →   Week 17: 유지보수
-Week 2: 격리 기술 ★   →   Week 6: Workload      →   Week 13: 스케일링  →   Week 18: RBAC
-Week 3: 이미지/볼륨   →   Week 7: 구성/리소스   →   Week 14: 모니터링  →   Week 19: Troubleshoot
-Week 4: Compose/K8s   →   Week 8: 네트워킹      →   Week 15: 보안      →   Week 20: 로그
-                           Week 9: 스토리지      →   Week 16: CI/CD     →   Week 21: Prometheus
-                           Week 10: 스케줄링                                Week 22: CKA 시험
-                           Week 11: Helm/GitOps
-                                                                           ┌─────────────┐
-                                                                           │  Appendix   │
-                                                                           │ CRD/Mesh/   │
-                                                                           │ Multi-cluster│
-                                                                           └─────────────┘
+Phase 0 (4주)             Phase 1 (8주)              Phase 2 (6주)           Phase 3 (2주)           Phase 4 (6주)
+Docker & Container        On-Premise K8s             AKS                    타 클라우드 K8s         CKA
+━━━━━━━━━━━━━━━━━         ━━━━━━━━━━━━━━━━━          ━━━━━━━━━━━━━━━        ━━━━━━━━━━━━━━━        ━━━━━━━━━━━━━━━
+Week 1: Docker 기초   →   Week 5: K8s 아키텍처 ★→   Week 13: AKS 기초  →   Week 19: EKS      →   Week 21: 유지보수
+Week 2: 격리 기술 ★   →   Week 6: 클러스터 구축 →   Week 14: 스케일링  →   Week 20: GKE      →   Week 22: RBAC
+Week 3: 이미지/볼륨   →   Week 7: Workload      →   Week 15: 모니터링                         →   Week 23: Troubleshoot
+Week 4: Compose/K8s   →   Week 8: 구성/리소스   →   Week 16: 보안                             →   Week 24: 로그
+                           Week 9: 네트워킹      →   Week 17: CI/CD                            →   Week 25: Prometheus
+                           Week 10: 스토리지       →   Week 18: Azure K8s ★                      →   Week 26: CKA 시험
+                           Week 11: 스케줄링
+                           Week 12: Helm/GitOps                                                    ┌─────────────┐
+                                                                                                   │  Appendix   │
+                                                                                                   │ CRD/Mesh/   │
+                                                                                                   │ Multi-cluster│
+                                                                                                   └─────────────┘
 ```
 
 <br>
@@ -1242,7 +1509,7 @@ Week 4: Compose/K8s   →   Week 8: 네트워킹      →   Week 15: 보안     
 
 1. [Week 1: Container와 Docker의 이해]({% post_url k8s/2025-01-02-k8s-week01-container-docker %}) - **여기서 시작**
 2. [Week 2: Linux 격리 기술 심화]({% post_url k8s/2025-01-03-k8s-week02-linux-container-isolation %})
-3. Week 3~22: 작성 예정
+3. Week 3~26: 작성 예정
 
 <br>
 
@@ -1256,6 +1523,8 @@ Week 4: Compose/K8s   →   Week 8: 네트워킹      →   Week 15: 보안     
 - [Docker 공식 문서](https://docs.docker.com/)
 - [Kubernetes 공식 문서](https://kubernetes.io/docs/)
 - [AKS 문서](https://docs.microsoft.com/azure/aks/)
+- [EKS 문서](https://docs.aws.amazon.com/eks/)
+- [GKE 문서](https://cloud.google.com/kubernetes-engine/docs)
 - [CKA Curriculum](https://github.com/cncf/curriculum)
 - [Helm 공식 문서](https://helm.sh/docs/)
 
