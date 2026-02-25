@@ -45,9 +45,13 @@ VNet 핵심 특성
 | 인터넷 통신 | 아웃바운드: 기본 제공 / 인바운드: Public IP 또는 Load Balancer | Public IP, NAT Gateway |
 | Azure 리소스 간 통신 | 동일 VNet 내 리소스 간 프라이빗 통신 | Subnet, Service Endpoint |
 | 온프레미스 연결 | 하이브리드 네트워크 구성 | VPN Gateway, ExpressRoute |
-| 트래픽 필터링 | 서브넷 간 트래픽 제어 | NSG, Azure Firewall, NVA |
-| 트래픽 라우팅 | 커스텀 경로 설정 | UDR, BGP |
+| 트래픽 필터링 | 서브넷 간 트래픽 제어 | NSG, Azure Firewall, NVA<sup>1</sup> |
+| 트래픽 라우팅 | 커스텀 경로 설정 | UDR, BGP<sup>2</sup> |
 | Azure 서비스 통합 | PaaS 서비스에 VNet 접근 | Service Endpoint, Private Link |
+
+> <sup>1</sup> **NVA (Network Virtual Appliance)**는 Azure 관리형 네트워크 서비스 자체라기보다, 방화벽/프록시/IDS 같은 네트워크 기능을 VM 기반 가상 어플라이언스로 배포하는 패턴입니다.
+>
+> <sup>2</sup> **BGP (Border Gateway Protocol)**는 Azure 서비스가 아니라 경로 교환을 위한 라우팅 프로토콜이며, VPN Gateway/ExpressRoute 같은 연결 구성에서 경로 전파에 사용됩니다.
 
 <br>
 
@@ -579,10 +583,10 @@ VM-A (10.0.1.4)              VM-B (10.0.2.4)
 
 요구 사항:
   • Accelerated Networking 필수 (SR-IOV 기반 암호화)
-  • 지원되는 VM SKU (D/E/F/L/M 시리즈 v4 이상)
+  • Accelerated Networking 지원 VM SKU (D/E/F 시리즈 v4 이상 등 AN 지원 SKU)
 ```
 
-> **주의**: VNet Encryption 활성화된 VNet에서는 Azure Firewall, Application Gateway, DNS Private Resolver가 **지원되지 않습니다**.
+> **주의**: VNet Encryption 활성화된 VNet에서는 Azure Firewall, Application Gateway, DNS Private Resolver가 **지원되지 않습니다**. 또한 **ExpressRoute Gateway가 연결된 VNet에는 VNet Encryption을 활성화하지 마세요** (온프레미스 통신 장애 발생).
 
 > 참고: [Microsoft Learn, "VNet encryption - Limitations"](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-encryption-overview#limitations)
 

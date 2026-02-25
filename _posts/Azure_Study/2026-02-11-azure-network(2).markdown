@@ -45,7 +45,7 @@ VPN Gateway는 **세대(Generation)**와 **SKU**에 따라 성능이 달라집�
 
 | &nbsp;SKU&nbsp; | &nbsp;S2S 터널&nbsp; | &nbsp;P2S 연결&nbsp; | &nbsp;집계 처리량&nbsp; | &nbsp;BGP 지원&nbsp; | &nbsp;가용 영역&nbsp; |
 |---|---|---|---|---|---|
-| Basic | 최대 10 | 최대 128 | 100 Mbps | ✗ | ✗ |
+| Basic | 최대 10 | 최대 128 (SSTP만 지원, IKEv2/OpenVPN 미지원) | 100 Mbps | ✗ | ✗ |
 | VpnGw1 | 최대 30 | 최대 250 | 650 Mbps | ✓ | ✗ |
 | VpnGw2 | 최대 30 | 최대 500 | 1 Gbps | ✓ | ✗ |
 | VpnGw3 | 최대 30 | 최대 1,000 | 1.25 Gbps | ✓ | ✗ |
@@ -149,8 +149,8 @@ IP 서브넷 할당:
       MSEE:       192.168.100.134 (Microsoft)
 
 경로 제한:
-  • Private Peering: 최대 4,000 IPv4 접두사 (Premium: 10,000)
-  • Microsoft Peering: BGP 세션당 200 접두사
+  • Private Peering: 최대 4,000 IPv4 접두사 (Premium: 10,000), 100 IPv6 접두사
+  • Microsoft Peering: BGP 세션당 200 접두사 (IPv4+IPv6 합산)
   • 제한 초과 시 BGP 세션 드롭
 ```
 
@@ -193,17 +193,18 @@ Microsoft는 광고하는 모든 경로에 **BGP Community 값**을 태깅합니
 ```
 BGP Community 값 구조 (예시)
 
-서비스별:
+서비스별 (Microsoft Peering 전용):
   Exchange Online:     12076:5010
   SharePoint Online:   12076:5020
   Microsoft Entra ID:  12076:5060
   Azure Global:        12076:5050
 
-리전별:
+리전별 (Private Peering 기준):
   Korea Central:       12076:50029
   Japan East:          12076:50012
   East US:             12076:50004
   West Europe:         12076:50002
+  ※ Microsoft Peering 기준 리전 커뮤니티는 12076:510xx 형식
 
 활용 예시:
   여러 ExpressRoute 회선을 운영할 때,
@@ -305,7 +306,7 @@ Azure Firewall SKU 비교
 ├── Basic
 │   ├── 대상: 중소기업(SMB)
 │   ├── 처리량: ~250 Mbps
-│   └── 기능: L3-L4 필터링, 위협 인텔리전스 (알림만)
+│   └── 기능: L3-L4 네트워크 필터링, SNI 기반 FQDN 필터링(HTTPS/SQL), 위협 인텔리전스 (알림만)
 │
 ├── Standard
 │   ├── 대상: 대부분의 엔터프라이즈
@@ -481,7 +482,7 @@ Private DNS Zone 구성:
   A Record: mystorage → 10.0.1.10
 ```
 
-> 참고: [Microsoft Learn, "Azure DNS overview"](https://learn.microsoft.com/en-us/azure/dns/dns-overview)
+> 참고: [Microsoft Learn, "Azure Private Endpoint DNS configuration"](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns)
 
 <br>
 
@@ -595,13 +596,14 @@ Azure DNS 서비스
 │   ├── VM 자동 등록 (Autoregistration)
 │   └── 사용자 정의 DNS 솔루션 불필요
 │
-├── Azure DNS Private Resolver
-│   ├── 온프레미스 → Azure Private DNS Zone 쿼리 (인바운드)
-│   ├── Azure → 온프레미스 DNS 쿼리 (아웃바운드)
-│   └── VM 기반 DNS 서버 대체
-│
+└── Azure DNS Private Resolver
+    ├── 온프레미스 → Azure Private DNS Zone 쿼리 (인바운드)
+    ├── Azure → 온프레미스 DNS 쿼리 (아웃바운드)
+    └── VM 기반 DNS 서버 대체
+
+DNS 기반 트래픽 라우팅
 └── Azure Traffic Manager
-    ├── DNS 기반 트래픽 로드 밸런싱
+    ├── DNS 응답을 이용한 글로벌 트래픽 분산 (DNS 서비스 자체는 아님)
     ├── 라우팅 방법: 우선순위, 가중치, 성능, 지리적
     └── 엔드포인트 상태 모니터링
 ```
