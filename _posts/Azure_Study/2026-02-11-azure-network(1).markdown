@@ -30,7 +30,7 @@ VNet 핵심 특성
 │   └── 단일 리전에 종속, 모든 가용 영역(Availability Zone)에 걸침
 ├── 격리 (Isolation)
 │   └── VNet 간 트래픽은 기본적으로 격리됨
-├── 비용
+├── 비용  
 │   └── VNet 자체는 무료 (일부 기능은 과금)
 └── 구독 제한
     └── 구독당 최대 1,000개 VNet
@@ -88,12 +88,134 @@ VNet: 10.0.0.0/16 (65,536 IPs)
 
 ### 2.2 특수 목적 서브넷
 
-| &nbsp;서브넷 이름&nbsp; | &nbsp;용도&nbsp; | &nbsp;최소 크기&nbsp; |
+일부 Azure 서비스는 **전용 서브넷에 배포**해야 합니다. 이 서비스들이 전용 서브넷을 요구하는 이유는, 서브넷 내에 **자체 인프라 리소스(게이트웨이 인스턴스, 방화벽 노드 등)를 직접 주입**하고 관리해야 하기 때문입니다. 일반 VM이나 다른 리소스와 같은 서브넷에 있으면 IP 충돌, NSG/UDR 충돌, 서비스 내부 통신 간섭 등의 문제가 발생할 수 있어 Azure가 **서브넷 이름까지 강제**하는 경우가 많습니다.
+
+| &nbsp;서브넷 이름&nbsp; | &nbsp;용도&nbsp; | &nbsp;최소 크기&nbsp; | &nbsp;최소 크기 근거&nbsp; |
+|---|---|---|---|
+| GatewaySubnet | VPN/ExpressRoute Gateway 배포 | /27 권장 | Active-Active 구성 시 게이트웨이 인스턴스 2개 + 향후 ExpressRoute 공존 시 추가 인스턴스. /28까지 가능하지만 /27 이상을 권장 |
+| AzureFirewallSubnet | Azure Firewall 배포 | /26 필수 | Firewall은 부하에 따라 내부적으로 **인스턴스를 자동 스케일아웃**(최대 20개)합니다. 각 인스턴스가 IP를 소비하므로 최소 64개 IP(/26)가 필요 |
+| AzureBastionSubnet | Azure Bastion 배포 | /26 이상 | Bastion도 동시 접속 세션 수에 따라 내부 인스턴스를 스케일링합니다. /26은 최소이며, 50개 이상 동시 RDP/SSH 세션이 예상되면 /26 이상 필요 |
+| RouteServerSubnet | Azure Route Server 배포 | /27 | Route Server 인스턴스(이중화) + 내부 관리 IP 확보. 서비스 자체가 소규모라 /27이면 충분 |
+
+> **왜 최소 크기가 정해져 있나?**: 이 서비스들은 서브넷 안에 **여러 내부 인스턴스를 배포**하여 고가용성과 확장성을 제공합니다. 각 인스턴스가 서브넷의 프라이빗 IP를 하나씩 점유하고, Azure 예약 IP 5개도 차감되므로, 충분한 주소 공간이 없으면 **배포 실패 또는 스케일링 불가**가 발생합니다.
+
+---
+
+### 2.3 프라이빗 서브넷과 기본 아웃바운드 액세스 폐지
+
+Azure는 **2025년 9월 30일**부터 새로 생성되는 VM, VMSS 등의 리소스에 대해 **기본 아웃바운드 액세스(Default Outbound Access)**를 제공하지 않습니다. 그리고 **2026년 3월 31일**부터는 서브넷 생성 시 **프라이빗 서브넷(Private Subnet)**이 새 기본 선택으로 설정됩니다.
+
+> 참고: [Microsoft Learn, "Default outbound access for VMs in Azure will be retired"](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/default-outbound-access)
+
+```
+기본 아웃바운드 액세스 변경 타임라인
+
+[기존 동작 (2025.9.30 이전)]
+  VM 생성 → Public IP 없어도 → 아웃바운드 인터넷 가능
+  → Azure 플랫폼이 내부 IP 풀에서 암묵적 SNAT 수행 (무료)
+  → 구독에 Public IP 리소스가 생기는 것이 아님
+  → 어떤 IP로 나가는지 사용자가 확인 불가 (매번 바뀔 수 있음)
+
+[변경 후 (2025.9.30~)]
+  VM 생성 → 명시적 아웃바운드 방법 미설정 시 → 인터넷 접근 불가
+
+[2026.3.31~]
+  서브넷 생성 시 "프라이빗 서브넷" 옵션이 기본 활성화
+  → defaultOutboundAccess: false
+```
+
+**프라이빗 서브넷이란?**
+
+프라이빗 서브넷(`defaultOutboundAccess: false`)은 해당 서브넷의 리소스가 Azure 플랫폼의 암묵적 SNAT를 통한 아웃바운드 인터넷 접근을 **차단**합니다. 아웃바운드 인터넷이 필요한 경우 다음 중 하나를 **명시적으로** 구성해야 합니다:
+
+| &nbsp;명시적 아웃바운드 방법&nbsp; | &nbsp;설명&nbsp; |
+|---|---|
+| **NAT Gateway** | 서브넷 단위로 연결. 예측 가능한 공용 IP로 SNAT 제공 (권장) |
+| **Azure Load Balancer 아웃바운드 규칙** | LB 뒤의 VM에 아웃바운드 SNAT 규칙 설정 |
+| **VM에 Public IP 직접 할당** | 개별 VM에 고정 또는 동적 공용 IP 할당 |
+| **Azure Firewall / NVA** | UDR로 트래픽을 방화벽 경유 후 인터넷 접근 |
+
+> **왜 바뀌었나?**: 기존 기본 아웃바운드는 Azure 플랫폼 내부 IP 풀의 **암묵적 SNAT**였습니다. VM에 Public IP 리소스가 할당되는 것이 아니라, 플랫폼이 보이지 않는 곳에서 NAT를 수행했기에 **무료**였습니다. 하지만 바로 그 점이 문제였습니다 — 어떤 IP로 나가는지 알 수 없으니 보안 감사에서 식별이 어렵고, IP 허용 목록(allowlist) 관리가 불가능하며, DDoS Protection 적용도 안 되는 **보안 취약점**이었습니다.
+
+---
+
+### 2.4 NAT Gateway
+
+**Azure NAT Gateway**는 서브넷의 아웃바운드 인터넷 트래픽에 대해 **확장 가능하고 예측 가능한 SNAT(Source NAT)**를 제공하는 완전 관리형 서비스입니다. 프라이빗 서브넷이 기본값이 되면서, 아웃바운드 인터넷이 필요한 서브넷에는 NAT Gateway가 사실상 **필수 구성 요소**가 됩니다.
+
+> 참고: [Microsoft Learn, "What is Azure NAT Gateway?"](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview)
+
+NAT Gateway 동작
+
+![NAT Gateway](/images/26-02-11-2026-02-11-azure-network(1)-NAT_Gateway.png)
+
+```
+특성:
+  • 서브넷의 모든 아웃바운드 → NAT Gateway의 공용 IP로 SNAT
+  • 공용 IP 최대 16개 또는 /28 접두사 연결 가능
+  • 64,512 SNAT 포트 (공용 IP당)
+  • TCP/UDP idle timeout: 4~120분 (기본 4분)
+  • 인바운드 전용 연결 시작은 불가 (아웃바운드 전용)
+```
+
+**공용 IP 다중 연결의 의미:**
+
+NAT Gateway에 여러 공용 IP를 연결하면, **모든 IP가 하나의 SNAT 풀(pool)로 동작**합니다. "이 VM은 IP-A로, 저 VM은 IP-B로" 같은 지정은 **불가능**합니다 — Azure 플랫폼이 해시 기반으로 자동 분배하며 사용자가 제어할 수 없습니다.
+
+그렇다면 IP를 여러 개 붙이는 이유는 **SNAT 포트 용량 확보** 때문입니다:
+
+| &nbsp;공용 IP 수&nbsp; | &nbsp;총 SNAT 포트&nbsp; | &nbsp;용도&nbsp; |
 |---|---|---|
-| GatewaySubnet | VPN/ExpressRoute Gateway 배포 | /27 권장 |
-| AzureFirewallSubnet | Azure Firewall 배포 | /26 필수 |
-| AzureBastionSubnet | Azure Bastion 배포 | /26 이상 |
-| RouteServerSubnet | Azure Route Server 배포 | /27 |
+| 1개 | 64,512 | 소규모 서브넷 |
+| 4개 | 258,048 | 중간 규모 |
+| 16개 | 1,032,192 | 대규모 (수백~수천 VM이 동시 외부 호출) |
+
+**SNAT 포트 고갈(Exhaustion)**: 서브넷 내 VM들이 동시에 많은 아웃바운드 연결을 맺으면 포트가 부족해져 연결 실패가 발생합니다. 공용 IP를 추가하면 전체 포트 풀이 커지므로 이 문제를 해결할 수 있습니다. 특정 IP로의 트래픽 고정이 필요하다면 NAT Gateway 대신 **VM에 Public IP를 직접 할당**해야 합니다.
+
+---
+
+### 2.5 서브넷 위임 (Subnet Delegation)
+
+**서브넷 위임**은 특정 Azure PaaS 서비스가 해당 서브넷에 **서비스 고유의 리소스를 주입하고 관리**할 수 있도록 허용하는 설정입니다. 위임된 서브넷은 해당 서비스 전용이 되며, 다른 리소스 유형의 배포가 제한됩니다.
+
+> 참고: [Microsoft Learn, "Add or remove a subnet delegation"](https://learn.microsoft.com/en-us/azure/virtual-network/manage-subnet-delegation)
+
+```
+서브넷 위임 개념
+
+VNet: 10.0.0.0/16
+│
+├── Subnet-App: 10.0.1.0/24 (위임 없음 → VM, PE 등 자유 배포)
+│
+├── Subnet-SQL-MI: 10.0.2.0/24
+│   └── 위임: Microsoft.Sql/managedInstances
+│       → SQL Managed Instance 전용 서브넷
+│       → VM 등 다른 리소스 배포 불가
+│       → Azure가 서비스 네트워크 정책(NSG/UDR) 자동 추가
+│
+├── Subnet-WebApp: 10.0.3.0/24
+│   └── 위임: Microsoft.Web/serverFarms
+│       → App Service VNet Integration 전용
+│
+└── Subnet-Container: 10.0.4.0/24
+    └── 위임: Microsoft.ContainerInstance/containerGroups
+        → Azure Container Instances 전용
+```
+
+**주요 위임 서비스:**
+
+| &nbsp;서비스&nbsp; | &nbsp;위임 대상 (Resource Provider)&nbsp; | &nbsp;용도&nbsp; |
+|---|---|---|
+| SQL Managed Instance | Microsoft.Sql/managedInstances | MI 인스턴스 배포 |
+| App Service | Microsoft.Web/serverFarms | VNet Integration |
+| Container Instances | Microsoft.ContainerInstance/containerGroups | ACI 배포 |
+| Databricks | Microsoft.Databricks/workspaces | Databricks 워크스페이스 |
+| NetApp Files | Microsoft.NetApp/volumes | NetApp 볼륨 |
+| API Management | Microsoft.ApiManagement/service | APIM VNet 주입 |
+
+> **주의**: 위임된 서브넷에는 해당 서비스 외의 리소스를 배포할 수 없습니다. 또한 위임을 제거하려면 해당 서브넷의 위임된 리소스를 먼저 삭제해야 합니다.
+
+---
 
 <br>
 
@@ -103,21 +225,40 @@ VNet: 10.0.0.0/16 (65,536 IPs)
 
 ### 3.1 5-튜플 매칭
 
+**5-튜플(5-Tuple)**이란 네트워크 패킷 하나를 **고유하게 식별**할 수 있는 5가지 정보의 조합입니다. 모든 TCP/UDP 패킷 헤더에는 이 5가지 값이 포함되어 있으며, 이 조합이 같으면 같은 "흐름(flow)"에 속하는 패킷으로 간주합니다.
+
 ```
-보안 규칙 평가 기준 (5-Tuple)
-┌─────────────────────────────────────────────────┐
-│  ① Source IP/CIDR                               │
-│  ② Source Port                                  │
-│  ③ Destination IP/CIDR                          │
-│  ④ Destination Port                             │
-│  ⑤ Protocol (TCP / UDP / ICMP / Any)            │
-└─────────────────────────────────────────────────┘
-        ↓
-    Priority 기반 평가 (100~4096, 낮을수록 우선)
-        ↓
-    ┌─ Allow → 트래픽 통과
-    └─ Deny  → 트래픽 차단
+5-Tuple: 패킷을 식별하는 5가지 정보
+-----------------------------
+① Source IP/CIDR       – 보낸 쪽 IP 주소
+② Source Port          – 보낸 쪽 포트 번호
+③ Destination IP/CIDR  – 받는 쪽 IP 주소
+④ Destination Port     – 받는 쪽 포트 번호
+⑤ Protocol (TCP / UDP / ICMP / Any)
 ```
+
+**왜 5-튜플인가?**
+
+방화벽이 트래픽을 제어하려면 "어떤 패킷을 허용/차단할지" 판단 기준이 필요합니다. IP 주소만으로는 부족합니다 — 같은 서버라도 웹(443)은 열고 SSH(22)는 막아야 할 수 있고, 같은 포트라도 특정 출발지에서만 허용해야 할 수 있습니다. 5-튜플은 패킷의 **출발지, 목적지, 프로토콜**을 모두 조합하기 때문에 이런 세밀한 제어가 가능합니다.
+
+```
+예시: "10.0.1.0/24 서브넷에서 DB 서브넷으로 SQL(1433/TCP)만 허용"
+
+  Source IP:   10.0.1.0/24      (App 서브넷)
+  Source Port: *                (클라이언트 포트는 임의)
+  Dest IP:     10.0.3.0/24      (DB 서브넷)
+  Dest Port:   1433             (SQL Server)
+  Protocol:    TCP
+  → Allow ✓
+
+위 5가지 조건이 모두 일치하면 허용, 아니면 다음 규칙으로 넘어감
+```
+
+NSG는 각 보안 규칙을 **우선순위(Priority)**가 작은 순서부터 평가합니다:
+
+![NGS Flow](/images/26-02-11-2026-02-11-azure-network(1)-NSG_Flow.png)
+
+> **참고**: 5-튜플 매칭은 NSG뿐 아니라 Azure Load Balancer의 세션 분배, NAT Gateway의 SNAT 포트 할당 등에서도 사용되는 네트워크의 기본 개념입니다.
 
 ---
 
@@ -160,18 +301,23 @@ NSG는 생성 시 **삭제할 수 없는** 기본 규칙을 포함합니다:
 └── AppService         : Azure App Service IP 범위
 ```
 
-**Application Security Group (ASG)**는 VM을 논리적으로 그룹화하여 NSG 규칙에서 참조할 수 있게 합니다:
+**Application Security Group (ASG)**는 VM NIC를 논리적으로 그룹화하여 NSG 규칙의 Source/Destination으로 참조할 수 있게 합니다.
 
-```
-예시: ASG 기반 NSG 규칙
+즉, 질문하신 것처럼 **"NSG 적용 범위를 더 유연하게 관리"**하기 위한 기능이 맞습니다. 다만 정확히는 **NSG를 부착(Associate)하는 범위 자체를 바꾸는 기능은 아닙니다**:
 
-ASG: WebServers (VM1, VM2, VM3)
-ASG: DBServers  (VM4, VM5)
+- NSG 부착 범위: **서브넷 또는 NIC**
+- ASG 역할: NSG 규칙 안에서 대상(출발지/목적지)을 **IP/CIDR 대신 논리 그룹**으로 표현
 
-규칙: WebServers → DBServers, Port 1433, Allow
-  → 개별 IP 대신 논리 그룹으로 관리
-  → VM 추가/제거 시 규칙 변경 불필요
-```
+정리하면, NSG는 "어디에 적용할지"를 결정하고, ASG는 "그 안에서 누구와 통신을 허용/차단할지"를 더 쉽게 관리하게 해줍니다.
+
+![application security group](/images/26-02-11-2026-02-11-azure-network(1)-asg.png)
+
+
+**왜 ASG를 쓰는가?**
+
+환경이 커질수록 VM IP는 변경되거나 개수가 자주 바뀝니다. ASG를 사용하면 NSG 규칙을 IP로 일일이 관리하지 않고, NIC를 그룹에 넣고 빼는 방식으로 운영할 수 있어 규칙 수와 운영 복잡도를 크게 줄일 수 있습니다.
+
+> 참고: ASG는 보통 동일 VNet 내 NIC들을 논리적으로 묶어 NSG 규칙 가독성과 운영성을 높이는 데 사용합니다.
 
 ---
 
@@ -179,13 +325,14 @@ ASG: DBServers  (VM4, VM5)
 
 **Azure Virtual Network Manager**의 **Security Admin Rules**은 NSG보다 **높은 우선순위**로 평가됩니다. 조직 수준에서 강제적인 네트워크 정책을 적용할 때 사용합니다.
 
+> 참고: Azure Virtual Network Manager 리소스는 특정 구독/리전에 생성하더라도, 관리 범위(scope)는 별도로 Management Group 또는 여러 Subscription으로 지정할 수 있습니다. 즉, **리소스의 위치**와 **관리 대상 범위**는 분리됩니다(동일 테넌트 및 적절한 RBAC 권한 필요).
+
 ```
 트래픽 평가 순서
-┌──────────────────────────────┐
-│ ① Security Admin Rules       │  ← 조직 관리자 (최우선)
-│ ② NSG Rules                  │  ← 리소스 소유자
-│ ③ Default Rules              │  ← Azure 기본 규칙
-└──────────────────────────────┘
+-------------
+① Security Admin Rules    ← 조직 관리자 (최우선)
+② NSG Rules               ← 리소스 소유자
+③ Default Rules           ← Azure 기본 규칙
 ```
 
 <br>
@@ -198,6 +345,9 @@ Azure는 VNet 내의 각 서브넷에 대해 **자동으로 라우트 테이블(
 
 VNet이 생성되면 Azure는 각 서브넷에 다음 **기본 시스템 경로**를 자동 추가합니다:
 
+> 여기서 `Source`는 트래픽의 출발지가 아니라, **해당 경로를 만든 원천(Route source)**을 의미합니다.  
+> 즉 `Default`는 "Azure가 기본으로 넣어준 시스템 경로"라는 뜻입니다.
+
 | &nbsp;Source&nbsp; | &nbsp;주소 접두사&nbsp; | &nbsp;다음 홉 유형&nbsp; |
 |---|---|---|
 | Default | VNet 주소 범위 | Virtual network |
@@ -207,10 +357,22 @@ VNet이 생성되면 Azure는 각 서브넷에 다음 **기본 시스템 경로*
 | Default | 192.168.0.0/16 | None |
 | Default | 100.64.0.0/10 | None |
 
+`Source`에 자주 보이는 값은 아래와 같습니다:
+- `Default`: Azure 기본 시스템 경로
+- `User`: 사용자가 UDR(Route table)로 추가한 경로
+- `BGP`: VPN Gateway/ExpressRoute를 통해 학습된 경로
+
+**표 읽는 법 (핵심):**
+- 이 표는 "출발지"가 아니라 **목적지 IP 기준**으로 읽습니다.
+- `주소 접두사`는 매칭 조건, `다음 홉 유형`은 매칭 시 전달 위치입니다.
+- `0.0.0.0/0`은 "인터넷" 자체가 아니라 **모든 IPv4 목적지(기본값, catch-all)**를 뜻합니다.
+- 따라서 `0.0.0.0/0 → Internet`은 "더 구체 경로가 없으면 Internet 다음 홉으로 보낸다"는 의미입니다.
+- 실제 적용 시에는 **Longest Prefix Match(가장 구체적인 경로 우선)**가 먼저 적용됩니다.
+
 > **다음 홉 유형 설명**:
 > - **Virtual network**: VNet 주소 공간 내의 트래픽을 서브넷 간 직접 라우팅
 > - **Internet**: 0.0.0.0/0 접두사 → Azure 서비스 트래픽은 백본 네트워크를 통해, 나머지는 인터넷으로
-> - **None**: RFC 1918 프라이빗 주소로 향하는 트래픽을 드롭 (VNet 주소 공간에 포함되면 Virtual network으로 변경)
+> - **None**: RFC 1918 프라이빗 주소 + `100.64.0.0/10`(RFC 6598 Shared Address Space, 통신사 CG-NAT용)으로 향하는 트래픽을 기본적으로 드롭 (해당 대역이 VNet 주소 공간에 포함되면 Virtual network 경로가 더 구체적으로 적용)
 
 ---
 
@@ -402,25 +564,64 @@ Microsoft 글로벌 네트워크 규모
 
 Azure가 다른 클라우드 제공자와 **근본적으로 다른 점** 중 하나가 라우팅 전략입니다.
 
+> **용어 유래**: "뜨거운 감자(Hot Potato)"는 손에 쥐자마자 빨리 다른 사람에게 던지는 것, "차가운 감자(Cold Potato)"는 천천히 끝까지 쥐고 있는 것에서 비유됩니다. 트래픽을 얼마나 빨리 자신의 네트워크 밖으로 내보내느냐의 차이입니다.
+
 ```
 라우팅 전략 비교
 
-[Hot Potato Routing] (타 제공자 방식)
-  사용자 → ISP → 가장 가까운 엣지에서 즉시 공용 인터넷으로 핸드오프
-  → 인터넷을 통해 목적지까지 이동
-  → 경로 품질이 인터넷 상태에 의존
+[Hot Potato Routing]
+  사용자 → ISP → 자사 네트워크 엣지에서 즉시 공용 인터넷으로 핸드오프
+  → 인터넷(타 AS)을 통해 목적지까지 이동
+  → 자사 백본 사용을 최소화 → 비용 절감 목적
 
-[Cold Potato Routing] (Microsoft 방식)
-  사용자 → ISP → Microsoft 엣지 노드 (가장 가까운 POP)
-  → Microsoft WAN 백본을 통해 목적지 리전까지 이동
+[Cold Potato Routing]
+  사용자 → ISP → 클라우드 엣지 노드 (가장 가까운 POP)
+  → 클라우드 사업자의 WAN 백본을 통해 목적지 리전까지 이동
   → 최종 목적지 근처에서 비로소 백본 외부로 핸드오프
-  → 트래픽이 Microsoft 네트워크에 가능한 오래 머무름
+  → 트래픽이 사업자 네트워크에 가능한 오래 머무름
+```
 
-예시: 런던 사용자 → 도쿄 서비스 접근
-  ① 런던 엣지 노드에서 MS 백본 진입
-  ② 프랑스 → Trans-Arabia 경로 → 인도 → 일본
-  ③ 도쿄 리전에서 서비스 도달
-  ④ 응답은 동일한 경로를 대칭적(Symmetric)으로 반환
+---
+
+#### 벤더별 기본 전략
+
+| 벤더 | 기본 전략 | 비고 |
+|------|----------|------|
+| **Microsoft Azure** | Cold Potato | 글로벌 WAN 백본(MSWAN) 기본 적용. 별도 옵션 없음 |
+| **AWS** | Hot Potato | 기본적으로 외부 인터넷 경유. [AWS Global Accelerator](https://aws.amazon.com/global-accelerator/)를 추가하면 Cold Potato와 유사한 효과 가능 (유료 옵션) |
+| **Google Cloud** | 선택 가능 | **Premium Tier**: Cold Potato (Google 백본 최대 활용) / **Standard Tier**: Hot Potato (인터넷 경유, 저렴) |
+| **일반 ISP / CDN** | Hot Potato | Peering 포인트에서 최대한 빨리 라우팅 핸드오프. 트랜짓 비용 최소화 목적 |
+
+> AWS는 기본 라우팅만으로는 공용 인터넷 경유이므로 장거리 리전 간 통신에서 지연 편차가 발생할 수 있습니다.  
+> Google Cloud는 Tier를 명시적으로 선택해야 하며, Standard Tier는 비용이 낮지만 품질 보장이 없습니다.
+
+---
+
+#### 장단점 비교
+
+**Cold Potato Routing**
+
+| 구분 | 내용 |
+|------|------|
+| **장점** | ① 낮고 일관된 지연 시간(Latency) 및 지터(Jitter) <br> ② 패킷 손실률 감소 — 인터넷 혼잡 구간 최소화 <br> ③ 대칭 라우팅 보장 — 왕복 경로가 동일하여 디버깅·모니터링 용이 <br> ④ SLA 품질 예측 가능 — 내부 네트워크이므로 인터넷 장애 영향 격리 |
+| **단점** | ① 운영 비용 증가 — 대규모 자체 WAN 인프라 유지 필요 <br> ② 사업자 의존 — 경로 제어권이 클라우드 사업자에게 있음 <br> ③ 사업자 네트워크 장애 시 고객 영향 범위가 넓을 수 있음 |
+
+**Hot Potato Routing**
+
+| 구분 | 내용 |
+|------|------|
+| **장점** | ① 사업자 입장에서 백본 운영 비용 절감 <br> ② 여러 ISP 경로를 활용 — 특정 경로 장애 시 우회 가능 <br> ③ Tier/요금제 선택의 유연성 제공 (Google처럼 옵션 분리 가능) |
+| **단점** | ① 지연 시간이 인터넷 혼잡 상태에 따라 변동 <br> ② 비대칭 라우팅(Asymmetric Routing) 발생 가능 — 왕복 경로가 달라 트러블슈팅 어려움 <br> ③ 패킷 손실, 지터 등 품질 보장 불가 — BGP 경로 변경에 영향 <br> ④ 장거리 리전 간 통신 품질이 일관되지 않음 |
+
+```
+비대칭 라우팅 예시 (Hot Potato)
+
+요청: 서울 → 시드니
+  서울 ISP → Peering A → 인터넷 경유 → 시드니
+
+응답: 시드니 → 서울
+  시드니 ISP → Peering B → 인터넷 경유 → (다른 경로) → 서울
+  → 왕복 경로가 달라 지연 계산, 패킷 추적이 복잡해짐
 ```
 
 > 참고: [Microsoft Learn, "Microsoft global network - Get the premium cloud network"](https://learn.microsoft.com/en-us/azure/networking/microsoft-global-network#get-the-premium-cloud-network) — "At Microsoft, we choose and utilize direct interconnects instead of transit-links"
@@ -599,6 +800,10 @@ VM-A (10.0.1.4)              VM-B (10.0.2.4)
 - [ ] 서브넷을 워크로드 역할별로 분리 (Web/App/DB/관리)
 - [ ] 특수 서브넷(GatewaySubnet, AzureFirewallSubnet 등) 사전 계획
 - [ ] 온프레미스와 겹치지 않는 주소 공간 선택
+- [ ] 프라이빗 서브넷 기본값 전환(2026.3.31) 대비: 명시적 아웃바운드 방법 구성 확인
+- [ ] NAT Gateway를 아웃바운드 인터넷이 필요한 서브넷에 연결
+- [ ] 서브넷 위임이 필요한 PaaS 서비스(SQL MI, App Service 등)에 전용 서브넷 할당
+- [ ] Private Endpoint 네트워크 정책(NSG/UDR) 적용 여부 검토
 
 **NSG:**
 - [ ] 모든 서브넷에 NSG 연결 (기본 거부 → 필요한 트래픽만 허용)

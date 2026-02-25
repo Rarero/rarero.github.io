@@ -484,6 +484,54 @@ Private DNS Zone 구성:
 
 > 참고: [Microsoft Learn, "Azure Private Endpoint DNS configuration"](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-dns)
 
+### 5.3 프라이빗 엔드포인트 네트워크 정책 (Private Endpoint Network Policies)
+
+기본적으로 프라이빗 엔드포인트로 향하는 트래픽에는 **NSG 규칙과 UDR이 적용되지 않았습니다**. Azure는 이를 개선하여, 서브넷 수준에서 프라이빗 엔드포인트 트래픽에 대한 **네트워크 정책 적용을 선택적으로 활성화**할 수 있도록 했습니다.
+
+> 참고: [Microsoft Learn, "Manage network policies for private endpoints"](https://learn.microsoft.com/en-us/azure/private-link/disable-private-endpoint-network-policy)
+
+```
+프라이빗 엔드포인트 네트워크 정책
+
+[기본 동작 (정책 비활성화)]
+  VM (10.0.1.4) ──→ PE (10.0.1.10)
+   │                    │
+   │  NSG 규칙?  → 무시됨 (PE 트래픽은 NSG 우회)
+   │  UDR?       → 무시됨 (PE 트래픽은 UDR 우회)
+   └─ 정책 적용 불가
+
+[정책 활성화 후]
+  VM (10.0.1.4) ──→ NSG 평가 ──→ UDR 평가 ──→ PE (10.0.1.10)
+   │                    │            │
+   │  NSG 규칙?  → 적용됨 ✓          │
+   │  UDR?       → 적용됨 ✓ (NVA 경유 가능)
+   └─ 세밀한 트래픽 제어 가능
+```
+
+**서브넷에서 설정하는 두 가지 네트워크 정책:**
+
+| &nbsp;정책 유형&nbsp; | &nbsp;속성&nbsp; | &nbsp;효과&nbsp; |
+|---|---|---|
+| **NSG 정책** | `privateEndpointNetworkPolicies: Enabled` | PE 트래픽에 NSG 규칙 적용. Source/Destination에 PE의 Private IP 사용 가능 |
+| **UDR 정책** | `privateEndpointNetworkPolicies: RouteTableEnabled` | PE 트래픽에 UDR 적용. /32 경로로 NVA를 경유하게 강제 가능 |
+| **둘 다** | `privateEndpointNetworkPolicies: NetworkSecurityGroupEnabled, RouteTableEnabled` | 위의 두 가지 모두 활성화 |
+
+```bash
+# Azure CLI: 서브넷에 PE 네트워크 정책 활성화
+az network vnet subnet update \
+    --resource-group MyRG \
+    --vnet-name MyVNet \
+    --name MySubnet \
+    --private-endpoint-network-policies Enabled
+```
+
+**활용 시나리오:**
+- **NSG로 PE 접근 제어**: 특정 소스 서브넷에서만 PE로의 접근을 허용하고, 나머지는 차단
+- **UDR로 PE 트래픽 검사**: PE로 향하는 트래픽을 Azure Firewall/NVA를 경유하도록 강제
+- **규정 준수**: 모든 트래픽이 방화벽을 거쳐야 하는 환경에서 PE 트래픽도 예외 없이 검사
+
+> **주의**: PE 네트워크 정책은 **서브넷 단위**로 설정됩니다. 동일 서브넷 내 모든 PE에 일괄 적용되므로, PE별 세밀한 제어가 필요하면 서브넷을 분리하세요.
+
 <br>
 
 ## 6. Service Endpoint
@@ -577,6 +625,72 @@ VM (10.0.1.4) ──→ Azure 백본 직통 ──→ Azure Storage
 | 비용 | 무료 | PE 시간당 + 데이터 처리 요금 |
 
 > **Microsoft 권장사항**: 보안 및 프라이빗 접근이 중요한 프로덕션 환경에서는 **Private Endpoint** 사용을 권장합니다. Service Endpoint은 간단한 구성과 비용이 중요한 시나리오에 적합합니다.
+
+---
+
+### 6.3 서비스 엔드포인트 정책 (Service Endpoint Policy)
+
+서비스 엔드포인트만으로는 **어떤 Azure 리소스에 접근하는지** 제한할 수 없습니다. 예를 들어 `Microsoft.Storage` 서비스 엔드포인트를 활성화하면, 해당 서브넷에서 **모든 Azure Storage 계정**에 백본 경로로 접근 가능합니다. **서비스 엔드포인트 정책(Service Endpoint Policy)**은 서비스 엔드포인트를 통한 트래픽을 **특정 Azure 리소스 인스턴스로만 제한**하여 데이터 유출을 방지합니다.
+
+> 참고: [Microsoft Learn, "Virtual network service endpoint policies"](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-service-endpoint-policies-overview)
+
+```
+서비스 엔드포인트 정책 동작
+
+[정책 미적용]
+  Subnet ──→ Service Endpoint (Microsoft.Storage)
+  │
+  ├──→ mystorageA.blob... ✓  (내 계정)
+  ├──→ mystorageB.blob... ✓  (내 계정)
+  └──→ attackerStorage.blob... ✓  (외부 계정도 접근 가능!)
+       → 데이터 유출 위험
+
+[정책 적용]
+  Subnet ──→ Service Endpoint + Endpoint Policy
+  │
+  │  정책: mystorageA, mystorageB만 허용
+  │
+  ├──→ mystorageA.blob... ✓  허용
+  ├──→ mystorageB.blob... ✓  허용
+  └──→ attackerStorage.blob... ✗  차단!
+       → 데이터 유출 방지 (Exfiltration Protection)
+```
+
+**핵심 특성:**
+
+| &nbsp;항목&nbsp; | &nbsp;설명&nbsp; |
+|---|---|
+| 적용 범위 | 서브넷 단위로 연결 |
+| 지원 서비스 | Azure Storage (일반 공급), Azure SQL Database (미리 보기) 등 |
+| 정책 정의 | 허용할 리소스의 Resource ID를 명시 |
+| 기본 동작 | 정책이 연결되면 **명시적으로 허용된 리소스 외 모든 접근 차단** |
+| 와일드카드 | 특정 리소스 그룹의 모든 Storage 계정 허용 등 가능 |
+
+```bash
+# Azure CLI: 서비스 엔드포인트 정책 생성
+az network service-endpoint policy create \
+    --resource-group MyRG \
+    --name sep-storage-policy
+
+# 특정 Storage 계정만 허용하는 정책 정의 추가
+az network service-endpoint policy-definition create \
+    --resource-group MyRG \
+    --policy-name sep-storage-policy \
+    --name allow-my-storage \
+    --service Microsoft.Storage \
+    --service-resources \
+      /subscriptions/{sub-id}/resourceGroups/MyRG/providers/Microsoft.Storage/storageAccounts/mystorageA \
+      /subscriptions/{sub-id}/resourceGroups/MyRG/providers/Microsoft.Storage/storageAccounts/mystorageB
+
+# 서브넷에 정책 연결
+az network vnet subnet update \
+    --resource-group MyRG \
+    --vnet-name MyVNet \
+    --name MySubnet \
+    --service-endpoint-policy sep-storage-policy
+```
+
+> **Service Endpoint Policy vs Private Endpoint**: Private Endpoint는 특정 리소스 인스턴스에 1:1 매핑되므로 본질적으로 데이터 유출 방지가 내장됩니다. Service Endpoint Policy는 Service Endpoint 환경에서 유사한 수준의 리소스 제한을 제공하며, **추가 비용 없이** 사용 가능합니다.
 
 <br>
 
