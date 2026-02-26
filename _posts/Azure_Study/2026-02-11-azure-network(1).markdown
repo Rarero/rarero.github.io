@@ -545,9 +545,9 @@ Azure가 Peering에서 추구하는 방향은 단순합니다. **필요한 연�
 
 주의할 점은, Gateway Transit은 주로 **스포크↔원격 네트워크(온프레미스 등)** 경로 공유를 위한 설정이며, 스포크 간 자동 전이를 만들어주지는 않습니다.
 
-![Gateway Transit](/images/26-02-11-2026-02-11-azure-network(1)-Gateway_Transit_Option.png)
+![Gateway Transit](/images/26-02-11-2026-02-11-azure-network(1)-gw_transit_option.png)
 
-![Gateway Transit](/images/26-02-11-2026-02-11-azure-network(1)-Gateway_Transit.png)
+![Gateway Transit](/images/26-02-11-2026-02-11-azure-network(1)-gw_transit.png)
 
 > **장점**: 각 스포크 VNet에 별도 게이트웨이를 배포하지 않아도 됨 → **비용 절감**
 
