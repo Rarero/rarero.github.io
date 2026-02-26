@@ -812,7 +812,7 @@ Azure는 데이터센터 간 트래픽을 기본적으로 MACsec(IEEE 802.1AE)�
   - Accelerated Networking 지원 VM SKU (D/E/F 시리즈 v4 이상 등 AN 지원 SKU)
 ```
 
-> **주의**: VNet Encryption 활성화된 VNet에서는 Azure Firewall, Application Gateway, DNS Private Resolver가 **지원되지 않습니다**. 또한 **ExpressRoute Gateway가 연결된 VNet에는 VNet Encryption을 활성화하지 마세요** (온프레미스 통신 장애 발생).
+> **주의**: VNet Encryption 활성화된 VNet에서는 Azure Firewall, Application Gateway, DNS Private Resolver가 **지원되지 않습니다**. 또한 **ExpressRoute Gateway가 연결된 VNet에는 VNet Encryption을 활성화시 온프레미스 통신 장애가 발생할 수 있습니다.**
 
 > 참고: [Microsoft Learn, "VNet encryption - Limitations"](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-encryption-overview#limitations)
 
