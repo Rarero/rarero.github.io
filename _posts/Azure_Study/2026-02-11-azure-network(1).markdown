@@ -341,7 +341,7 @@ Security Admin Rule은 AVNM에서 조직 공통 정책을 중앙 강제하는 �
 
 ![Virtual Network Manager](/images/26-02-11-2026-02-11-azure-network(1)-Virtual_Network_Manager.png)
 
-> 참고(공식): https://learn.microsoft.com/azure/virtual-network-manager/concept-security-admins, https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview
+> 참고: https://learn.microsoft.com/azure/virtual-network-manager/concept-security-admins, https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview
 
 <br>
 
@@ -497,7 +497,7 @@ az network route-table route create \
 
 > 라우트 테이블당 Service Tag 경로는 최대 **25개**까지 생성 가능합니다.
   >
-  > 참고(공식): https://learn.microsoft.com/azure/virtual-network/virtual-networks-udr-overview#custom-routes
+  > 참고: https://learn.microsoft.com/azure/virtual-network/virtual-networks-udr-overview#custom-routes
 
 <br>
 
@@ -535,7 +535,38 @@ Azure가 Peering에서 추구하는 방향은 단순합니다. **필요한 연�
 
 ---
 
-### 5.3 게이트웨이 전송 (Gateway Transit)
+### 5.3 서비스 체이닝 (Service Chaining)
+
+**분류:** 네트워크 패턴
+
+서비스 체이닝은 UDR + Peering 조합으로 **트래픽을 중앙 보안 지점(NVA/Firewall)으로 강제 경유**시키는 패턴입니다.
+
+Azure 아키텍처 관점에서 이는 "연결"과 "검사/통제"를 분리하는 방식입니다:
+- Peering: 네트워크 도달성 제공
+- UDR + NVA: 보안 정책 집행
+
+그래서 실무에서는 Spoke 간 직접 연결이 가능하더라도, 보안/감사 요구가 크면 Hub 경유 체이닝을 선택합니다.
+
+핵심 동작을 한 단계 더 풀면 아래와 같습니다.
+
+1. Spoke 서브넷 라우트 테이블에 대상 경로(예: 인터넷, 온프레미스, 다른 Spoke)를 UDR로 선언
+2. Next hop을 Hub의 NVA/Firewall IP로 지정
+3. 트래픽이 Peering을 통해 Hub로 이동하고, NVA에서 정책 검사(NSG/방화벽 규칙) 수행
+4. 허용된 트래픽만 최종 목적지로 전달, 차단 대상은 Hub에서 폐기
+
+실무 체크포인트는 3가지가 가장 중요합니다.
+- NVA NIC의 **IP 포워딩**과 게스트 OS 포워딩(예: `net.ipv4.ip_forward=1`) 설정
+- Peering의 **Allow forwarded traffic** 옵션 활성화
+- 왕복 경로가 다르게 흐르지 않도록(비대칭 라우팅 방지) UDR을 양방향으로 일관되게 설계
+
+![Service Chaining](/images/26-02-11-2026-02-11-azure-network(1)-Service_chaing.png)
+
+
+> 참고: https://learn.microsoft.com/azure/virtual-network/virtual-network-peering-overview, https://learn.microsoft.com/azure/architecture/networking/architecture/hub-spoke#recommendations
+
+---
+
+### 5.4 게이트웨이 전송 (Gateway Transit)
 
 **분류:** 피어링 옵션(기능)
 
@@ -550,35 +581,6 @@ Azure가 Peering에서 추구하는 방향은 단순합니다. **필요한 연�
 ![Gateway Transit](/images/26-02-11-2026-02-11-azure-network(1)-Gateway_Transit.png)
 
 > **장점**: 각 스포크 VNet에 별도 게이트웨이를 배포하지 않아도 됨 → **비용 절감**
-
----
-
-### 5.4 서비스 체이닝 (Service Chaining)
-
-**분류:** 네트워크 패턴
-
-서비스 체이닝은 UDR + Peering 조합으로 **트래픽을 중앙 보안 지점(NVA/Firewall)으로 강제 경유**시키는 패턴입니다.
-
-Azure 아키텍처 관점에서 이는 "연결"과 "검사/통제"를 분리하는 방식입니다:
-- Peering: 네트워크 도달성 제공
-- UDR + NVA: 보안 정책 집행
-
-그래서 실무에서는 Spoke 간 직접 연결이 가능하더라도, 보안/감사 요구가 크면 Hub 경유 체이닝을 선택합니다.
-
-```
-서비스 체이닝 예시
-
-Spoke VNet (10.1.0.0/16)
-  └── UDR: 0.0.0.0/0 → Hub NVA (10.0.100.4)
-                │
-        Peering │
-                ▼
-Hub VNet (10.0.0.0/16)
-  └── NVA Subnet (10.0.100.0/24)
-        └── Firewall VM (10.0.100.4) → 검사 후 인터넷 또는 온프레미스
-```
-
-> 참고(공식): https://learn.microsoft.com/azure/virtual-network/virtual-network-peering-overview, https://learn.microsoft.com/azure/architecture/networking/architecture/hub-spoke#recommendations
 
 <br>
 
@@ -684,17 +686,19 @@ Microsoft는 글로벌 네트워크를 **소프트웨어 정의(SDN) 방식**으
 
 ```
 운영 원칙
-├── 통합 SDN 기술로 모든 하드웨어 요소 제어
-│   └── 중복 제거 및 장애 감소
-├── 프로덕션 네트워크의 미러 환경 구축
-│   └── 수백만 건의 시뮬레이션으로 변경 사항 검증
-├── 제로 다운타임 업데이트
-│   └── 수 주가 아닌 수 시간 내 롤아웃
-├── 클라우드 기반 모니터링
-│   └── 완전 자동화된 장애 완화
-└── 최고 수준의 스위칭 하드웨어
-    └── 네트워크 계층별 최적 장비 배치
+│
+├── 통합 제어 (Unified Control): 모든 물리 하드웨어를 SDN으로 통합 관리하여 중복 제거 및 장애 최소화
+│
+├── 디지털 트윈<sup>3</sup> (Simulation): 실제 네트워크의 미러 환경에서 수백만 건의 시뮬레이션으로 변경 사항 사전 검증
+│
+├── 민첩한 배포 (Agility): 제로 다운타임 업데이트 기술로 전 세계 배포 시간을 수 주에서 수 시간으로 단축
+│
+├── 자동화된 감시 (Automation): 클라우드 기반 실시간 모니터링을 통한 즉각적이고 완전 자동화된 장애 완화
+│
+└── 하드웨어 최적화 (Optimization): 지능형 소프트웨어와 최고 사양 스위칭 하드웨어를 계층별로 최적 배치
 ```
+
+> <sup>3</sup> **디지털 트윈 (Digital Twin)**: 실제 네트워크 인프라를 가상 세계에 똑같이 복제하여, 업데이트나 장애 시나리오를 사전에 수백만 번 시뮬레이션하고 안정성을 검증하는 기술
 
 > 참고: [Microsoft Learn, "Microsoft global network - Well managed using software-defined innovation"](https://learn.microsoft.com/en-us/azure/networking/microsoft-global-network#well-managed-using-software-defined-innovation) — "Use unified and software-defined Networking technology to control all hardware elements in the network"
 
@@ -708,37 +712,14 @@ Azure VM이 네트워크 패킷을 보내거나 받을 때, 패킷은 **Azure �
 
 ### 7.1 기본 데이터 경로 (Virtual Switch)
 
-```
-기본 데이터 경로 (Accelerated Networking 미적용)
+![Virtual Switch](/images/26-02-11-2026-02-11-azure-network(1)-Virtual_Switch.png)
 
-┌───────────────────────────────────────────────────┐
-│                    Azure Host                     │
-│                                                   │
-│  ┌─────────┐                                      │
-│  │   VM    │                                      │
-│  │  ┌────┐ │    Synthetic NIC                     │
-│  │  │vNIC│ │ ←→ (VMbus/netvsc 드라이버)            │
-│  │  └────┘ │          │                           │
-│  └─────────┘          │                           │
-│                       ▼                           │
-│              ┌─────────────────┐                  │
-│              │  Virtual Switch │ ← 모든 정책 적용  │
-│              │   (VFP 엔진)    │   - NSG 규칙      │
-│              │                 │   - UDR 라우팅    │
-│              │                 │   - VNet 격리     │
-│              │                 │   - 부하 분산     │
-│              └────────┬────────┘                  │
-│                       │                           │
-│              ┌────────▼────────┐                  │
-│              │  Physical NIC   │                  │
-│              │  (Mellanox)     │                  │
-│              └────────┬────────┘                  │
-└───────────────────────┼───────────────────────────┘
-                        │
-                   DC 물리 네트워크
-```
+**용어를 한 번에 정리하면:**
+- **Synthetic NIC**: VM OS에서 보이는 기본 가상 NIC (`eth0` 등). 위치는 **게스트 VM 내부**이며, VM의 기본 송수신 인터페이스입니다.
+- **VFP (Virtual Filtering Platform)**: Azure 가상 스위치 내부의 정책 엔진. 위치는 **Azure 호스트의 Virtual Switch 계층**이며, NSG/UDR/격리 정책을 적용합니다.
+- **Physical NIC**: Azure 서버의 실제 하드웨어 NIC. 위치는 **Azure 호스트의 물리 하드웨어 계층**이며, 데이터센터 물리 네트워크와 실제 트래픽을 주고받습니다.
 
-핵심은 **VFP(Virtual Filtering Platform)** 엔진입니다. Azure의 모든 네트워크 정책 — NSG, UDR, VNet 격리, 서브넷 라우팅 — 은 이 가상 스위치에서 소프트웨어적으로 실행됩니다. VM은 이 정책의 존재를 알지 못합니다.
+핵심은 **VFP(Virtual Filtering Platform)** 엔진입니다. Azure의 모든 네트워크 정책(NSG, UDR, VNet 격리, 서브넷 라우팅)은 이 가상 스위치에서 소프트웨어적으로 실행됩니다. VM은 이 정책의 존재를 알지 못합니다.
 
 > 참고: [Microsoft Learn, "Accelerated Networking overview"](https://learn.microsoft.com/en-us/azure/virtual-network/accelerated-networking-overview) — "The virtual switch provides all policy enforcement to network traffic. Policies include network security groups, access control lists, isolation, and other network virtualized services."
 
@@ -750,33 +731,8 @@ Azure VM이 네트워크 패킷을 보내거나 받을 때, 패킷은 **Azure �
 
 > 참고: [Microsoft Learn, "How Accelerated Networking works in Linux and FreeBSD VMs"](https://learn.microsoft.com/en-us/azure/virtual-network/accelerated-networking-how-it-works)
 
-```
-Accelerated Networking 데이터 경로
+![SR-IOV](/images/26-02-11-2026-02-11-azure-network(1)-SR-IOV.png)
 
-┌───────────────────────────────────────────────────┐
-│                    Azure Host                     │
-│                                                   │
-│  ┌─────────┐                                      │
-│  │   VM    │                                      │
-│  │  ┌────┐ │    ① Synthetic NIC (eth0)            │
-│  │  │vNIC│ │ ←→ netvsc 드라이버 (제어/폴백 경로)    │
-│  │  │    │ │                                      │
-│  │  │ VF │ │ ←→ ② SR-IOV VF (enP53091s1np0)       │
-│  │  └────┘ │    mlx5 드라이버 (고속 데이터 경로)     │
-│  └─────────┘          │                           │
-│                       │ ← 가상 스위치 우회!         │
-│              ┌────────┼────────┐                  │
-│              │  Virtual Switch │ (우회됨)          │
-│              └─────────────────┘                  │
-│                       │                           │
-│              ┌────────▼────────┐                  │
-│              │  Physical NIC   │ ← 정책을 하드웨어에│
-│              │  (Mellanox)     │   오프로드        │
-│              └────────┬────────┘                  │
-└───────────────────────┼───────────────────────────┘
-                        │
-                   DC 물리 네트워크
-```
 
 **동작 원리:**
 
@@ -788,6 +744,33 @@ Accelerated Networking 데이터 경로
 4. 호스트 유지보수 시 VF가 일시 제거되면, **synthetic NIC로 자동 폴백** (30초~수 분)
 
 > 참고: [Microsoft Learn, "Accelerated Networking overview - Benefits"](https://learn.microsoft.com/en-us/azure/virtual-network/accelerated-networking-overview#benefits) — "Removing the virtual switch from the data path eliminates the time that packets spend in the host for policy processing"
+
+**가상 스위치 우회(AN) 사용 방법:**
+
+1. **AN 지원 VM SKU를 선택**합니다 (모든 VM 크기가 지원되는 것은 아님)
+2. VM 생성 시 NIC에서 **Accelerated networking = Enabled**로 설정합니다
+3. 기존 VM에 적용할 때는 일반적으로 **VM 중지(할당 해제) → NIC에서 AN 활성화 → VM 재시작** 순서로 진행합니다
+4. 게스트 OS에서는 `eth0`(synthetic) 외에 `enP*` 형태의 **VF 인터페이스**가 보이는지 확인해 데이터 경로가 활성화됐는지 검증합니다
+
+> **중요**: "가상 스위치 우회"는 보안 정책을 건너뛴다는 의미가 아닙니다. NSG/격리 정책은 사라지는 것이 아니라, **호스트 소프트웨어 경로 대신 NIC 하드웨어로 오프로드**되어 적용됩니다.
+
+**언제 필요한가:**
+
+- **초저지연/고PPS**가 중요한 워크로드 (실시간 트레이딩, 게임 서버, 실시간 분석 수집)
+- 네트워크 처리로 VM CPU가 많이 소모되는 **고트래픽 NVA/프록시/게이트웨이**
+- 지터<sup>4</sup>(Jitter)를 줄여야 하는 **지연 민감형 애플리케이션**
+- 섹션 8에서 다루는 **VNet Encryption**이 필요한 환경 (AN이 전제 조건)
+
+> <sup>4</sup> **지터 (Jitter)**는 디지털 신호나 데이터 패킷이 시간축 상에서 이상적인 위치(주기)에서 벗어나 불규칙하게 흐트러지는 시간적 편차나 흔들림을 뜻합니다. 주로 네트워크의 지연 변동성, 클럭의 불안정성 등을 나타내며, 높을수록 신호 오류, 화면 찢어짐, 음질 저하, 렉 발생의 원인이 됩니다.
+
+**이 기술이 사용되는 Azure 서비스/시나리오:**
+
+| &nbsp;서비스/시나리오&nbsp; | &nbsp;사용 방식&nbsp; |
+|---|---|
+| Azure Virtual Machines (VM) | AN 활성화 NIC를 통해 SR-IOV 데이터 경로 사용 |
+| Virtual Machine Scale Sets (VMSS) | 스케일 아웃되는 인스턴스에 AN 적용해 일관된 네트워크 성능 확보 |
+| Azure Kubernetes Service (AKS) | 노드 VM이 AN 지원 SKU/설정일 때, Pod 트래픽이 저지연 경로의 이점 활용 |
+| VNet Encryption | SR-IOV 기반 경로를 전제로 VM 간 트래픽 암호화 |
 
 ---
 
@@ -816,23 +799,17 @@ Azure는 데이터센터 간 트래픽을 기본적으로 MACsec(IEEE 802.1AE)�
 
 > 참고: [Microsoft Learn, "What is Azure Virtual Network encryption?"](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-encryption-overview)
 
+![VNet Encryption](/images/26-02-11-2026-02-11-azure-network(1)-VNet_Encryption.png)
+
 ```
-VNet Encryption 동작
-
-VM-A (10.0.1.4)              VM-B (10.0.2.4)
-      │                            │
-      │         DTLS 터널           │
-      └─────── 암호화됨 ────────────┘
-               (자동 설정)
-
 지원 범위:
-  ✓ 동일 VNet 내 VM 간
-  ✓ 피어링된 VNet 간 (Local & Global Peering)
-  ✓ Virtual Machine Scale Sets
+  - 동일 VNet 내 VM 간
+  - 피어링된 VNet 간 (Local & Global Peering)
+  - Virtual Machine Scale Sets
 
 요구 사항:
-  • Accelerated Networking 필수 (SR-IOV 기반 암호화)
-  • Accelerated Networking 지원 VM SKU (D/E/F 시리즈 v4 이상 등 AN 지원 SKU)
+  - Accelerated Networking 필수 (SR-IOV 기반 암호화)
+  - Accelerated Networking 지원 VM SKU (D/E/F 시리즈 v4 이상 등 AN 지원 SKU)
 ```
 
 > **주의**: VNet Encryption 활성화된 VNet에서는 Azure Firewall, Application Gateway, DNS Private Resolver가 **지원되지 않습니다**. 또한 **ExpressRoute Gateway가 연결된 VNet에는 VNet Encryption을 활성화하지 마세요** (온프레미스 통신 장애 발생).
@@ -841,41 +818,28 @@ VM-A (10.0.1.4)              VM-B (10.0.2.4)
 
 <br>
 
-## 9. 마치며: 체크리스트
+## 9. 마치며: 핵심 요약 (Key Takeaways)
 
-**VNet & 서브넷:**
-- [ ] VNet 주소 공간을 충분히 크게 설계 (향후 확장 고려)
-- [ ] 서브넷을 워크로드 역할별로 분리 (Web/App/DB/관리)
-- [ ] 특수 서브넷(GatewaySubnet, AzureFirewallSubnet 등) 사전 계획
-- [ ] 온프레미스와 겹치지 않는 주소 공간 선택
-- [ ] 프라이빗 서브넷 기본값 전환(2026.3.31) 대비: 명시적 아웃바운드 방법 구성 확인
-- [ ] NAT Gateway를 아웃바운드 인터넷이 필요한 서브넷에 연결
-- [ ] 서브넷 위임이 필요한 PaaS 서비스(SQL MI, App Service 등)에 전용 서브넷 할당
-- [ ] Private Endpoint 네트워크 정책(NSG/UDR) 적용 여부 검토
+이번 포스트에서 다룬 방대한 내용을 3가지 핵심 관점으로 요약합니다.
 
-**NSG:**
-- [ ] 모든 서브넷에 NSG 연결 (기본 거부 → 필요한 트래픽만 허용)
-- [ ] Service Tag 활용으로 규칙 관리 단순화
-- [ ] ASG로 VM 그룹 관리
-- [ ] NSG Flow Logs 활성화 (트래픽 모니터링)
+### ① 설계 및 구조 (Architecture)
+* **격리와 예약**: VNet은 리전 단위의 논리적 격리 경계이며, 각 서브넷에서는 관리 목적으로 **5개의 IP가 예약**됩니다.
+* **전용 서브넷**: Gateway, Firewall, Bastion 등은 서비스 특성에 맞는 **전용 서브넷 이름과 최소 크기(/26~27)**를 요구합니다.
+* **Private by Default**: 2026년부터 프라이빗 서브넷이 기본값이 됩니다. 아웃바운드 인터넷을 위해 **NAT Gateway** 명시가 필수적인 시대로 접어들었습니다.
 
-**라우팅:**
-- [ ] 기본 라우팅 동작 이해 후 UDR 적용
-- [ ] NVA에 IP 포워딩 설정 확인
-- [ ] GatewaySubnet에 0.0.0.0/0 UDR 연결 금지
-- [ ] BGP 경로 전파 비활성화 여부 검토
+### ② 보안 및 트래픽 제어 (Security & Routing)
+* **LPM(Longest Prefix Match) 우선**: 라우팅 시 우선순위(`UDR > BGP > System`)보다 **더 구체적인 주소 범위(Prefix가 긴 것)**가 항상 최우선으로 선택됩니다.
+* **상태 저장 필터링**: NSG는 **5-튜플** 기반의 상태 저장 방화벽입니다. 효율적인 운영을 위해 **Service Tag**와 **ASG**를 적극 활용해야 합니다.
+* **비전이성(Non-transitivity)**: 피어링은 자동으로 '환승'되지 않습니다. 허브-스포크 구조에서 통로를 공유하려면 **Gateway Transit** 옵션을 명시적으로 활성화해야 합니다.
 
-**VNet Peering:**
-- [ ] Hub-Spoke 토폴로지 채택 검토
-- [ ] Gateway Transit으로 게이트웨이 공유
-- [ ] 주소 공간 겹침 사전 검증
-- [ ] 비전이적 특성 고려한 연결 설계
+### ③ 글로벌 인프라 및 성능 (Infrastructure)
+* **Cold Potato 전략**: Microsoft는 트래픽을 최대한 빨리 자신의 백본망으로 끌어들여 끝까지 보호합니다. 이를 통해 공용 인터넷의 혼잡을 피하고 **일관된 저지연(Latency)**을 보장합니다.
+* **SDN & 디지털 트윈**: 소프트웨어 정의 네트워크(SDN)와 **디지털 트윈**(가상 복제 시뮬레이션) 기술을 통해 전 세계 인프라를 무중단으로 안전하게 관리합니다.
+* **Accelerated Networking**: 호스트의 가상 스위치(VFP)를 우회하여 하드웨어(SR-IOV)로 직접 통신합니다. 고성능 워크로드라면 **AN 활성화**는 선택이 아닌 필수입니다.
 
-**글로벌 네트워크 & 호스트 네트워킹:**
-- [ ] Cold Potato vs Hot Potato 라우팅의 성능 차이를 이해하는가
-- [ ] Virtual Switch(VFP)와 Accelerated Networking(SR-IOV)의 데이터 경로 차이 이해
-- [ ] NSG 정책이 호스트 어디에서 평가되는지 아는가
-- [ ] 호스트 유지보수 시 VF → Synthetic 폴백 동작 이해
+---
+
+> **핵심 요약 한 줄 평** > "가장 구체적인 경로(LPM)가 이기고, 명시된 아웃바운드(NAT GW)가 안전하며, 하드웨어 가속(AN)이 성능을 지배합니다."
 
 <br>
 
