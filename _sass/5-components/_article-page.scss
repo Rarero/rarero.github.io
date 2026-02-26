@@ -13,6 +13,11 @@
     grid-template-columns: minmax(0, 1fr) fit-content(28ch);
     column-gap: clamp(12px, 1.4vw, 20px);
     align-items: start;
+
+    > *:not(.c-toc) {
+      grid-column: 1;
+      min-width: 0;
+    }
   }
 }
 
@@ -260,6 +265,7 @@
 
   @media (min-width: 1101px) {
     grid-column: 2;
+    grid-row: 1 / span 999;
     justify-self: end;
     align-self: start;
   }
