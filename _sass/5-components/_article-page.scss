@@ -2,6 +2,12 @@
 	ARTICLE PAGE
 =============== */
 
+:root {
+  --toc-right-offset: clamp(12px, 2vw, 20px);
+  --toc-width: clamp(210px, 18vw, 250px);
+  --toc-reserved-space: calc(var(--toc-width) + var(--toc-right-offset) + clamp(12px, 1.5vw, 24px));
+}
+
 .c-article {
   width: 100%;
   margin: 20px 0;
@@ -12,7 +18,7 @@
   background-color: $white-color;
 
   @media (min-width: 1101px) {
-    margin-right: 280px;
+    margin-right: var(--toc-reserved-space);
   }
 
   p {
@@ -237,8 +243,8 @@
 .c-toc {
   position: fixed;
   top: 100px;
-  right: 20px;
-  width: 250px;
+  right: var(--toc-right-offset);
+  width: var(--toc-width);
   max-height: calc(100vh - 120px);
   overflow-y: auto;
   padding: 15px;
