@@ -24,16 +24,10 @@ categories: Azure_Study
 
 Azure는 트래픽을 분산하는 4가지 서비스를 제공합니다. 이들은 **동작 계층(L4/L7)**과 **분산 범위(리전/글로벌)**에 따라 구분됩니다.
 
-```
-Azure 부하분산 서비스 분류
-
-                 리전(Regional)           글로벌(Global)
-              ┌─────────────────────┬─────────────────────┐
-  L7 (HTTP)   │ Application Gateway │  Azure Front Door   │
-              ├─────────────────────┼─────────────────────┤
-  L4 (TCP/UDP)│ Azure Load Balancer │  Traffic Manager    │
-              └─────────────────────┴─────────────────────┘
-```
+| 계층 | 리전(Regional) | 글로벌(Global) |
+|---|---|---|
+| **L7 (HTTP)** | Application Gateway | Azure Front Door |
+| **L4 (TCP/UDP 또는 DNS)** | Azure Load Balancer | Traffic Manager |
 
 가장 기본적인 L4 로드밸런서부터 시작해서, 점점 더 높은 계층과 넓은 범위로 올라가 보겠습니다.
 
