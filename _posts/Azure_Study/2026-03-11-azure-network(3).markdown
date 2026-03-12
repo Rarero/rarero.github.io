@@ -17,7 +17,7 @@ categories: Azure_Study
 > - **기술/메커니즘(Technology/Mechanism)**: 동작 원리나 프로토콜
 
 <br>
-
+ 
 ---
 
 # 부하분산 서비스: 트래픽을 나눠 담는 기술
@@ -81,7 +81,7 @@ Load Balancer는 프런트엔드 IP의 성격에 따라 **Public**과 **Internal
 | **Frontend IP** | 트래픽이 도착하는 IP (공용 또는 사설) |
 | **Backend Pool** | 트래픽을 수신하는 VM/VMSS/IP 그룹 |
 | **부하분산 규칙** | Frontend IP:Port ↔ Backend Pool:Port 매핑 (TCP/UDP) |
-| **Health Probe** | TCP, HTTP, HTTPS 프로브로 백엔드 상태를 주기적으로 확인. 비정상 인스턴스는 자동으로 풀에서 제외 |
+| **Health Probe** | TCP, HTTP, HTTPS 프로토콜을 지원하며 해당 방식으로 백엔드 상태를 주기적으로 확인. 비정상 인스턴스는 자동으로 풀에서 제외 |
 | **인바운드 NAT 규칙** | 특정 Frontend 포트를 특정 백엔드 VM으로 1:1 매핑 |
 | **아웃바운드 규칙** | 백엔드 VM의 아웃바운드 SNAT 구성 |
 
