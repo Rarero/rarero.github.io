@@ -137,7 +137,7 @@ $(document).ready(function () {
              }
           }
           
-          html += '<li><a href="#' + id + '">' + $this.text() + '</a></li>';
+          html += '<li class="toc-h' + level + '"><a href="#' + id + '">' + $this.text() + '</a></li>';
           prevLevel = level;
        });
        html += '</ul>';

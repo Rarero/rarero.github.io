@@ -286,6 +286,22 @@
         }
       }
 
+      &.toc-h1 > a {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+      }
+      &.toc-h2 > a {
+        font-size: 13px;
+        font-weight: 500;
+        color: #555;
+      }
+      &.toc-h3 > a {
+        font-size: 12px;
+        font-weight: 400;
+        color: #888;
+      }
+
       ul {
         padding-left: 15px;
         margin-top: 5px;
