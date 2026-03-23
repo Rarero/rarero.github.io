@@ -54,7 +54,7 @@ categories: Azure_Study
 2. ACL에 사용자별로 허용할 작업을 명시
 3. 시스템은 ACL을 참조하여 접근을 허가/거부
 
-![dac flow](/images/26-01-15-access-control(1)-dac.png)
+![dac flow](/images/Azure_Study/2026-01-15-access-control(1)/26-01-15-access-control(1)-dac.png)
 
 
 **특징**
@@ -95,7 +95,7 @@ DAC는 사용자의 실수나 악의적 행동에 취약합니다. 사용자가 
 2. 보안 정책(Security Policy)이 레이블 간 접근 규칙 정의
 3. 시스템이 정책을 강제 적용하여 접근 통제
 
-![mac flow](/images/26-01-15-access-control(1)-mac.png)
+![mac flow](/images/Azure_Study/2026-01-15-access-control(1)/26-01-15-access-control(1)-mac.png)
 
 **보안 레이블 체계**
 
@@ -160,7 +160,7 @@ MAC는 주체와 객체에 부여된 보안 등급(Label)을 비교하여 접근
 3. **Permission (권한)**: 특정 객체에 대한 작업 허가
 4. **Session (세션)**: 사용자가 역할을 활성화하는 컨텍스트
 
-![rbac flow](/images/26-01-15-access-control(1)-rbac.png)
+![rbac flow](/images/Azure_Study/2026-01-15-access-control(1)/26-01-15-access-control(1)-rbac.png)
 
 **RBAC 표준 모델 (NIST RBAC)**
 
@@ -272,7 +272,7 @@ Admin:
 
 ABAC는 **정책 엔진(Policy Engine)**이 속성을 평가하여 접근을 결정합니다:
 
-![abac flow](/images/26-01-15-access-control(1)-abac.png)
+![abac flow](/images/Azure_Study/2026-01-15-access-control(1)/26-01-15-access-control(1)-abac.png)
 
 ```
 IF (Subject.department == "Finance" 

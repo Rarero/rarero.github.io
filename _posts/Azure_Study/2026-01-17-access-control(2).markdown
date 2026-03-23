@@ -39,7 +39,7 @@ ACE = {
 3. **검사**: ACL 목록의 최상단부터 하단으로 내려가며 **순차적으로** 규칙(ACE)을 검사합니다.
 4. **결정**: 주체와 일치하는 규칙이 발견되면, 즉시 해당 권한(허용 또는 거부)을 적용하고 **검사를 종료**합니다. (First-match-wins)
 
-![acl flow](/images/26-01-17-access-control(2)-acl.png)
+![acl flow](/images/Azure_Study/2026-01-17-access-control(2)/26-01-17-access-control(2)-acl.png)
 
 **Windows NTFS ACL 예시**
 ```
@@ -128,7 +128,7 @@ Capability = {
 3. **검증**: 시스템은 주체가 누구인지 확인하는 대신, **Capability가 유효한지(서명이 맞는지, 만료되지 않았는지)만 검증**합니다.
 4. **허용**: 검증이 성공하면 토큰에 명시된 작업을 즉시 허용합니다.
 
-![capability flow](/images/26-01-17-access-control(2)-capability.png)
+![capability flow](/images/Azure_Study/2026-01-17-access-control(2)/26-01-17-access-control(2)-capability.png)
 
 
 **ACL vs Capability 비교**
@@ -247,7 +247,7 @@ Capability = {
 2. Policy Engine이 정책 평가
 3. 결과 반환 (true/false 또는 allow/deny)
 
-![pbac flow](/images/26-01-17-access-control(2)-pbac.png)
+![pbac flow](/images/Azure_Study/2026-01-17-access-control(2)/26-01-17-access-control(2)-pbac.png)
 
 **장점**
 - 복잡한 비즈니스 규칙을 선언적으로 표현
