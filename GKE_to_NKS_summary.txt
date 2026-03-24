@@ -1,0 +1,191 @@
+GKE → NKS 전환 사전 확인사항 및 기능 호환성 요약
+================================================
+
+1. 사전 확인 질문 (32개 항목)
+-----------------------------
+
+[클러스터 구성]
+- GKE 클러스터 수 및 작업 모드(Autopilot/Standard) → Autopilot의 암묵적 설정값(리소스 제한, 보안 프로파일, nodeSelector, QoS 등) 파악 필수
+- 노드풀 수, 노드 스펙(vCPU/Memory), 머신 유형
+- Release Channel(Rapid/Regular/Stable/Extended) → 자동 업그레이드 의존 여부 확인
+- 현재 K8s 버전 → NKS 지원 버전 갭에 따른 Deprecated API 이슈
+- Cluster Autoscaler / NAP 사용 여부
+- 멀티 클러스터(Fleet/GKE Enterprise) 사용 여부 → NKS 미지원, 개별 관리로 전환
+- 리전/존 클러스터 구분
+
+[워크로드 및 종속성]
+- 전체 워크로드 목록 (Deployment, StatefulSet, DaemonSet, Job, CronJob)
+- GCP 종속 서비스(Cloud SQL, Pub/Sub, GCS, BigQuery, Memorystore 등) → NCP 매핑 또는 오픈소스 대체
+- Workload Identity 사용 여부 → NKS 미지원, NCP Sub Account + Access Key 전환
+- ConfigMap/Secret 내 GCP 종속 값(프로젝트 ID, 리전, 엔드포인트 등)
+- CRD 및 Operator 사용 여부 → NKS K8s 버전 호환성 확인
+- GPU 워크로드 및 GPU 유형 → NKS GPU 옵션 제한적
+- GKE 자동 주입 사이드카(ASM Istio proxy, Cloud SQL Auth Proxy 등) 및 Mutating Webhook → 수동 전환 필요
+
+[네트워크]
+- VPC, Subnet, Pod CIDR, Service CIDR 설계 → NKS VPC 재설계
+- Ingress 유형(GCE/nginx/Gateway API) → GCE Ingress 미지원, nginx 또는 NCP ALB로 교체
+- NetworkPolicy → Calico 기반(표준 호환, FQDN 정책 비호환)
+- Internal LB 사용 여부 → NCP Private LB로 재설정
+- Cloud DNS / Private DNS Zone → NCP Global DNS 전환
+- VPN / Interconnect / Peering → NCP 네트워크로 재구축
+
+[스토리지]
+- StorageClass 종류 및 PVC 수량 → NKS Block Storage 매핑
+- StatefulSet PV 데이터 크기/건수
+- Filestore(NFS) / GCS FUSE 마운트 → NCP NAS 또는 Object Storage 전환
+
+[CI/CD 및 운영]
+- CI/CD 파이프라인 구성 → NKS 배포 파이프라인 재구성
+- 이미지 저장소(Artifact Registry/GCR) 및 이미지 수량 → NCP Container Registry로 복사
+- Config Sync / Policy Controller → ArgoCD / FluxCD 대체
+- 모니터링/알림 구성(대시보드/알림 개수) → Cloud Insight 또는 Prometheus+Grafana
+- Binary Authorization → Sigstore/Cosign + OPA Gatekeeper 대체
+
+[보안 및 규제]
+- GKE Sandbox(gVisor) / Confidential Nodes → NKS 미지원
+- CMEK 사용 여부 → NKS 암호화 옵션 확인
+- 데이터 보관 규제(개인정보보호법, 금융보안원 등) → NCP CSAP/금융 인증
+- 감사 로그 보존 기간 → NCP Cloud Activity Tracer
+
+
+2. 이관 시 주의사항
+-----------------------------
+
+[K8s 버전]
+- NKS는 버전 업데이트가 느림, kubent로 Deprecated API 사전 점검 필수
+- Beta/Alpha API 사용 시 NKS에서 사용 불가 확률 높음
+
+[GKE 전용 어노테이션 제거]
+- cloud.google.com/neg → 제거
+- cloud.google.com/backend-config → nginx 어노테이션으로 대체
+- networking.gke.io/managed-certificates → cert-manager 또는 NCP Certificate Manager
+- iam.gke.io/gcp-service-account → NCP 인증 방식 전환
+- cloud.google.com/gke-nodepool → NKS 노드풀 레이블로 교체
+- cloud.google.com/load-balancer-type: "Internal" → NCP Private LB 어노테이션
+
+[Ingress]
+- GCE Ingress Controller → 사용 불가
+- GKE Gateway Controller → 사용 불가 (NGINX Gateway Fabric 등 3rd-party 설치 시 Gateway API 자체는 가능)
+- nginx-ingress-controller 직접 배포 또는 NCP ALB 사용
+- Ingress 어노테이션 전면 재작성 필요
+
+[스토리지]
+- GKE PD ↔ NKS Block Storage 직접 마이그레이션 경로 없음
+- 백업 → 복원 방식으로 수동 이전
+- StorageClass 이름/파라미터 완전히 다름, 모든 PVC 매니페스트 수정
+- GCS → NCP Object Storage (S3 호환), SDK/CLI 코드 수정
+
+[IAM]
+- Workload Identity 사용 불가
+- NCP Sub Account + Access Key/Secret Key 기반 인증
+- GCP 서비스 접근 코드 전부 NCP SDK + NCP 인증으로 교체
+- K8s RBAC는 호환, 외부 IdP(Google OAuth) 연동은 재설정
+
+[모니터링/로깅]
+- GKE 자동 수집 → NKS에서는 별도 설정 필요
+- Cloud Insight 기본 연동 범위가 제한적
+- Prometheus + Grafana + Loki(또는 EFK) 직접 구축 권장
+- 기존 알림 규칙 수동 재생성
+
+[DNS 전환]
+- 48시간 전 TTL 60초 이하로 조정
+- Weighted DNS 또는 Blue-Green 전환으로 무중단 이관
+- NKS Health Check 설정 → GKE 자동 롤백 가능하도록
+
+[이미지 레지스트리]
+- Artifact Registry/GCR → NCP Container Registry로 skopeo copy 또는 crane copy
+- 매니페스트 이미지 경로 일괄 변경
+
+
+3. 기능 호환성 비교 (주요 항목)
+-----------------------------
+
+[양측 지원 (O/O)]
+- 관리형 컨트롤 플레인
+- Cluster Autoscaler (NKS는 노드풀 단위)
+- NetworkPolicy 표준 (FQDN 정책은 비호환)
+- Internal Load Balancer → NCP Private LB
+- 블록 스토리지 PV → NCP Block Storage (StorageClass 재설정)
+- 관리형 NFS → NCP NAS (마운트 경로 변경)
+- Volume Snapshot
+- Pod Security Standards (PSS/PSA)
+
+[GKE만 지원, NKS 미지원 (O/X)]
+- Autopilot → NKS Managed 유형으로 일부 대응
+- NAP (Node Auto-provisioning) → 수동 노드풀 구성
+- Release Channel / 자동 업그레이드 → 수동 업그레이드
+- Fleet / Connect Gateway / Connect Agent → 클러스터 개별 관리
+- Config Sync → ArgoCD / FluxCD
+- Policy Controller → OPA Gatekeeper / Kyverno
+- Dataplane V2 (Cilium) → Calico 기반
+- GCE Ingress Controller → nginx-ingress 직접 배포
+- Google 관리형 TLS 인증서 → cert-manager + Let's Encrypt 또는 NCP Certificate Manager
+- Cloud DNS 통합 → NCP Global DNS + ExternalDNS
+- Cloud Armor (WAF) → NCP Security Monitoring 또는 ModSecurity
+- GCS FUSE → s3fs 또는 goofys로 NCP Object Storage 마운트
+- Backup for GKE → Velero
+- Workload Identity → NCP Sub Account + Access Key
+- Binary Authorization → Sigstore/Cosign + OPA Gatekeeper
+- GKE Sandbox (gVisor) → Kata Containers 또는 gVisor 직접 설치 (제한적)
+- Confidential GKE Nodes → NKS 미지원
+- Container-Optimized OS → NKS는 Ubuntu 기반
+- Secret Manager 연동 → NCP KMS 또는 External Secrets Operator
+- Cloud Build → NCP SourceBuild 또는 GitHub Actions / Jenkins
+- Cloud Deploy → ArgoCD / FluxCD / Spinnaker
+- Artifact Registry → NCP Container Registry (이미지만)
+- Cloud Monitoring → NCP Cloud Insight 또는 Prometheus + Grafana
+- Cloud Logging → NCP Cloud Log Analytics 또는 EFK / Loki
+- Cloud Trace → Jaeger / Tempo
+- Managed Prometheus → Prometheus 직접 운영
+- GKE Dashboard → Kubernetes Dashboard 또는 Headlamp / Lens
+- Anthos Service Mesh → Istio / Linkerd 직접 설치
+- Spot Pod → NKS Spot 노드 미지원
+
+[부분 지원 (△)]
+- VPC-native (Alias IP) → NKS도 VPC Subnet 기반 Pod IP 할당으로 유사. 방식 차이 있음
+- Gateway API → GKE Gateway Controller 미지원이나 NGINX Gateway Fabric 등 3rd-party 가능
+- GPU → NKS GPU 옵션 제한적, TPU 미지원
+- Terraform Provider → NCP Provider 기능 제한적
+- 글로벌 리전 → NKS는 한국/싱가포르/일본 등 제한적
+
+
+4. 고객사 사전 인지사항
+-----------------------------
+
+[운영 부담 증가]
+- 노드 관리, K8s 업그레이드, 보안 패치, 모니터링, 인증서, GitOps → 모두 직접 관리로 전환
+- 운영 인력 확보 또는 운영 자동화(IaC, GitOps) 선행 필수
+
+[GCP 대체 불가 서비스]
+- BigQuery → ClickHouse / Spark 직접 구축 또는 NCP Data Forest
+- Cloud Pub/Sub → Kafka 직접 구축 (단순 이벤트만이면 Cloud Functions + API Gateway 검토)
+- Cloud Spanner → CockroachDB / TiDB 직접 구축
+- Anthos Service Mesh → Istio / Linkerd 직접 운영
+- Binary Authorization → Sigstore + OPA Gatekeeper 직접 구축
+- 추가 인프라 + 운영 인력 비용 사전 반영 필요
+
+[마이그레이션 중 서비스 영향]
+- 완전 무중단 가능하나 준비 공수 큼 (Blue-Green + Weighted DNS)
+- DB 이관 시 동기화 지연 구간 발생 가능 → 데이터 정합성 검증 필수
+- 이미지 레지스트리 이전, 매니페스트 변경, DNS 전환 병렬 조율 핵심
+- 롤백 계획 필수. GKE 리소스 최소 2주간 유지
+
+[비용 변화]
+- 컴퓨팅: 유사~소폭 변동
+- 운영 인력/관측성 스택: 증가 가능
+- GCP 미대응 서비스 직접 구축: 증가
+- 네트워크(국내 중심): 감소 가능
+- 환율 리스크: 제거 (원화 결제)
+- 규제 대응: 감소 (CSAP/금융 인증)
+
+[일정]
+- PoC 필수 (1~2개 핵심 워크로드 선행 검증)
+- Dev/Staging → Prod 단계적 전환 (Big Bang 비권장)
+- 안정화 기간 최소 2~4주
+- 롤백 대비 GKE 리소스 최소 2주 유지
+
+[조직 역량]
+- NKS 운영 경험 없으면 교육/핸즈온 선행
+- Prometheus, ArgoCD, Istio 등 오픈소스 직접 운영 역량 필요
+- NCP 기술지원 채널/SLA 사전 확보
