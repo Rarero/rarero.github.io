@@ -5,20 +5,11 @@
 .c-article {
   width: 100%;
   margin: 20px 0;
-
-  @media (min-width: 1101px) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 240px;
-    column-gap: 16px;
-    align-items: start;
-  }
 }
 
 .c-article__content {
   @media (min-width: 1101px) {
-    grid-column: 1;
-    grid-row: 1;
-    min-width: 0;
+    margin-right: 260px;
   }
 }
 
@@ -247,15 +238,12 @@
 /* TOC */
 .c-toc {
   display: none;
-  width: 240px;
 
   @media (min-width: 1101px) {
     display: block;
-    grid-column: 2;
-    grid-row: 1;
-    position: sticky;
+    position: fixed;
+    right: 0;
     top: 100px;
-    align-self: start;
     width: 240px;
     max-height: calc(100vh - 120px);
     overflow-y: auto;
